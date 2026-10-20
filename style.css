@@ -303,8 +303,11 @@ details.entry[open] summary{border-bottom:2px solid var(--cream2)}
 .card .close.save-star{margin:-8px 16px 0 8px;font-size:26px;color:#b98512;padding:0}
 .save-star.on{background:#fff1c2;border-color:#b98512}
 .save-star:active{transform:scale(.92)}
+<<<<<<< HEAD
 
 /* Nút × và ngôi sao nhỏ gọn hơn */
 .card .close{width:36px;height:36px;font-size:22px;margin:-4px -2px 0 8px}
 .card .close.save-star{margin:-4px 12px 0 8px;font-size:20px}
 .card h2{margin-right:0}
+=======
+>>>>>>> b3ef4449e1dfdc6c1eaa6619db36cfe97d014420
