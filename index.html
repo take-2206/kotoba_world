@@ -1,196 +1,490 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#2b1a0e">
-<title>kotoba world – Học tiếng Anh và tiếng Nhật</title>
-<link rel="stylesheet" href="style.css">
-</head>
-<body>
-<noscript><p class="noscript">Game cần bật JavaScript để chơi.</p></noscript>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <meta name="theme-color" content="#2b1a0e" />
+    <title>kotoba world – Học tiếng Anh và tiếng Nhật</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <noscript
+      ><p class="noscript">Game cần bật JavaScript để chơi.</p></noscript
+    >
 
-<!-- Màn hình bắt đầu -->
-<section id="start" class="screen" aria-labelledby="start-title">
-  <img class="start-bg" src="assets/start-garden.jpg" alt="" draggable="false">
-  <div class="start-inner">
-    <div class="start-head">
-      <h1 id="start-title">kotoba world</h1>
-      <p>Học tiếng Anh và tiếng Nhật qua từng căn phòng</p>
-    </div>
-    <div class="start-actions">
-      <button type="button" class="start-btn go" id="btn-start">Bắt đầu</button>
-      <button type="button" class="start-btn" id="btn-rules">Luật chơi</button>
-    </div>
-  </div>
-</section>
+    <!-- Màn hình bắt đầu -->
+    <section id="start" class="screen" aria-labelledby="start-title">
+      <img
+        class="start-bg"
+        src="assets/start-garden.jpg"
+        alt=""
+        draggable="false"
+      />
+      <div class="start-inner">
+        <div class="start-head">
+          <h1 id="start-title">kotoba world</h1>
+          <p>Học tiếng Anh và tiếng Nhật qua từng căn phòng</p>
+        </div>
+        <div class="start-actions">
+          <button type="button" class="start-btn go" id="btn-start">
+            Bắt đầu
+          </button>
+          <button type="button" class="start-btn" id="btn-settings">
+            Cài đặt
+          </button>
+        </div>
+      </div>
+    </section>
 
-<!-- Chọn phòng -->
-<section id="rooms" class="screen" hidden aria-labelledby="rooms-title">
-  <div class="rooms-wrap">
-    <header class="rooms-head">
-      <button type="button" class="pill pill-btn" id="rooms-back">‹ Trang chủ</button>
-      <h2 id="rooms-title">Chọn phòng</h2>
-      <button type="button" class="pill pill-btn right shop-open" id="btn-shop" aria-label="Mở cửa hàng tạp hóa"><span class="cart" aria-hidden="true">🛒</span><span class="shop-lbl">Mua sắm</span></button>
-    </header>
-    <p class="rooms-tip">Học đủ từ trong mỗi phòng để mở khóa phòng tiếp theo.</p>
-    <div id="room-list" class="room-list"></div>
-  </div>
-</section>
+    <!-- Chọn nhân vật (lần đầu chơi) -->
+    <section
+      id="charpick"
+      class="screen"
+      hidden
+      aria-labelledby="charpick-title"
+    >
+      <div class="charpick-wrap">
+        <button type="button" class="pill pill-btn" id="charpick-back">
+          ‹ Trang chủ
+        </button>
+        <h2 id="charpick-title">Chọn nhân vật của bạn</h2>
+        <p class="rooms-tip">
+          Nhân vật sẽ cùng bạn đi mua sắm ở tiệm tạp hóa. Bạn có thể đổi lại
+          trong Cài đặt.
+        </p>
+        <div class="char-grid">
+          <button type="button" class="char-card" data-char="boy">
+            <img src="assets/boy.png" alt="" draggable="false" /><b>cu đen</b>
+          </button>
+          <button type="button" class="char-card" data-char="girl">
+            <img src="assets/girl.png" alt="" draggable="false" /><b>bé na</b>
+          </button>
+        </div>
+      </div>
+    </section>
 
-<!-- Cửa hàng tạp hóa -->
-<section id="shop" class="screen" hidden aria-labelledby="shop-title">
-  <h2 id="shop-title" class="sr-only">Tạp hóa</h2>
-  <div id="shop-view">
-    <div id="shop-stage">
-      <img class="shop-bg" id="shop-bg" src="assets/shop-background.jpg" alt="Tiệm tạp hóa bán bánh kẹo và đồ uống" draggable="false">
-      <div id="shop-spots"></div>
-    </div>
-  </div>
-  <header class="shop-top">
-    <button type="button" class="pill pill-btn" id="shop-back">‹ Phòng</button>
-    <div class="pill" id="shop-wallet"><span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu</div>
-  </header>
-  <div class="shop-hint">Chạm vào món hàng để mua</div>
+    <!-- Chọn phòng -->
+    <section id="rooms" class="screen" hidden aria-labelledby="rooms-title">
+      <div class="rooms-wrap">
+        <header class="rooms-head">
+          <button type="button" class="pill pill-btn" id="rooms-back">
+            ‹ Trang chủ
+          </button>
+          <h2 id="rooms-title">Chọn phòng</h2>
+          <button
+            type="button"
+            class="pill pill-btn right shop-open"
+            id="btn-shop"
+            aria-label="Mở cửa hàng tạp hóa"
+          >
+            <img
+              class="cart-ico"
+              src="assets/basket.png"
+              alt=""
+              draggable="false"
+            /><span class="shop-lbl">Mua sắm</span>
+          </button>
+        </header>
+        <p class="rooms-tip">
+          Học đủ từ trong mỗi phòng để mở khóa phòng tiếp theo.
+        </p>
+        <div id="room-list" class="room-list"></div>
+      </div>
+    </section>
 
-  <div id="buy-dialog" class="buy-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="buy-name">
-    <div class="buy-card">
-      <div class="buy-pic"><img id="buy-img" src="" alt="" draggable="false"></div>
-      <h3 id="buy-name"></h3>
-      <p class="buy-price"><span class="coin"></span><b id="buy-price"></b>&nbsp;xu</p>
-      <p class="buy-note" id="buy-note"></p>
-      <div class="row">
-        <button type="button" class="secondary" id="buy-cancel">Hủy</button>
-        <button type="button" class="primary" id="buy-ok">Mua</button>
+    <!-- Cửa hàng tạp hóa -->
+    <section id="shop" class="screen" hidden aria-labelledby="shop-title">
+      <h2 id="shop-title" class="sr-only">Tạp hóa</h2>
+      <div id="shop-view">
+        <div id="shop-stage">
+          <img
+            class="shop-bg"
+            id="shop-bg"
+            src="assets/shop-background.jpg"
+            alt="Tiệm tạp hóa bán bánh kẹo và đồ uống"
+            draggable="false"
+          />
+          <div id="shop-spots"></div>
+        </div>
+      </div>
+      <header class="shop-top">
+        <button type="button" class="pill pill-btn" id="shop-back">
+          ‹ Phòng
+        </button>
+        <div class="pill" id="shop-wallet">
+          <span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu
+        </div>
+      </header>
+      <img id="shop-char" class="shop-char" alt="" draggable="false" hidden />
+      <div class="shop-hint">Chạm vào món hàng để mua</div>
+
+      <div
+        id="buy-dialog"
+        class="buy-overlay"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="buy-name"
+      >
+        <div class="buy-card">
+          <div class="buy-pic">
+            <img id="buy-img" src="" alt="" draggable="false" />
+          </div>
+          <h3 id="buy-name"></h3>
+          <p class="buy-price">
+            <span class="coin"></span><b id="buy-price"></b>&nbsp;xu
+          </p>
+          <p class="buy-note" id="buy-note"></p>
+          <div class="row">
+            <button type="button" class="secondary" id="buy-cancel">Hủy</button>
+            <button type="button" class="primary" id="buy-ok">Mua</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div id="game" hidden>
+      <main id="viewport">
+        <div id="stage">
+          <img
+            id="bg"
+            src="assets/kitchen-background.png"
+            alt="Căn bếp quê Việt Nam"
+            draggable="false"
+          />
+          <div id="spots"></div>
+        </div>
+      </main>
+
+      <header class="hud top">
+        <button class="pill pill-btn" id="btn-rooms" type="button">
+          ‹ Phòng
+        </button>
+        <div class="pill">
+          <span class="coin"></span><b id="coins">0</b
+          ><span class="unit">&nbsp;xu</span>
+        </div>
+        <div class="pill">
+          <span class="lbl">Đã học </span><b id="room-learned">0</b>/<span
+            id="room-need"
+            >0</span
+          >
+        </div>
+
+        <button
+          class="pill pill-btn right"
+          id="btn-box"
+          type="button"
+          aria-label="lưu trữ "
+        >
+          <span class="box-ico" aria-hidden="true">📦</span
+          ><b class="box-count" id="box-count" hidden>0</b>
+        </button>
+
+        <button
+          class="pill pill-btn"
+          id="btn-notebook"
+          type="button"
+          aria-label="Sổ tay từ vựng"
+        >
+          <img class="nb-ico" src="assets/notebook.png" alt="" />
+        </button>
+      </header>
+
+      <nav class="hud bottom">
+        <button class="act" id="btn-find" type="button">Tìm đồ vật</button>
+        <button class="act" id="btn-zoom" type="button">Phóng to</button>
+        <button class="act alt" id="btn-quests" type="button">
+          Nhiệm vụ <b id="quest-mini">0/2</b>
+        </button>
+      </nav>
+
+      <div id="hint" class="hint" hidden>
+        Vuốt ngang để đi quanh căn bếp. Chạm vào đồ vật để học từ.
+      </div>
+      <div id="bg-error" class="bg-error" hidden>
+        <p>
+          <b>Không tải được ảnh nền.</b><br />Hãy đặt ảnh căn bếp vào
+          <code>assets/kitchen-background.png</code>, rồi mở lại trang. Nếu mở
+          trực tiếp file, thử chạy bằng máy chủ cục bộ (xem README).
+        </p>
       </div>
     </div>
-  </div>
-</section>
+    <!-- /#game -->
 
-<div id="game" hidden>
+    <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
-<main id="viewport">
-  <div id="stage">
-    <img id="bg" src="assets/kitchen-background.png" alt="Căn bếp quê Việt Nam" draggable="false">
-    <div id="spots"></div>
-  </div>
-</main>
-
-<header class="hud top">
-  <button class="pill pill-btn" id="btn-rooms" type="button">‹ Phòng</button>
-  <div class="pill"><span class="coin"></span><b id="coins">0</b><span class="unit">&nbsp;xu</span></div>
-  <div class="pill"><span class="lbl">Đã học </span><b id="room-learned">0</b>/<span id="room-need">0</span></div>
-
-  
-  <button class="pill pill-btn right" id="btn-box" type="button" aria-label="lưu trữ "><span class="box-ico" aria-hidden="true">📦</span><b class="box-count" id="box-count" hidden>0</b></button>
-
-  <button class="pill pill-btn" id="btn-notebook" type="button" aria-label="Sổ tay từ vựng"><img class="nb-ico" src="assets/notebook.png" alt=""></button>
-</header>
-
-<nav class="hud bottom">
-  <button class="act" id="btn-find" type="button">Tìm đồ vật</button>
-  <button class="act" id="btn-zoom" type="button">Phóng to</button>
-  <button class="act alt" id="btn-quests" type="button">Nhiệm vụ <b id="quest-mini">0/2</b></button>
-</nav>
-
-<div id="hint" class="hint" hidden>Vuốt ngang để đi quanh căn bếp. Chạm vào đồ vật để học từ.</div>
-<div id="bg-error" class="bg-error" hidden>
-  <p><b>Không tải được ảnh nền.</b><br>Hãy đặt ảnh căn bếp vào <code>assets/kitchen-background.png</code>, rồi mở lại trang. Nếu mở trực tiếp file, thử chạy bằng máy chủ cục bộ (xem README).</p>
-</div>
-</div><!-- /#game -->
-
-<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
-
-<!-- Luật chơi -->
-<div id="rules" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="rules-title">
-  <div class="card">
-    <button class="close" id="rules-close" type="button" aria-label="Đóng">×</button>
-    <h2 id="rules-title">Luật chơi</h2>
-    <ol class="rules-list">
-      <li>Chọn một phòng rồi chạm vào đồ vật. Vuốt ngang để đi quanh phòng, nút “Tìm đồ vật” sẽ chấm vàng những đồ chưa khám phá.</li>
-      <li>Gõ đúng từ tiếng Anh hoặc tiếng Nhật của đồ vật để nhận <b>10 xu</b> (mỗi đồ vật chỉ nhận xu một lần).</li>
-      <li>Gõ sai không bị trừ xu, còn được gợi ý.</li>
-      <li>Mỗi phòng cần học đúng khoảng <b>ba phần tư</b> số đồ vật. Con số cụ thể hiện ở góc trên màn hình (“Đã học 3/20”).</li>
-      <li>Hoàn thành phòng sẽ được thưởng <b>50 xu</b> và mở khóa phòng tiếp theo. Phòng chưa mở sẽ bị khóa.</li>
-      <li>Nhiệm vụ hằng ngày cho thêm xu và làm mới mỗi ngày.</li>
-    </ol>
-    <button type="button" class="primary full" id="rules-ok">Đã hiểu</button>
-  </div>
-</div>
-
-<!-- Hoàn thành phòng -->
-<div id="done" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="done-title">
-  <div class="card">
-    <h2 id="done-title"></h2>
-    <p class="done-text" id="done-text"></p>
-    <div class="row">
-      <button type="button" class="primary" id="done-next"></button>
-      <button type="button" class="secondary" id="done-stay">Ở lại phòng</button>
-    </div>
-  </div>
-</div>
-
-<!-- Cửa sổ học từ -->
-<div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
-  <div class="card">
-    <button class="close" id="sheet-close" type="button" aria-label="Đóng">×</button>
-    <button class="close save-star" id="save-word" type="button" aria-label="Lưu vào hộp" aria-pressed="false" title="Lưu vào hộp">☆</button>
-    <h2 id="sheet-title"></h2>
-    <div class="tabs" role="tablist">
-      <button type="button" role="tab" data-lang="en" id="tab-en">English</button>
-      <button type="button" role="tab" data-lang="ja" id="tab-ja">日本語</button>
-    </div>
-    <p id="prompt" class="prompt"></p>
-    <form id="answer-form" autocomplete="off">
-      <input id="answer" type="text" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" enterkeyhint="done" aria-label="Từ vựng">
-      <div class="row">
-        <button type="submit" class="primary">Kiểm tra</button>
-        <button type="button" class="secondary" id="later">Để sau</button>
+    <!-- Luật chơi -->
+    <div
+      id="settings"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+    >
+      <div class="card">
+        <button
+          class="close"
+          id="settings-close"
+          type="button"
+          aria-label="Đóng"
+        >
+          ×
+        </button>
+        <h2 id="settings-title">Cài đặt</h2>
+        <h3 class="set-h" id="mode-label">Chế độ học</h3>
+        <div
+          class="mode-list"
+          id="mode-list"
+          role="radiogroup"
+          aria-labelledby="mode-label"
+        >
+          <button
+            type="button"
+            role="radio"
+            class="mode-opt"
+            data-mode="en"
+            aria-checked="false"
+          >
+            <b>Học tiếng Anh</b><small>Chỉ nhập từ tiếng Anh</small>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            class="mode-opt"
+            data-mode="ja"
+            aria-checked="false"
+          >
+            <b>Học tiếng Nhật</b><small>Chỉ nhập từ tiếng Nhật (日本語)</small>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            class="mode-opt"
+            data-mode="both"
+            aria-checked="false"
+          >
+            <b>Học cả hai</b><small>Có cả hai tab English và 日本語</small>
+          </button>
+        </div>
+        <h3 class="set-h" id="char-label">Nhân vật</h3>
+        <div
+          class="char-list"
+          id="char-list"
+          role="radiogroup"
+          aria-labelledby="char-label"
+        >
+          <button
+            type="button"
+            role="radio"
+            class="char-opt"
+            data-char="boy"
+            aria-checked="false"
+          >
+            <img src="assets/boy.png" alt="" draggable="false" /><b>Cu đen</b>
+          </button>
+          <button
+            type="button"
+            role="radio"
+            class="char-opt"
+            data-char="girl"
+            aria-checked="false"
+          >
+            <img src="assets/girl.png" alt="" draggable="false" /><b>bé na</b>
+          </button>
+        </div>
+        <details class="rules-fold">
+          <summary>Luật chơi</summary>
+          <ol class="rules-list">
+            <li>
+              Chọn một phòng rồi chạm vào đồ vật. Vuốt ngang để đi quanh phòng,
+              nút “Tìm đồ vật” sẽ chấm vàng những đồ chưa khám phá.
+            </li>
+            <li>
+              Gõ đúng từ của đồ vật (tiếng Anh, tiếng Nhật hoặc cả hai, tùy chế
+              độ học trong Cài đặt) để nhận <b>10 xu</b> (mỗi đồ vật chỉ nhận xu
+              một lần).
+            </li>
+            <li>Gõ sai không bị trừ xu, còn được gợi ý.</li>
+            <li>
+              Mỗi phòng cần học đúng khoảng <b>ba phần tư</b> số đồ vật. Con số
+              cụ thể hiện ở góc trên màn hình (“Đã học 3/20”).
+            </li>
+            <li>
+              Hoàn thành phòng sẽ được thưởng <b>50 xu</b> và mở khóa phòng tiếp
+              theo. Phòng chưa mở sẽ bị khóa.
+            </li>
+            <li>Nhiệm vụ hằng ngày cho thêm xu và làm mới mỗi ngày.</li>
+          </ol>
+        </details>
+        <button type="button" class="primary full" id="settings-ok">
+          Xong
+        </button>
       </div>
-    </form>
-    <div id="feedback" role="status" aria-live="polite"></div>
-  </div>
-</div>
+    </div>
 
-<!-- Sổ tay từ vựng -->
-<div id="notebook" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="nb-title">
-  <div class="card tall">
-    <button class="close" id="nb-close" type="button" aria-label="Đóng">×</button>
-    <h2 id="nb-title"><img class="nb-ico big" src="assets/notebook.png" alt="">Sổ tay từ vựng</h2>
-    <div class="chips" id="nb-chips"></div>
-    <p class="stats" id="nb-stats"></p>
-    <p class="tip">Chạm vào từng đồ vật để xem đầy đủ từ vựng. Xem sổ tay không được xu: tự nhập đúng trong game mới nhận xu.</p>
-    <div id="nb-list"></div>
-  </div>
-</div>
+    <!-- Hoàn thành phòng -->
+    <div
+      id="done"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="done-title"
+    >
+      <div class="card">
+        <h2 id="done-title"></h2>
+        <p class="done-text" id="done-text"></p>
+        <div class="row">
+          <button type="button" class="primary" id="done-next"></button>
+          <button type="button" class="secondary" id="done-stay">
+            Ở lại phòng
+          </button>
+        </div>
+      </div>
+    </div>
 
-<!-- Hộp từ đã lưu -->
-<div id="box" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="box-title">
-  <div class="card tall">
-    <button class="close" id="box-close" type="button" aria-label="Đóng">×</button>
-    <h2 id="box-title"><span class="box-ico big" aria-hidden="true">📦</span>Hộp từ đã lưu</h2>
-    <p class="stats" id="box-stats"></p>
-    <p class="tip">Chạm vào từng từ để xem đáp án và tự kiểm tra lại. Từ nào đã nhớ rồi thì dọn khỏi hộp.</p>
-    <button type="button" class="secondary box-clean" id="box-clean" hidden>Dọn các từ đã nhớ</button>
-    <div id="box-list"></div>
-  </div>
-</div>
+    <!-- Cửa sổ học từ -->
+    <div
+      id="sheet"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sheet-title"
+    >
+      <div class="card">
+        <button class="close" id="sheet-close" type="button" aria-label="Đóng">
+          ×
+        </button>
+        <button
+          class="close save-star"
+          id="save-word"
+          type="button"
+          aria-label="Lưu vào hộp"
+          aria-pressed="false"
+          title="Lưu vào hộp"
+        >
+          ☆
+        </button>
+        <h2 id="sheet-title"></h2>
+        <div class="tabs" role="tablist">
+          <button type="button" role="tab" data-lang="en" id="tab-en">
+            English
+          </button>
+          <button type="button" role="tab" data-lang="ja" id="tab-ja">
+            日本語
+          </button>
+        </div>
+        <p id="prompt" class="prompt"></p>
+        <form id="answer-form" autocomplete="off">
+          <input
+            id="answer"
+            type="text"
+            autocapitalize="off"
+            autocorrect="off"
+            autocomplete="off"
+            spellcheck="false"
+            enterkeyhint="done"
+            aria-label="Từ vựng"
+          />
+          <div class="row">
+            <button type="submit" class="primary">Kiểm tra</button>
+            <button type="button" class="secondary" id="later">Để sau</button>
+          </div>
+        </form>
+        <div id="feedback" role="status" aria-live="polite"></div>
+      </div>
+    </div>
 
-<!-- Bảng nhiệm vụ -->
-<div id="quests" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="quests-title">
-  <div class="card">
-    <button class="close" id="quests-close" type="button" aria-label="Đóng">×</button>
-    <h2 id="quests-title">Nhiệm vụ hôm nay</h2>
-    <div id="quest-list"></div>
-    <p class="stats" id="stats"></p>
-    <button type="button" class="secondary danger" id="btn-reset">Xóa tiến trình</button>
-  </div>
-</div>
+    <!-- Sổ tay từ vựng -->
+    <div
+      id="notebook"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="nb-title"
+    >
+      <div class="card tall">
+        <button class="close" id="nb-close" type="button" aria-label="Đóng">
+          ×
+        </button>
+        <h2 id="nb-title">
+          <img class="nb-ico big" src="assets/notebook.png" alt="" />Sổ tay từ
+          vựng
+        </h2>
+        <div class="chips" id="nb-chips"></div>
+        <p class="stats" id="nb-stats"></p>
+        <p class="tip">
+          Chạm vào từng đồ vật để xem đầy đủ từ vựng. Xem sổ tay không được xu:
+          tự nhập đúng trong game mới nhận xu.
+        </p>
+        <div id="nb-list"></div>
+      </div>
+    </div>
 
-<script src="vocab.js"></script>
-<script src="game.js"></script>
-</body>
+    <!-- Hộp từ đã lưu -->
+    <div
+      id="box"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="box-title"
+    >
+      <div class="card tall">
+        <button class="close" id="box-close" type="button" aria-label="Đóng">
+          ×
+        </button>
+        <h2 id="box-title">
+          <span class="box-ico big" aria-hidden="true">📦</span>Hộp từ đã lưu
+        </h2>
+        <p class="stats" id="box-stats"></p>
+        <p class="tip">
+          Chạm vào từng từ để xem đáp án và tự kiểm tra lại. Từ nào đã nhớ rồi
+          thì dọn khỏi hộp.
+        </p>
+        <button type="button" class="secondary box-clean" id="box-clean" hidden>
+          Dọn các từ đã nhớ
+        </button>
+        <div id="box-list"></div>
+      </div>
+    </div>
+
+    <!-- Bảng nhiệm vụ -->
+    <div
+      id="quests"
+      class="sheet"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="quests-title"
+    >
+      <div class="card">
+        <button class="close" id="quests-close" type="button" aria-label="Đóng">
+          ×
+        </button>
+        <h2 id="quests-title">Nhiệm vụ hôm nay</h2>
+        <div id="quest-list"></div>
+        <p class="stats" id="stats"></p>
+        <button type="button" class="secondary danger" id="btn-reset">
+          Xóa tiến trình
+        </button>
+      </div>
+    </div>
+
+    <script src="vocab.js"></script>
+    <script src="game.js"></script>
+  </body>
 </html>
