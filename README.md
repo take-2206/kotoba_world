@@ -1,35 +1,183 @@
-# Bếp Quê – game học tiếng Anh và tiếng Nhật
+# 🌾 Bếp Quê — Learn English & Japanese
 
-HTML, CSS và JavaScript thuần, không thư viện, không máy chủ, không tài khoản.
+> **Explore the charm of Vietnamese countryside life, learn new vocabulary, earn coins, and treat yourself to your favorite snacks!**
 
-## Cấu trúc
-- `index.html` – cấu trúc game
-- `style.css` – giao diện
-- `game.js` – chạm đồ vật, kiểm tra đáp án, xu, nhiệm vụ, lưu tiến trình
-- `vocab.js` – danh sách phòng `ROOMS`, 86 đồ vật (26 nhà bếp, 31 phòng khách, 29 phòng ngủ); chỉnh vùng chạm ở trường `rects` (pixel của ảnh gốc 1672×941)
-- `assets/start-garden.jpg` – ảnh màn hình bắt đầu
-- `assets/kitchen-background.png`, `assets/living-room.png`, `assets/bedroom.png` – ảnh nền các phòng, không chỉnh sửa
+**Bếp Quê** is a language-learning game that helps players learn English and Japanese vocabulary by exploring familiar objects found in a Vietnamese home. Discover objects, type their names correctly, collect coins, and unlock new rooms as you progress.
 
-## Chạy trên máy tính
-Cách 1: nhấp đúp `index.html`.
-Cách 2 (khuyên dùng): mở Terminal trong thư mục game, chạy `python3 -m http.server 8000`, rồi vào http://localhost:8000.
-Thêm `?debug` vào địa chỉ (ví dụ `http://localhost:8000/?debug`) để thấy khung vùng chạm khi cần chỉnh vị trí.
+---
 
-## Đưa lên web miễn phí để chơi trên iPhone
-**Netlify Drop (nhanh nhất):** vào https://app.netlify.com/drop, kéo cả thư mục game vào trang, nhận một đường link dạng `https://ten-ngau-nhien.netlify.app`. Mở link đó trên Safari iPhone.
-**GitHub Pages:** tạo repository công khai, tải toàn bộ file lên, vào Settings › Pages, chọn nhánh `main` và thư mục `/ (root)`, đợi 1–2 phút rồi mở `https://TEN-BAN.github.io/TEN-REPO/`.
+## ✨ Features
 
-Mẹo iPhone: bấm nút Chia sẻ trong Safari, chọn "Thêm vào Màn hình chính" để mở toàn màn hình như một ứng dụng.
+- 🏡 **Explore Rooms:** Discover everyday objects by tapping and swiping around each room.
+- 📚 **Learn Two Languages:** Practice English and Japanese vocabulary through interactive gameplay.
+- 🪙 **Earn Coins:** Answer correctly to collect coins and buy your favorite snacks.
+- 🔓 **Unlock New Rooms:** Complete room challenges to explore new spaces.
+- 📖 **Vocabulary Notebook:** Review words you have answered correctly, organized by category.
+- 🎯 **Daily Missions:** Complete daily challenges to earn extra coins.
+- 📱 **iPhone Support:** Deploy the game for free on the web and add it to your iPhone Home Screen.
 
-## Gõ tiếng Nhật
-Bật bàn phím tiếng Nhật: Cài đặt › Cài đặt chung › Bàn phím › Bàn phím › Thêm bàn phím mới › Tiếng Nhật.
+## 🎮 How to Play
 
-## Sổ tay từ vựng
-Nút "Sổ tay" ở góc trên bên phải, chia từ theo nhóm (Nhà bếp, Phòng ăn, Sân vườn). Chỉ những từ bạn đã trả lời đúng mới hiện trong sổ tay. Muốn thêm nhóm mới (ví dụ Phòng khách), thêm một mục vào `CATEGORIES` ở cuối `vocab.js`.
+1. **Choose a room** and tap an object to explore it. Swipe horizontally to look around.
+2. **Find hidden objects:** Use the “Find Objects” button to highlight undiscovered items.
+3. **Type the correct word:** Enter the object's name in English or Japanese to earn coins.
+4. **Review your vocabulary:** Open the notebook to revisit words you have answered correctly.
+5. **Complete a room:** Answer correctly for at least 75% of the objects to earn **50 coins** and unlock the next room.
+6. **Complete daily missions:** Earn extra coins and spend them on delicious snacks!
 
-## Màn hình bắt đầu và mở khóa phòng
-Mở game sẽ thấy màn hình bắt đầu với hai nút **Bắt đầu** và **Luật chơi**. Bấm Bắt đầu để chọn phòng. Phòng sau bị khóa cho đến khi hoàn thành phòng trước.
-- Hoàn thành một phòng = trả lời đúng (tiếng Anh hoặc tiếng Nhật) ít nhất 75% số đồ vật của phòng. Chỉnh tỉ lệ ở `ROOM_RATIO` đầu `game.js`; thưởng hoàn thành phòng ở `ROOM_BONUS` (mặc định 50 xu).
-- Thứ tự phòng là thứ tự trong `ROOMS` (`vocab.js`). Thêm phòng mới: thêm ảnh 1672×941 vào `assets/`, thêm một mục vào `ROOMS`, rồi thêm đồ vật bằng `makeItem(..., 'id-phong')` (xem hàm `L(...)` của phòng khách hoặc `B(...)` của phòng ngủ). Thêm nhóm sổ tay tương ứng vào `CATEGORIES` với trường `room`.
-- Sổ tay chỉ hiện từ của những phòng đã mở khóa.
-- Người chơi cũ: nếu đã học đủ từ ở nhà bếp thì phòng khách tự mở.
+## 🛠️ Technologies
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+
+No external libraries, backend server, or player account is required.
+
+## 📂 Project Structure
+
+```text
+bep-que/
+├── index.html
+├── style.css
+├── game.js
+├── vocab.js
+└── assets/
+    ├── start-garden.jpg
+    ├── kitchen-background.png
+    ├── living-room.png
+    └── bedroom.png
+```
+
+| File | Description |
+|---|---|
+| `index.html` | Game structure and interface elements |
+| `style.css` | Visual design, layout, and effects |
+| `game.js` | Game interactions, answer validation, coins, missions, and progress |
+| `vocab.js` | Room definitions, vocabulary, objects, and interactive hitboxes |
+| `assets/` | Background images and visual assets |
+
+### 📚 Vocabulary Collection
+
+The game currently includes **86 objects across 3 rooms**.
+
+| Room | Number of Objects |
+|---|---:|
+| 🍳 Kitchen | 26 |
+| 🛋️ Living Room | 31 |
+| 🛏️ Bedroom | 29 |
+| **Total** | **86** |
+
+Each object's interactive area is defined in the `rects` field, using pixel coordinates based on the original background image size of **1672 × 941 px**.
+
+## 💻 Running the Game Locally
+
+### Option 1 — Open Directly
+
+Double-click `index.html` to open the game in your browser.
+
+### Option 2 — Start a Local Server (Recommended)
+
+Open a terminal in the project directory and run:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then visit:
+
+[http://localhost:8000](http://localhost:8000)
+
+### 🐛 Debug Mode
+
+Add `?debug` to the URL to display the interactive hitboxes. This helps you adjust object positions when developing or adding new objects.
+
+```text
+http://localhost:8000/?debug
+```
+
+## 🌐 Deploy for Free
+
+### Option 1 — Netlify Drop
+
+The quickest way to publish your game online.
+
+1. Visit [Netlify Drop](https://app.netlify.com/drop).
+2. Drag and drop the entire game folder onto the page.
+3. Wait for deployment to finish and receive your website URL.
+4. Open the link on your computer or iPhone to play.
+
+### Option 2 — GitHub Pages
+
+1. Create a public repository on [GitHub](https://github.com/).
+2. Upload all project files and folders.
+3. Open **Settings → Pages**.
+4. Select the `main` branch and the `/ (root)` directory.
+5. Wait for deployment to complete, then open your published website.
+
+Your URL will typically look like this:
+
+```text
+https://take-2206.github.io/kotoba_world/
+```
+
+### 📱 Playing on iPhone
+
+1. Open the published game URL in Safari.
+2. Tap the **Share** button.
+3. Select **Add to Home Screen**.
+4. Launch the game from the new Home Screen icon for convenient access.
+
+## 🇯🇵 Typing Japanese
+
+To enter Japanese vocabulary on an iPhone, enable the Japanese keyboard:
+
+**Settings → General → Keyboard → Keyboards → Add New Keyboard → Japanese.**
+
+Switch to the Japanese keyboard whenever you need to enter Japanese answers.
+
+## 📖 Vocabulary Notebook
+
+The **Notebook** button is located in the upper-right corner of the game interface.
+
+It stores words that players have answered correctly and organizes them into categories for easier review.
+
+To add a new category, such as **Living Room**, add an entry to the `CATEGORIES` array at the end of `vocab.js`, including its corresponding `room` field.
+
+The notebook only displays vocabulary from rooms that have been unlocked.
+
+## 🔓 Room Completion and Unlocking
+
+- **Completion requirement:** Correctly answer at least 75% of the objects in a room.
+- **Completion reward:** 50 coins by default.
+- **Unlock order:** Rooms follow the order defined in the `ROOMS` array in `vocab.js`.
+- **Existing players:** Players who have already learned enough vocabulary in the Kitchen may have the Living Room unlocked automatically through the existing compatibility logic.
+
+You can adjust the following settings near the beginning of `game.js`:
+
+- `ROOM_RATIO` — the percentage of correct answers required to complete a room.
+- `ROOM_BONUS` — the number of coins awarded for completing a room.
+
+## ➕ Expanding the Project
+
+### Adding a New Room
+
+1. Add the new background image to the `assets/` directory. Use an image size of **1672 × 941 px**.
+2. Add the room definition to the `ROOMS` array in `vocab.js`.
+3. Define the room's objects using `makeItem(...)` and follow the existing data structure.
+4. Add the corresponding category to `CATEGORIES` so the new vocabulary appears in the notebook.
+5. Test and adjust the interactive hitboxes using debug mode.
+
+Refer to the existing `L(...)` helper for the Living Room and `B(...)` helper for the Bedroom to follow the current implementation.
+
+## 💾 Data and Privacy
+
+Bếp Quê is designed to run directly in the browser without requiring a player account or backend connection.
+
+Game progress is stored using the persistence mechanism implemented in the current game. Progress may not automatically synchronize across different devices or browsers.
+
+## 🌱 Project Vision
+
+Bếp Quê aims to make language learning more engaging, visual, and accessible by combining English and Japanese vocabulary practice with familiar scenes inspired by everyday Vietnamese life.
+
+**Learn new words. Explore every room. Earn coins. Enjoy learning every day!** 🌾
+
