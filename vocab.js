@@ -16,7 +16,9 @@ const ROOMS = [
   { id: 'bep', name: 'Nhà bếp', img: 'assets/kitchen-background.png', alt: 'Căn bếp quê Việt Nam',
     desc: 'Nồi, chảo, bát đũa và những món đồ quen thuộc.' },
   { id: 'khach', name: 'Phòng khách', img: 'assets/living-room.png', alt: 'Phòng khách nhà quê Việt Nam',
-    desc: 'Bộ ghế gỗ, bàn trà, tivi và bàn thờ.' }
+    desc: 'Bộ ghế gỗ, bàn trà, tivi và bàn thờ.' },
+  { id: 'ngu', name: 'Phòng ngủ', img: 'assets/bedroom.png', alt: 'Phòng ngủ nhà quê Việt Nam',
+    desc: 'Giường có màn, bàn học, quạt máy và những chiếc rổ tre.' }
 ];
 
 const VOCAB = [
@@ -161,6 +163,84 @@ VOCAB.push(
     'Gà đang đi dạo ngoài sân.', [[1272, 518, 40, 32]])
 );
 
+/* ---------- Phòng ngủ ---------- */
+const B = (id, vi, en, ja, reading, romaji, note, rects, alt) => makeItem('bd_' + id, vi, en, ja, reading, romaji, note, rects, alt, 'ngu');
+VOCAB.push(
+  // Đồ vật lớn xếp trước để đồ vật nhỏ nằm đè lên
+  B('rug', 'Tấm thảm', ['rug', 'mat', 'carpet'], ['敷物', 'しきもの', 'マット', 'ラグ', 'カーペット', '絨毯', 'じゅうたん'], 'しきもの', 'shikimono',
+    'Tấm thảm cói đan trải cạnh giường.', [[400, 745, 640, 196], [1130, 658, 222, 42]],
+    { 'マット': ['マット', 'matto'], 'ラグ': ['ラグ', 'ragu'], 'カーペット': ['カーペット', 'kaapetto'], '絨毯': ['じゅうたん', 'juutan'], 'じゅうたん': ['じゅうたん', 'juutan'] }),
+  B('wardrobe', 'Tủ quần áo', ['wardrobe', 'closet', 'armoire'], ['洋服ダンス', 'ようふくだんす', '洋服箪笥', 'ようふくたんす', 'クローゼット', '衣装棚', 'いしょうだな'], 'ようふくだんす', 'youfukudansu',
+    'Tủ gỗ cao để cất quần áo, dán vài tấm ảnh bên ngoài.', [[0, 60, 132, 880]],
+    { '洋服箪笥': ['ようふくだんす', 'youfukudansu'], 'ようふくたんす': ['ようふくたんす', 'youfukutansu'], 'クローゼット': ['クローゼット', 'kuroozetto'], '衣装棚': ['いしょうだな', 'ishoudana'], 'いしょうだな': ['いしょうだな', 'ishoudana'] }),
+  B('dresser', 'Tủ ngăn kéo', ['dresser', 'chest of drawers', 'drawers'], ['箪笥', 'たんす', 'チェスト', 'ちぇすと'], 'たんす', 'tansu',
+    'Tủ gỗ nhiều ngăn kéo, đặt quạt và sách lên trên.', [[1488, 545, 185, 330]], { 'チェスト': ['チェスト', 'chesuto'], 'ちぇすと': ['チェスト', 'chesuto'] }),
+  B('trunk', 'Rương gỗ', ['trunk', 'chest', 'wooden chest', 'wooden trunk'], ['木箱', 'きばこ', '箱', 'はこ', 'トランク'], 'きばこ', 'kibako',
+    'Rương gỗ có khóa kim loại để đựng đồ.', [[1535, 700, 137, 241]], { '箱': ['はこ', 'hako'], 'はこ': ['はこ', 'hako'], 'トランク': ['トランク', 'toranku'] }),
+  B('bed', 'Cái giường', ['bed'], ['ベッド', 'べっど', '寝台', 'しんだい'], 'ベッド', 'beddo',
+    'Giường gỗ chắc chắn với khung đầu giường.', [[130, 455, 590, 440]], { 'べっど': ['ベッド', 'beddo'], '寝台': ['しんだい', 'shindai'], 'しんだい': ['しんだい', 'shindai'] }),
+  B('blanket', 'Cái chăn', ['blanket', 'quilt', 'bedspread', 'duvet', 'comforter'], ['布団', 'ふとん', '毛布', 'もうふ', '掛け布団', 'かけぶとん'], 'ふとん', 'futon',
+    'Chăn hoa xanh trắng phủ trên giường.', [[130, 545, 580, 245]],
+    { '毛布': ['もうふ', 'moufu'], 'もうふ': ['もうふ', 'moufu'], '掛け布団': ['かけぶとん', 'kakebuton'], 'かけぶとん': ['かけぶとん', 'kakebuton'] }),
+  B('pillow', 'Cái gối', ['pillow'], ['枕', 'まくら'], 'まくら', 'makura',
+    'Gối nằm cạnh đầu giường.', [[205, 498, 155, 55]]),
+  B('net', 'Cái màn', ['mosquito net', 'net', 'bed net', 'canopy'], ['蚊帳', 'かや'], 'かや', 'kaya',
+    'Màn (mùng) trắng buông quanh giường để tránh muỗi.', [[60, 0, 420, 190], [128, 190, 135, 360]]),
+  B('bookshelf', 'Giá sách', ['bookshelf', 'bookcase', 'shelf'], ['本棚', 'ほんだな', '棚', 'たな'], 'ほんだな', 'hondana',
+    'Giá sách nhỏ phủ khăn ren, xếp đầy sách.', [[455, 370, 160, 175]], { '棚': ['たな', 'tana'], 'たな': ['たな', 'tana'] }),
+  B('desk', 'Bàn học', ['desk', 'writing desk', 'study desk'], ['机', 'つくえ', 'デスク'], 'つくえ', 'tsukue',
+    'Bàn gỗ có ngăn kéo đặt sát cửa sổ.', [[715, 478, 305, 195]], { 'デスク': ['デスク', 'desuku'] }),
+  B('window', 'Cửa sổ', ['window'], ['窓', 'まど'], 'まど', 'mado',
+    'Cửa sổ song gỗ nhìn ra ruộng lúa.', [[655, 262, 305, 225]]),
+  B('blind', 'Rèm tre', ['blind', 'bamboo blind', 'shade', 'curtain'], ['簾', 'すだれ', 'ブラインド', 'カーテン'], 'すだれ', 'sudare',
+    'Rèm tre cuốn lên trên cửa sổ để che nắng.', [[633, 175, 345, 105]], { 'ブラインド': ['ブラインド', 'buraindo'], 'カーテン': ['カーテン', 'kaaten'] }),
+  B('door', 'Cửa ra vào', ['door'], ['ドア', 'どあ', '扉', 'とびら'], 'ドア', 'doa',
+    'Cánh cửa gỗ sơn xanh đang mở ra sân.', [[1118, 182, 68, 478]], { 'どあ': ['ドア', 'doa'], '扉': ['とびら', 'tobira'], 'とびら': ['とびら', 'tobira'] }),
+  B('fence', 'Hàng rào', ['fence'], ['柵', 'さく', 'フェンス', '垣根', 'かきね'], 'さく', 'saku',
+    'Hàng rào gỗ ngoài sân, sau cửa ra vào.', [[1178, 440, 192, 150]], { 'フェンス': ['フェンス', 'fensu'], '垣根': ['かきね', 'kakine'], 'かきね': ['かきね', 'kakine'] }),
+  B('chair', 'Cái ghế', ['chair'], ['椅子', 'いす', 'イス'], 'いす', 'isu',
+    'Ghế gỗ có tựa lưng đặt trước bàn học.', [[748, 462, 148, 210]]),
+  B('stool', 'Ghế đẩu', ['stool'], ['スツール', '腰掛け', 'こしかけ', '椅子', 'いす'], 'スツール', 'sutsuuru',
+    'Ghế đẩu nhỏ đặt cuối giường.', [[722, 612, 48, 115]],
+    { '腰掛け': ['こしかけ', 'koshikake'], 'こしかけ': ['こしかけ', 'koshikake'], '椅子': ['いす', 'isu'], 'いす': ['いす', 'isu'] }),
+  B('lamp', 'Cái đèn', ['lamp', 'light', 'pendant lamp', 'lampshade'], ['ランプ', 'らんぷ', '電灯', 'でんとう', '照明', 'しょうめい'], 'ランプ', 'ranpu',
+    'Chao đèn đan bằng mây tre treo giữa phòng.', [[690, 5, 150, 135]],
+    { 'らんぷ': ['ランプ', 'ranpu'], '電灯': ['でんとう', 'dentou'], 'でんとう': ['でんとう', 'dentou'], '照明': ['しょうめい', 'shoumei'], 'しょうめい': ['しょうめい', 'shoumei'] }),
+  B('lantern', 'Đèn dầu', ['lantern', 'oil lamp', 'lamp'], ['ランタン', 'らんたん', 'ランプ', 'らんぷ'], 'ランタン', 'rantan',
+    'Chiếc đèn dầu nhỏ đặt trên bàn đầu giường.', [[405, 445, 38, 68]],
+    { 'らんたん': ['ランタン', 'rantan'], 'ランプ': ['ランプ', 'ranpu'], 'らんぷ': ['ランプ', 'ranpu'] }),
+  B('hat', 'Nón lá', ['conical hat', 'non la', 'hat', 'vietnamese hat', 'straw hat'], ['笠', 'かさ', 'ノンラー', '帽子', 'ぼうし'], 'かさ', 'kasa',
+    'Nón lá treo trên tường, quen thuộc với người Việt.', [[962, 258, 75, 108], [1527, 205, 90, 160]],
+    { 'ノンラー': ['ノンラー', 'nonraa'], '帽子': ['ぼうし', 'boushi'], 'ぼうし': ['ぼうし', 'boushi'] }),
+  B('clothes', 'Quần áo', ['clothes', 'clothing', 'shirt'], ['服', 'ふく', '洋服', 'ようふく', '衣類', 'いるい'], 'ふく', 'fuku',
+    'Quần áo treo trên móc cạnh cửa.', [[1445, 235, 100, 210]],
+    { '洋服': ['ようふく', 'youfuku'], 'ようふく': ['ようふく', 'youfuku'], '衣類': ['いるい', 'irui'], 'いるい': ['いるい', 'irui'] }),
+  B('fan', 'Quạt máy', ['fan', 'electric fan'], ['扇風機', 'せんぷうき'], 'せんぷうき', 'senpuuki',
+    'Quạt máy cũ để làm mát những ngày nóng.', [[1500, 402, 118, 157]]),
+  B('calendar', 'Tờ lịch', ['calendar'], ['カレンダー', 'かれんだー'], 'カレンダー', 'karendaa',
+    'Lịch treo tường cạnh cửa.', [[1060, 305, 48, 82]], { 'かれんだー': ['カレンダー', 'karendaa'] }),
+  B('painting', 'Bức tranh', ['picture', 'painting', 'poster'], ['絵', 'え', '絵画', 'かいが', 'ポスター', 'ぽすたー'], 'え', 'e',
+    'Bức tranh phong cảnh treo trên tường.', [[338, 232, 85, 150]],
+    { '絵画': ['かいが', 'kaiga'], 'かいが': ['かいが', 'kaiga'], 'ポスター': ['ポスター', 'posutaa'], 'ぽすたー': ['ポスター', 'posutaa'] }),
+  B('plant', 'Chậu cây', ['plant', 'houseplant', 'potted plant'], ['観葉植物', 'かんようしょくぶつ', '植物', 'しょくぶつ', '鉢植え', 'はちうえ'], 'かんようしょくぶつ', 'kanyou shokubutsu',
+    'Chậu cây xanh đặt bên cửa sổ và góc phòng.', [[645, 415, 90, 60], [952, 400, 90, 70], [1590, 330, 82, 200], [1445, 10, 130, 200], [470, 278, 80, 95]],
+    { '植物': ['しょくぶつ', 'shokubutsu'], 'しょくぶつ': ['しょくぶつ', 'shokubutsu'], '鉢植え': ['はちうえ', 'hachiue'], 'はちうえ': ['はちうえ', 'hachiue'] }),
+  B('vase', 'Lọ hoa', ['vase', 'flower vase'], ['花瓶', 'かびん'], 'かびん', 'kabin',
+    'Lọ sứ xanh trắng đặt trên tủ.', [[1612, 462, 60, 80]]),
+  B('basket', 'Cái rổ', ['basket', 'bamboo basket', 'laundry basket'], ['籠', 'かご', 'カゴ', 'バスケット'], 'かご', 'kago',
+    'Rổ tre đựng quần áo và đồ lặt vặt.',
+    [[128, 762, 152, 178], [995, 565, 95, 105], [1393, 650, 95, 140], [128, 308, 40, 160], [1575, 15, 97, 45], [1603, 672, 70, 40]],
+    { 'バスケット': ['バスケット', 'basuketto'] }),
+  B('book', 'Quyển sách', ['book', 'books'], ['本', 'ほん'], 'ほん', 'hon',
+    'Sách xếp trên bàn học và trên tủ.', [[905, 435, 50, 45], [1585, 535, 88, 40]]),
+  B('penholder', 'Ống bút', ['pen holder', 'pencil holder', 'pen cup', 'pencil cup'], ['ペン立て', 'ぺんたて', '筆立て', 'ふでたて'], 'ペンたて', 'pentate',
+    'Ống đựng bút trên bàn học.', [[868, 452, 32, 32]],
+    { 'ぺんたて': ['ペンたて', 'pentate'], '筆立て': ['ふでたて', 'fudetate'], 'ふでたて': ['ふでたて', 'fudetate'] }),
+  B('slippers', 'Đôi dép', ['sandals', 'slippers', 'sandal', 'slipper'], ['サンダル', 'さんだる', 'スリッパ', 'すりっぱ'], 'サンダル', 'sandaru',
+    'Đôi dép để cạnh giường.', [[498, 810, 108, 45]],
+    { 'さんだる': ['サンダル', 'sandaru'], 'スリッパ': ['スリッパ', 'surippa'], 'すりっぱ': ['スリッパ', 'surippa'] })
+);
+
 /* Các nhóm trong sổ tay. Thêm phòng mới (ví dụ phòng khách) bằng cách thêm một nhóm ở đây
  * và thêm đồ vật tương ứng vào VOCAB. Nhóm không có đồ vật nào sẽ không hiện trong sổ tay. */
 const CATEGORIES = [
@@ -168,5 +248,6 @@ const CATEGORIES = [
   { id: 'phongan', name: 'Phòng ăn', room: 'bep', ids: ['table', 'stool', 'lamp', 'window', 'vase', 'plant'] },
   { id: 'san', name: 'Sân vườn', room: 'bep', ids: ['chicken', 'corn', 'banana', 'field', 'jar', 'bucket'] },
   { id: 'khach', name: 'Phòng khách', room: 'khach', ids: ['lv_sofa', 'lv_armchair', 'lv_table', 'lv_stool', 'lv_cushion', 'lv_rug', 'lv_tv', 'lv_tvstand', 'lv_radio', 'lv_cabinet', 'lv_altar', 'lv_fu', 'lv_clock', 'lv_painting', 'lv_photos', 'lv_calendar', 'lv_teapot', 'lv_cup', 'lv_vase', 'lv_plant', 'lv_window', 'lv_broom', 'lv_hat', 'lv_slippers', 'lv_basket', 'lv_jar'] },
-  { id: 'hien', name: 'Ngoài cửa', room: 'khach', ids: ['lv_door', 'lv_tree', 'lv_field', 'lv_fence', 'lv_chicken'] }
+  { id: 'hien', name: 'Ngoài cửa', room: 'khach', ids: ['lv_door', 'lv_tree', 'lv_field', 'lv_fence', 'lv_chicken'] },
+  { id: 'ngu', name: 'Phòng ngủ', room: 'ngu', ids: ['bd_rug', 'bd_wardrobe', 'bd_dresser', 'bd_trunk', 'bd_bed', 'bd_blanket', 'bd_pillow', 'bd_net', 'bd_bookshelf', 'bd_desk', 'bd_window', 'bd_blind', 'bd_door', 'bd_fence', 'bd_chair', 'bd_stool', 'bd_lamp', 'bd_lantern', 'bd_hat', 'bd_clothes', 'bd_fan', 'bd_calendar', 'bd_painting', 'bd_plant', 'bd_vase', 'bd_basket', 'bd_book', 'bd_penholder', 'bd_slippers'] }
 ];
