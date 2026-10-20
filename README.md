@@ -11,6 +11,7 @@
 - 🏡 **Explore Rooms:** Discover everyday objects by tapping and swiping around each room.
 - 📚 **Learn Two Languages:** Practice English and Japanese vocabulary through interactive gameplay.
 - 🪙 **Earn Coins:** Answer correctly to collect coins and buy your favorite snacks.
+- 🛒 **Tạp hóa Shop:** Tap the cart button on the room-selection screen to spend coins on snacks and drinks (products and prices are in the `GOODS` array in `game.js`).
 - 🔓 **Unlock New Rooms:** Complete room challenges to explore new spaces.
 - 📖 **Vocabulary Notebook:** Review words you have answered correctly, organized by category.
 - 🎯 **Daily Missions:** Complete daily challenges to earn extra coins.
