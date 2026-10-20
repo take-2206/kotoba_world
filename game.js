@@ -227,6 +227,12 @@
     rollDaily();
     if (state.daily.correct.indexOf(current.id) < 0) state.daily.correct.push(current.id);
     save(); showCorrect(r.answer, first); setLang_tabMarks(); checkQuests(); updateHud(first); checkRoomDone();
+    if (st.en && st.ja) {   // đã nhập đúng cả tiếng Anh lẫn tiếng Nhật: tự đóng cửa sổ
+      const finished = current;
+      const note = document.createElement('p'); note.textContent = 'bạn giỏi lắm';
+      feedback.append(note);
+      setTimeout(() => { if (current === finished && !sheet.hidden) closeSheet(); }, 500);
+    }
   });
   function checkRoomDone() {
     const id = current ? current.room : roomId;
@@ -247,7 +253,7 @@
     let say = ans;
     if (lang === 'ja') { const rd = readingOf(current, ans); add('', 'Cách đọc: ' + rd[0] + ' (' + rd[1] + ')'); say = rd[0]; }
     const others = current[lang].filter((a) => a !== ans);
-    if (others.length) add('', 'Cũng được chấp nhận: ' + others.join(', '));
+    if (others.length) add('', 'Đồng nghĩa: ' + others.join(', '));
     add('', current.note);
     add(first ? 'gain' : '', first ? '+' + COIN + ' xu' : 'Bạn đã nhận xu cho đồ vật này rồi.');
     if (canSpeak) {
