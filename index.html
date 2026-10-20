@@ -34,9 +34,39 @@
     <header class="rooms-head">
       <button type="button" class="pill pill-btn" id="rooms-back">‹ Trang chủ</button>
       <h2 id="rooms-title">Chọn phòng</h2>
+      <button type="button" class="pill pill-btn right shop-open" id="btn-shop" aria-label="Mở cửa hàng tạp hóa"><span class="cart" aria-hidden="true">🛒</span><span class="shop-lbl">Mua sắm</span></button>
     </header>
     <p class="rooms-tip">Học đủ từ trong mỗi phòng để mở khóa phòng tiếp theo.</p>
     <div id="room-list" class="room-list"></div>
+  </div>
+</section>
+
+<!-- Cửa hàng tạp hóa -->
+<section id="shop" class="screen" hidden aria-labelledby="shop-title">
+  <h2 id="shop-title" class="sr-only">Tạp hóa</h2>
+  <div id="shop-view">
+    <div id="shop-stage">
+      <img class="shop-bg" id="shop-bg" src="assets/shop-background.jpg" alt="Tiệm tạp hóa bán bánh kẹo và đồ uống" draggable="false">
+      <div id="shop-spots"></div>
+    </div>
+  </div>
+  <header class="shop-top">
+    <button type="button" class="pill pill-btn" id="shop-back">‹ Phòng</button>
+    <div class="pill" id="shop-wallet"><span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu</div>
+  </header>
+  <div class="shop-hint">Chạm vào món hàng để mua</div>
+
+  <div id="buy-dialog" class="buy-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="buy-name">
+    <div class="buy-card">
+      <div class="buy-pic"><img id="buy-img" src="" alt="" draggable="false"></div>
+      <h3 id="buy-name"></h3>
+      <p class="buy-price"><span class="coin"></span><b id="buy-price"></b>&nbsp;xu</p>
+      <p class="buy-note" id="buy-note"></p>
+      <div class="row">
+        <button type="button" class="secondary" id="buy-cancel">Hủy</button>
+        <button type="button" class="primary" id="buy-ok">Mua</button>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -51,9 +81,10 @@
 
 <header class="hud top">
   <button class="pill pill-btn" id="btn-rooms" type="button">‹ Phòng</button>
-  <div class="pill"><span class="coin"></span><b id="coins">0</b>&nbsp;xu</div>
-  <div class="pill">Đã học <b id="room-learned">0</b>/<span id="room-need">0</span></div>
-  <button class="pill pill-btn right" id="btn-notebook" type="button"><img class="nb-ico" src="assets/notebook.png" alt=""></button>
+  <div class="pill"><span class="coin"></span><b id="coins">0</b><span class="unit">&nbsp;xu</span></div>
+  <div class="pill"><span class="lbl">Đã học </span><b id="room-learned">0</b>/<span id="room-need">0</span></div>
+  <button class="pill pill-btn right" id="btn-box" type="button" aria-label="Hộp từ đã lưu"><span class="box-ico" aria-hidden="true">📦</span><b class="box-count" id="box-count" hidden>0</b></button>
+  <button class="pill pill-btn" id="btn-notebook" type="button" aria-label="Sổ tay từ vựng"><img class="nb-ico" src="assets/notebook.png" alt=""></button>
 </header>
 
 <nav class="hud bottom">
@@ -103,6 +134,7 @@
 <div id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-title">
   <div class="card">
     <button class="close" id="sheet-close" type="button" aria-label="Đóng">×</button>
+    <button class="close save-star" id="save-word" type="button" aria-label="Lưu vào hộp" aria-pressed="false" title="Lưu vào hộp">☆</button>
     <h2 id="sheet-title"></h2>
     <div class="tabs" role="tablist">
       <button type="button" role="tab" data-lang="en" id="tab-en">English</button>
@@ -129,6 +161,18 @@
     <p class="stats" id="nb-stats"></p>
     <p class="tip">Chạm vào từng đồ vật để xem đầy đủ từ vựng. Xem sổ tay không được xu: tự nhập đúng trong game mới nhận xu.</p>
     <div id="nb-list"></div>
+  </div>
+</div>
+
+<!-- Hộp từ đã lưu -->
+<div id="box" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="box-title">
+  <div class="card tall">
+    <button class="close" id="box-close" type="button" aria-label="Đóng">×</button>
+    <h2 id="box-title"><span class="box-ico big" aria-hidden="true">📦</span>Hộp từ đã lưu</h2>
+    <p class="stats" id="box-stats"></p>
+    <p class="tip">Chạm vào từng từ để xem đáp án và tự kiểm tra lại. Từ nào đã nhớ rồi thì dọn khỏi hộp.</p>
+    <button type="button" class="secondary box-clean" id="box-clean" hidden>Dọn các từ đã nhớ</button>
+    <div id="box-list"></div>
   </div>
 </div>
 

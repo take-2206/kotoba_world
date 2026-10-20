@@ -19,7 +19,7 @@
   /* ---------- Lưu trữ ---------- */
   const pad = (n) => String(n).padStart(2, '0');
   function today() { const d = new Date(); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
-  function defaults() { return { coins: 0, lang: 'en', items: {}, done: {}, daily: { date: today(), explored: [], correct: [], claimed: {} } }; }
+  function defaults() { return { coins: 0, lang: 'en', items: {}, done: {}, inv: {}, saved: [], daily: { date: today(), explored: [], correct: [], claimed: {} } }; }
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
@@ -28,6 +28,7 @@
     return defaults();
   }
   const state = load();
+  if (!Array.isArray(state.saved)) state.saved = [];
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* bỏ qua */ } }
   function rollDaily() { if (!state.daily || state.daily.date !== today()) state.daily = defaults().daily; }
   function itemState(id) { return state.items[id] || (state.items[id] = {}); }
@@ -100,9 +101,11 @@
     $('#room-need').textContent = needOf(roomId);
     $('#quest-mini').textContent = QUESTS.filter((q) => questProgress(q) >= q.goal).length + '/' + QUESTS.length;
     if (bump) { const p = $('#coins').parentNode; p.classList.remove('bump'); void p.offsetWidth; p.classList.add('bump'); }
-    $('#nb-mini').textContent = openItems().filter((i) => i.learned).length + '/' + openItems().length;
+    const nbMini = $('#nb-mini'); if (nbMini) nbMini.textContent = openItems().filter((i) => i.learned).length + '/' + openItems().length;
+    const sc = $('#shop-coins'); if (sc) { sc.textContent = state.coins; if (!buyDlg.hidden) refreshBuy(); }
     if (!questSheet.hidden) renderQuests();
     if (!notebook.hidden) renderNotebook();
+    refreshSaveUi();
   }
   function checkQuests() {
     rollDaily();
@@ -172,7 +175,7 @@
     current = item; wrong = 0; markDiscovered(item);
     $('#sheet-title').textContent = item.vi;
     setLang(state.lang === 'ja' ? 'ja' : 'en');
-    sheet.hidden = false;
+    refreshSaveUi(); sheet.hidden = false;
   }
   function closeSheet() { sheet.hidden = true; current = null; if (canSpeak) { try { speechSynthesis.cancel(); } catch (e) {} } if (pendingDone) showDone(); }
   function setLang(l) {
@@ -271,6 +274,92 @@
   /* ---------- Sổ tay từ vựng ---------- */
   let nbCat = 'all';
   const byId = {}; VOCAB.forEach((i) => { byId[i.id] = i; });
+  /* ---------- Hộp từ đã lưu + khối từ vựng dùng chung ---------- */
+  const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; };
+  const sayBtn = (text, k) => {
+    if (!canSpeak) return null;
+    const s = mk('button', 'say', 'Nghe'); s.type = 'button';
+    s.addEventListener('click', (ev) => { ev.preventDefault(); speak(text, k); });
+    return s;
+  };
+  const isSaved = (id) => state.saved.indexOf(id) >= 0;
+  const isRemembered = (id) => { const s = state.items[id] || {}; return !!(s.en && s.ja); };   // đã nhập đúng cả Anh lẫn Nhật
+  const saveLabel = (id) => isSaved(id) ? '★ Đã lưu vào hộp · Bỏ lưu' : '☆ Lưu vào hộp';
+  function entryEl(it, inBox) {
+    const st = state.items[it.id] || {};
+    const box = mk('details', 'entry'); box.dataset.id = it.id;
+    const sum = mk('summary', '');
+    const ok = inBox ? isRemembered(it.id) : it.learned;
+    sum.append(mk('span', 'vi', it.vi), mk('span', 'badge' + (ok ? ' ok' : ''), inBox ? (ok ? 'Đã nhớ' : 'Chưa nhớ') : (ok ? 'Đã học' : 'Chưa học')));
+    box.append(sum);
+
+    const en = mk('div', 'block');
+    en.append(mk('span', 'lang', 'English' + (st.en ? ' ✓' : '')));
+    const enLine = mk('div', 'line');
+    enLine.append(mk('span', 'word', it.en.join(', ')));
+    const b1 = sayBtn(it.en[0], 'en'); if (b1) enLine.append(b1);
+    en.append(enLine); box.append(en);
+
+    const ja = mk('div', 'block');
+    ja.append(mk('span', 'lang', '日本語' + (st.ja ? ' ✓' : '')));
+    it.ja.forEach((w) => {
+      const rd = readingOf(it, w);
+      const line = mk('div', 'line');
+      const left = mk('span', '');
+      left.append(mk('span', 'word', w), mk('span', 'rd', rd[0] === w ? ' (' + rd[1] + ')' : ' (' + rd[0] + ', ' + rd[1] + ')'));
+      line.append(left);
+      const b = sayBtn(rd[0], 'ja'); if (b) line.append(b);
+      ja.append(line);
+    });
+    box.append(ja);
+    box.append(mk('p', 'note', it.note));
+    const sv = mk('button', 'save-entry' + (isSaved(it.id) ? ' on' : ''), saveLabel(it.id)); sv.type = 'button'; sv.dataset.id = it.id;
+    sv.addEventListener('click', () => toggleSave(it));
+    box.append(sv);
+    return box;
+  }
+  function toggleSave(it) {
+    const i = state.saved.indexOf(it.id);
+    if (i >= 0) { state.saved.splice(i, 1); toast('Đã bỏ “' + it.vi + '” khỏi hộp từ.'); }
+    else { state.saved.push(it.id); toast('Đã lưu “' + it.vi + '” vào hộp từ.'); }
+    save(); refreshSaveUi();
+  }
+  function refreshSaveUi() {
+    const sw = $('#save-word');
+    if (current) {
+      const on = isSaved(current.id);
+      sw.textContent = on ? '★' : '☆'; sw.classList.toggle('on', on); sw.setAttribute('aria-pressed', String(on));
+      sw.setAttribute('aria-label', on ? 'Đã lưu vào hộp, bấm để bỏ lưu' : 'Lưu vào hộp'); sw.title = on ? 'Bỏ lưu khỏi hộp' : 'Lưu vào hộp';
+    }
+    document.querySelectorAll('.save-entry').forEach((b) => { b.textContent = saveLabel(b.dataset.id); b.classList.toggle('on', isSaved(b.dataset.id)); });
+    const c = $('#box-count'); c.textContent = state.saved.length; c.hidden = !state.saved.length;
+    if (!boxSheet.hidden) renderBox();
+  }
+  function renderBox() {
+    const list = $('#box-list');
+    const open = {}; list.querySelectorAll('details[open]').forEach((d) => { open[d.dataset.id] = true; });
+    list.textContent = '';
+    const items = state.saved.slice().reverse().map((id) => byId[id]).filter(Boolean);   // từ mới lưu nằm trên cùng
+    const done = items.filter((i) => isRemembered(i.id)).length;
+    $('#box-stats').textContent = items.length ? 'Đang lưu ' + items.length + ' từ · Đã nhớ ' + done + '/' + items.length : '';
+    $('#box-clean').hidden = !done;
+    if (!items.length) {
+      list.append(mk('p', 'box-empty', 'Hộp còn trống. Khi gặp từ chưa nhớ, bấm “Lưu vào hộp” để cất vào đây và ôn lại sau.'));
+      return;
+    }
+    items.forEach((it) => { const e = entryEl(it, true); if (open[it.id]) e.open = true; list.append(e); });
+  }
+  const boxSheet = $('#box');
+  $('#btn-box').addEventListener('click', () => { renderBox(); boxSheet.hidden = false; $('#box-list').scrollTop = 0; });
+  $('#box-close').addEventListener('click', () => { boxSheet.hidden = true; });
+  boxSheet.addEventListener('click', (e) => { if (e.target === boxSheet) boxSheet.hidden = true; });
+  $('#box-clean').addEventListener('click', () => {
+    const n = state.saved.length;
+    state.saved = state.saved.filter((id) => !isRemembered(id));
+    save(); refreshSaveUi(); toast('Đã dọn ' + (n - state.saved.length) + ' từ đã nhớ khỏi hộp.');
+  });
+  $('#save-word').addEventListener('click', () => { if (current) toggleSave(current); });
+
   function nbGroups() {
     const groups = CATEGORIES.filter((c) => isUnlocked(c.room || ROOMS[0].id))
       .map((c) => ({ id: c.id, name: c.name, items: c.ids.map((id) => byId[id]).filter(Boolean) }))
@@ -295,42 +384,7 @@
     $('#nb-stats').textContent = 'Đã học ' + items.filter((i) => i.learned).length + '/' + items.length + ' từ · Đã khám phá ' +
       items.filter((i) => i.discovered).length + '/' + items.length + ' đồ vật';
     const list = $('#nb-list'); list.textContent = '';
-    const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt) e.textContent = txt; return e; };
-    const sayBtn = (text, k) => {
-      if (!canSpeak) return null;
-      const s = mk('button', 'say', 'Nghe'); s.type = 'button';
-      s.addEventListener('click', (ev) => { ev.preventDefault(); speak(text, k); });
-      return s;
-    };
-    items.forEach((it) => {
-      const st = state.items[it.id] || {};
-      const box = mk('details', 'entry'); box.dataset.id = it.id;
-      const sum = mk('summary', '');
-      sum.append(mk('span', 'vi', it.vi), mk('span', 'badge' + (it.learned ? ' ok' : ''), it.learned ? 'Đã học' : 'Chưa học'));
-      box.append(sum);
-
-      const en = mk('div', 'block');
-      en.append(mk('span', 'lang', 'English' + (st.en ? ' ✓' : '')));
-      const enLine = mk('div', 'line');
-      enLine.append(mk('span', 'word', it.en.join(', ')));
-      const b1 = sayBtn(it.en[0], 'en'); if (b1) enLine.append(b1);
-      en.append(enLine); box.append(en);
-
-      const ja = mk('div', 'block');
-      ja.append(mk('span', 'lang', '日本語' + (st.ja ? ' ✓' : '')));
-      it.ja.forEach((w) => {
-        const rd = readingOf(it, w);
-        const line = mk('div', 'line');
-        const left = mk('span', '');
-        left.append(mk('span', 'word', w), mk('span', 'rd', rd[0] === w ? ' (' + rd[1] + ')' : ' (' + rd[0] + ', ' + rd[1] + ')'));
-        line.append(left);
-        const b = sayBtn(rd[0], 'ja'); if (b) line.append(b);
-        ja.append(line);
-      });
-      box.append(ja);
-      box.append(mk('p', 'note', it.note));
-      list.append(box);
-    });
+    items.forEach((it) => list.append(entryEl(it, false)));
   }
   function openNotebookFor(item) {
     const g = nbGroups().find((x) => x.items.indexOf(item) >= 0);
@@ -362,7 +416,7 @@
     questSheet.hidden = true; roomId = ROOMS[0].id; goRooms(); updateHud(); toast('Đã xóa tiến trình.');
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { if (!sheet.hidden) closeSheet(); if (!questSheet.hidden) questSheet.hidden = true; if (!notebook.hidden) notebook.hidden = true; if (!rules.hidden) rules.hidden = true; if (!doneSheet.hidden) doneSheet.hidden = true; }
+    if (e.key === 'Escape') { if (!sheet.hidden) closeSheet(); if (!questSheet.hidden) questSheet.hidden = true; if (!notebook.hidden) notebook.hidden = true; if (!boxSheet.hidden) boxSheet.hidden = true; if (!buyDlg.hidden) closeBuy(); if (!rules.hidden) rules.hidden = true; if (!doneSheet.hidden) doneSheet.hidden = true; }
   });
 
   /* ---------- Bố cục và phóng to ---------- */
@@ -390,7 +444,7 @@
   window.addEventListener('orientationchange', () => { setTimeout(() => { if (!screens.game.hidden) relayout(); }, 200); });
 
   /* ---------- Màn hình: bắt đầu, chọn phòng, chơi ---------- */
-  const screens = { start: $('#start'), rooms: $('#rooms'), game: $('#game') };
+  const screens = { start: $('#start'), rooms: $('#rooms'), game: $('#game'), shop: $('#shop') };
   const rules = $('#rules'), doneSheet = $('#done'), bg = $('#bg');
   function show(name) { Object.keys(screens).forEach((k) => { screens[k].hidden = k !== name; }); }
 
@@ -441,7 +495,7 @@
   }
   function goRooms() {
     if (!sheet.hidden) { sheet.hidden = true; current = null; }
-    questSheet.hidden = true; notebook.hidden = true; doneSheet.hidden = true; $('#hint').hidden = true;
+    questSheet.hidden = true; notebook.hidden = true; boxSheet.hidden = true; doneSheet.hidden = true; $('#hint').hidden = true;
     renderRooms(); show('rooms');
   }
   function showDone() {
@@ -462,6 +516,84 @@
   rules.addEventListener('click', (e) => { if (e.target === rules) rules.hidden = true; });
   $('#rooms-back').addEventListener('click', () => show('start'));
   $('#btn-rooms').addEventListener('click', goRooms);
+
+
+  /* ---------- Cửa hàng tạp hóa ---------- */
+  // rects: vùng chạm [x, y, rộng, cao] theo pixel của ảnh gốc 1195 × 896 (assets/shop-background.jpg)
+  const SHOP_W = 1195, SHOP_H = 896, SHOP_RATIO = SHOP_W / SHOP_H;
+  const GOODS = [
+    { id: 'oishi',    name: 'Snack Oishi tôm cay',      price: 20, img: 'assets/shop/oishi.png',    rects: [[176, 258, 164, 192], [12, 365, 150, 150]] },
+    { id: 'lays',     name: 'Khoai tây Lay’s',  price: 30, img: 'assets/shop/lays.png',     rects: [[354, 262, 128, 166]] },
+    { id: 'haohao',   name: 'Mì tôm Hảo Hảo',   price: 15, img: 'assets/shop/haohao.png',   rects: [[536, 268, 136, 146]] },
+    { id: 'keo',      name: 'Kẹp Múp phô mai',     price: 10, img: 'assets/shop/keo.png',      rects: [[668, 268, 144, 164]] },
+    { id: 'soda',     name: '7Up',        price: 25, img: 'assets/shop/soda.png',     rects: [[398, 545, 102, 70]] },
+    { id: 'cola',     name: 'Coca-Cola',        price: 25, img: 'assets/shop/cola.png',     rects: [[362, 562, 42, 56]] },
+    { id: 'greentea', name: 'Trà xanh không độ',         price: 20, img: 'assets/shop/greentea.png', rects: [[570, 545, 62, 70]] },
+    { id: 'jar',      name: 'Hũ kẹo thủy tinh', price: 40, img: 'assets/shop/jar.png',      rects: [[580, 480, 62, 68]] },
+    { id: 'lolli',    name: 'Kẹo mút Chupa Chups',          price: 10, img: 'assets/shop/lolli.png',    rects: [[492, 498, 56, 58]] },
+    { id: 'basket',   name: 'Kẹo dẻo Gummy Bear',      price: 15, img: 'assets/shop/basket.png',   rects: [[660, 555, 50, 63]] }
+  ];
+  const shopView = $('#shop-view'), shopStage = $('#shop-stage'), shopSpots = $('#shop-spots'), buyDlg = $('#buy-dialog');
+  let buying = null;
+
+  function buildShopSpots() {
+    shopSpots.textContent = '';
+    GOODS.forEach((it) => {
+      it.rects.forEach((r) => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'hotspot'; b.setAttribute('aria-label', it.name + ', ' + it.price + ' xu');
+        b.style.left = ((r[0] + r[2] / 2) / SHOP_W * 100) + '%'; b.style.top = ((r[1] + r[3] / 2) / SHOP_H * 100) + '%';
+        b.style.width = (r[2] / SHOP_W * 100) + '%'; b.style.height = (r[3] / SHOP_H * 100) + '%';
+        b.addEventListener('click', () => {
+          b.classList.remove('tap'); void b.offsetWidth; b.classList.add('tap');
+          setTimeout(() => openBuy(it), 150);
+        });
+        shopSpots.append(b);
+      });
+    });
+  }
+  function shopLayout(center) {
+    const vw = shopView.clientWidth, vh = shopView.clientHeight;
+    const sw = shopStage.offsetWidth || 1, sh = shopStage.offsetHeight || 1;
+    const cx = center ? center[0] : (shopView.scrollLeft + vw / 2) / sw;
+    const cy = center ? center[1] : (shopView.scrollTop + vh / 2) / sh;
+    const w = Math.max(vw, vh * SHOP_RATIO);   // ảnh luôn phủ kín màn hình, kéo để xem phần còn lại
+    shopStage.style.width = w + 'px'; shopStage.style.height = (w / SHOP_RATIO) + 'px';
+    shopView.scrollLeft = cx * shopStage.offsetWidth - vw / 2;
+    shopView.scrollTop = cy * shopStage.offsetHeight - vh / 2;
+  }
+  function refreshBuy() {
+    if (!buying) return;
+    const own = (state.inv && state.inv[buying.id]) || 0, short = buying.price - state.coins;
+    const note = $('#buy-note'), ok = $('#buy-ok');
+    ok.disabled = short > 0;
+    note.className = 'buy-note' + (short > 0 ? ' bad' : '');
+    note.textContent = short > 0 ? 'Bạn cần thêm ' + short + ' xu. Hãy học thêm từ để kiếm xu nhé!'
+      : 'Bạn có ' + state.coins + ' xu, còn lại ' + (state.coins - buying.price) + ' xu sau khi mua.' + (own ? ' (Đã có ' + own + ')' : '');
+  }
+  function openBuy(it) {
+    buying = it;
+    $('#buy-img').src = it.img; $('#buy-name').textContent = it.name; $('#buy-price').textContent = it.price;
+    refreshBuy(); buyDlg.hidden = false; $('#buy-cancel').focus();
+  }
+  function closeBuy() { buyDlg.hidden = true; buying = null; }
+  $('#buy-cancel').addEventListener('click', closeBuy);
+  buyDlg.addEventListener('click', (e) => { if (e.target === buyDlg) closeBuy(); });
+  $('#buy-ok').addEventListener('click', () => {
+    const it = buying; if (!it) return;
+    if (state.coins < it.price) { refreshBuy(); return; }
+    state.coins -= it.price;
+    state.inv = state.inv || {}; state.inv[it.id] = (state.inv[it.id] || 0) + 1;
+    save(); closeBuy(); updateHud(true); toast('Đã mua ' + it.name + ': −' + it.price + ' xu');
+  });
+  function openShop() {
+    $('#shop-coins').textContent = state.coins; closeBuy();
+    if (!shopSpots.firstChild) buildShopSpots();
+    show('shop'); shopLayout([0.42, 0.55]);
+  }
+  window.addEventListener('resize', () => { if (!screens.shop.hidden) shopLayout(); });
+  $('#btn-shop').addEventListener('click', openShop);
+  $('#shop-back').addEventListener('click', () => { closeBuy(); renderRooms(); show('rooms'); });
 
   /* ---------- Khởi động ---------- */
   bg.addEventListener('error', () => { $('#bg-error').hidden = false; });
