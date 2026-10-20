@@ -212,3 +212,23 @@ details.entry[open] summary{border-bottom:2px solid var(--cream2)}
 .rules-list li{margin-bottom:8px}
 .full{width:100%}
 .done-text{margin:0 0 16px;font-size:17px;line-height:1.5}
+
+/* Nút đóng luôn nằm trên cùng khi cuộn bảng dài (sổ tay) */
+.card .close{position:sticky;top:0;float:right;margin:-8px -6px 0 8px;z-index:3}
+
+/* Màn hình ngang / máy tính: bảng nhỏ gọn, nằm giữa màn hình */
+@media (orientation:landscape){
+  .sheet{align-items:center;justify-content:center;background:rgba(40,24,10,.35);
+    padding:12px calc(12px + var(--sar)) 12px calc(12px + var(--sal))}
+  .card{width:min(460px,92vw);height:auto;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px);
+    border:3px solid var(--wood);border-radius:24px;padding:18px;animation-name:slide}
+  .card.tall{width:min(520px,92vw)}
+  .card h2{font-size:26px}
+}
+
+/* Biểu tượng sổ tay */
+.nb-ico{width:30px;height:30px;margin:-3px 6px -3px -4px;object-fit:contain;vertical-align:middle;pointer-events:none}
+.nb-ico.big{width:42px;height:42px;margin:-6px 8px -6px 0}
+.pill-btn .nb-ico{flex:none}
+#feedback .nb-btn{display:inline-flex;align-items:center;margin-left:0}
+#feedback .nb-btn .nb-ico{width:26px;height:26px;margin:0 6px 0 -2px}

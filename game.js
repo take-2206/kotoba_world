@@ -202,6 +202,10 @@
     feedback.className = 'no'; feedback.textContent = '';
     const a = document.createElement('p'); a.textContent = msg; feedback.append(a);
     if (hint) { const b = document.createElement('p'); b.textContent = hint; feedback.append(b); }
+    if (hint && current) {   // câu trả lời sai: có nút mở sổ tay đúng mục của đồ vật này
+      const nb = document.createElement('button'); nb.type = 'button'; nb.className = 'speak nb-btn'; const ic = document.createElement('img'); ic.className = 'nb-ico'; ic.src = 'assets/notebook.png'; ic.alt = ''; nb.append(ic, 'Mở sổ tay');
+      const item = current; nb.addEventListener('click', () => openNotebookFor(item)); feedback.append(nb);
+    }
   }
   function hintText() {
     let h;
@@ -229,9 +233,9 @@
     save(); showCorrect(r.answer, first); setLang_tabMarks(); checkQuests(); updateHud(first); checkRoomDone();
     if (st.en && st.ja) {   // đã nhập đúng cả tiếng Anh lẫn tiếng Nhật: tự đóng cửa sổ
       const finished = current;
-      const note = document.createElement('p'); note.textContent = 'bạn giỏi lắm';
+      const note = document.createElement('p'); note.textContent = 'Bạn đã học đủ cả tiếng Anh và tiếng Nhật. Cửa sổ sẽ tự đóng.';
       feedback.append(note);
-      setTimeout(() => { if (current === finished && !sheet.hidden) closeSheet(); }, 500);
+      setTimeout(() => { if (current === finished && !sheet.hidden) closeSheet(); }, 2200);
     }
   });
   function checkRoomDone() {
@@ -253,7 +257,7 @@
     let say = ans;
     if (lang === 'ja') { const rd = readingOf(current, ans); add('', 'Cách đọc: ' + rd[0] + ' (' + rd[1] + ')'); say = rd[0]; }
     const others = current[lang].filter((a) => a !== ans);
-    if (others.length) add('', 'Đồng nghĩa: ' + others.join(', '));
+    if (others.length) add('', 'Cũng được chấp nhận: ' + others.join(', '));
     add('', current.note);
     add(first ? 'gain' : '', first ? '+' + COIN + ' xu' : 'Bạn đã nhận xu cho đồ vật này rồi.');
     if (canSpeak) {
@@ -300,7 +304,7 @@
     };
     items.forEach((it) => {
       const st = state.items[it.id] || {};
-      const box = mk('details', 'entry');
+      const box = mk('details', 'entry'); box.dataset.id = it.id;
       const sum = mk('summary', '');
       sum.append(mk('span', 'vi', it.vi), mk('span', 'badge' + (it.learned ? ' ok' : ''), it.learned ? 'Đã học' : 'Chưa học'));
       box.append(sum);
@@ -327,6 +331,13 @@
       box.append(mk('p', 'note', it.note));
       list.append(box);
     });
+  }
+  function openNotebookFor(item) {
+    const g = nbGroups().find((x) => x.items.indexOf(item) >= 0);
+    nbCat = g ? g.id : 'all';
+    renderNotebook(); notebook.hidden = false;
+    const box = document.querySelector('#nb-list details[data-id="' + item.id + '"]');
+    if (box) { box.open = true; box.scrollIntoView({ block: 'center' }); }
   }
   $('#btn-notebook').addEventListener('click', () => { renderNotebook(); notebook.hidden = false; $('#nb-list').scrollTop = 0; });
   $('#nb-close').addEventListener('click', () => { notebook.hidden = true; });
