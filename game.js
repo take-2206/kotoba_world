@@ -311,10 +311,29 @@
     wrong = 0;
     markDiscovered(item);
     $("#sheet-title").textContent = item.vi;
-    document.querySelector(".tabs").hidden = state.mode !== "both"; // chỉ học một thứ tiếng thì ẩn tab
-    setLang(
-      state.mode === "both" ? (state.lang === "ja" ? "ja" : "en") : state.mode,
-    );
+    // đã nhập đúng đủ các thứ tiếng đang học: hiện thẻ từ vựng, không còn khung nhập
+    const st0 = state.items[item.id] || {},
+      review = langsOf().every((k) => st0[k]);
+    const rv = $("#review");
+    rv.textContent = "";
+    rv.hidden = !review;
+    if (review) {
+      const card = entryEl(item, false);
+      card.open = true;
+      rv.append(card);
+    }
+    $("#answer-form").hidden = review;
+    $("#prompt").hidden = review;
+    feedback.hidden = review;
+    document.querySelector(".tabs").hidden = review || state.mode !== "both"; // chỉ học một thứ tiếng thì ẩn tab
+    if (!review)
+      setLang(
+        state.mode === "both"
+          ? state.lang === "ja"
+            ? "ja"
+            : "en"
+          : state.mode,
+      );
     refreshSaveUi();
     sheet.hidden = false;
   }
@@ -1064,34 +1083,75 @@
       );
     }),
   );
-  /* ---------- Cài đặt: chế độ học ---------- */
-  const modeBtns = document.querySelectorAll("#mode-list .mode-opt");
-  const MODE_NAME = {
-    en: "tiếng Anh",
-    ja: "tiếng Nhật",
-    both: "cả tiếng Anh và tiếng Nhật",
-  };
+  /* ---------- Cài đặt: bật/tắt ngôn ngữ học ---------- */
+  const swRows = document.querySelectorAll("#mode-list .sw-row");
   function renderMode() {
-    modeBtns.forEach((b) =>
-      b.setAttribute("aria-checked", String(b.dataset.mode === state.mode)),
+    swRows.forEach((b) =>
+      b.setAttribute(
+        "aria-checked",
+        String(langsOf().indexOf(b.dataset.lang) >= 0),
+      ),
     );
   }
-  modeBtns.forEach((b) =>
+  swRows.forEach((b) =>
     b.addEventListener("click", () => {
-      if (state.mode === b.dataset.mode) return;
-      state.mode = b.dataset.mode;
+      const on = {
+        en: langsOf().indexOf("en") >= 0,
+        ja: langsOf().indexOf("ja") >= 0,
+      };
+      on[b.dataset.lang] = !on[b.dataset.lang];
+      if (!on.en && !on.ja) {
+        toast("Cần bật ít nhất một ngôn ngữ.");
+        return;
+      }
+      state.mode = on.en && on.ja ? "both" : on.en ? "en" : "ja";
       save();
       syncVocab();
       renderMode();
       updateHud();
-      toast("Chế độ học: " + MODE_NAME[state.mode] + ".");
+      toast(
+        "Đang học: " +
+          (state.mode === "both"
+            ? "tiếng Anh và tiếng Nhật"
+            : state.mode === "en"
+              ? "tiếng Anh"
+              : "tiếng Nhật") +
+          ".",
+      );
     }),
   );
-  $("#btn-settings").addEventListener("click", () => {
+  $("#btn-restart").addEventListener("click", () => {
+    if (
+      !window.confirm(
+        "Học lại từ ngày đầu? Xu, từ đã học, phòng đã mở và đồ đã mua sẽ bị xóa. Ngôn ngữ học và nhân vật vẫn được giữ.",
+      )
+    )
+      return;
+    const keep = { mode: state.mode, char: state.char };
+    try {
+      localStorage.removeItem(KEY);
+    } catch (e) {
+      /* bỏ qua */
+    }
+    Object.assign(state, defaults(), keep);
+    save();
+    syncVocab();
+    document
+      .querySelectorAll(".hotspot.seen")
+      .forEach((el) => el.classList.remove("seen"));
+    roomId = ROOMS[0].id;
+    renderRooms();
+    updateHud();
+    settings.hidden = true;
+    toast("Đã bắt đầu lại từ đầu.");
+  });
+  const openSettings = () => {
     renderMode();
     renderChar();
     settings.hidden = false;
-  });
+  };
+  $("#btn-settings").addEventListener("click", openSettings);
+  $("#btn-settings-rooms").addEventListener("click", openSettings);
   $("#settings-close").addEventListener("click", () => {
     settings.hidden = true;
   });
@@ -1243,8 +1303,77 @@
           " xu sau khi mua." +
           (own ? " (Đã có " + own + ")" : "");
   }
+  /* ---------- Lời thoại của nhân vật trong tiệm ---------- */
+  const SAY = {
+    open: [
+      "Chào bạn! Hôm nay mình mua gì nhỉ?",
+      "Wow, nhiều bánh kẹo quá!",
+      "Tiệm tạp hóa kìa! Mình đi xem thôi.",
+      "Bạn ơi, mình đi mua sắm nào!",
+    ],
+    idle: [
+      "Chạm vào món hàng để xem giá nhé.",
+      "Nhiều món ngon quá, chọn mãi chưa xong!",
+      "Học thêm từ mới để có thêm xu nha!",
+      "Bạn muốn ăn gì nào?",
+      "Nhớ chọn món bạn thích nhất đó!",
+    ],
+    ask: [
+      "Món này nhìn ngon ghê!",
+      "Ồ, món này hả? Hay đó!",
+      "Bạn muốn mua món này không?",
+    ],
+    buy: [
+      "Yay! Cảm ơn bạn, ngon quá đi!",
+      "Mua được rồi, vui ghê!",
+      "Hihi, mình có đồ ăn rồi!",
+    ],
+    poor: [
+      "Hmm, chưa đủ xu rồi… học thêm từ nhé!",
+      "Tiếc quá, thiếu xu mất rồi.",
+      "Mình cần thêm xu mới mua được.",
+    ],
+    cancel: [
+      "Không sao, mình xem món khác nhé.",
+      "Ừ, để lát nữa mua cũng được.",
+    ],
+  };
+  const sayEl = $("#shop-say");
+  let sayTimer = 0,
+    idleTimer = 0,
+    lastSay = "";
+  const pick = (k) => {
+    const a = SAY[k];
+    let t;
+    do {
+      t = a[Math.floor(Math.random() * a.length)];
+    } while (a.length > 1 && t === lastSay);
+    return (lastSay = t);
+  };
+  function say(text, ms) {
+    clearTimeout(sayTimer);
+    if (!state.char || !text) {
+      sayEl.hidden = true;
+      return;
+    }
+    sayEl.textContent = text;
+    sayEl.hidden = false;
+    sayEl.style.animation = "none";
+    void sayEl.offsetWidth;
+    sayEl.style.animation = "";
+    sayTimer = setTimeout(() => {
+      sayEl.hidden = true;
+    }, ms || 4500);
+  }
+  function stopSay() {
+    clearTimeout(sayTimer);
+    clearInterval(idleTimer);
+    sayEl.hidden = true;
+  }
+  sayEl.addEventListener("click", () => say(pick("idle")));
   function openBuy(it) {
     buying = it;
+    say(pick("ask"), 6000);
     $("#buy-img").src = it.img;
     $("#buy-name").textContent = it.name;
     $("#buy-price").textContent = it.price;
@@ -1256,7 +1385,10 @@
     buyDlg.hidden = true;
     buying = null;
   }
-  $("#buy-cancel").addEventListener("click", closeBuy);
+  $("#buy-cancel").addEventListener("click", () => {
+    closeBuy();
+    say(pick("cancel"));
+  });
   buyDlg.addEventListener("click", (e) => {
     if (e.target === buyDlg) closeBuy();
   });
@@ -1265,6 +1397,7 @@
     if (!it) return;
     if (state.coins < it.price) {
       refreshBuy();
+      say(pick("poor"), 5000);
       return;
     }
     state.coins -= it.price;
@@ -1274,6 +1407,7 @@
     closeBuy();
     updateHud(true);
     toast("Đã mua " + it.name + ": −" + it.price + " xu");
+    say(pick("buy"), 5000);
   });
   function openShop() {
     $("#shop-coins").textContent = state.coins;
@@ -1284,6 +1418,11 @@
     if (!shopSpots.firstChild) buildShopSpots();
     show("shop");
     shopLayout([0.42, 0.55]);
+    stopSay();
+    say(pick("open"), 5500);
+    idleTimer = setInterval(() => {
+      if (buyDlg.hidden && sayEl.hidden) say(pick("idle"));
+    }, 12000);
   }
   window.addEventListener("resize", () => {
     if (!screens.shop.hidden) shopLayout();
@@ -1291,6 +1430,7 @@
   $("#btn-shop").addEventListener("click", openShop);
   $("#shop-back").addEventListener("click", () => {
     closeBuy();
+    stopSay();
     renderRooms();
     show("rooms");
   });
