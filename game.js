@@ -1,9 +1,14 @@
 (function () {
   "use strict";
 
-  const IMG_W = 1672,
+  let IMG_W = 1672,
     IMG_H = 941,
+    RATIO = IMG_W / IMG_H; // đổi theo từng phòng (ROOMS[i].w / .h), mặc định 1672 × 941
+  function setRoomSize(r) {
+    IMG_W = r.w || 1672;
+    IMG_H = r.h || 941;
     RATIO = IMG_W / IMG_H;
+  }
   const KEY = "bepque.v1",
     COIN = 10;
   const ROOM_RATIO = 0.75,
@@ -44,6 +49,7 @@
       done: {},
       inv: {},
       saved: [],
+      tour: false, // đã xem hướng dẫn lần đầu chưa
       daily: { date: today(), explored: [], correct: [], claimed: {} },
     };
   }
@@ -52,6 +58,12 @@
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
+        // người chơi cũ (đã có tiến trình) không phải xem hướng dẫn nữa
+        if (
+          s.tour === undefined &&
+          (s.coins > 0 || (s.items && Object.keys(s.items).length))
+        )
+          s.tour = true;
         return Object.assign(defaults(), s);
       }
     } catch (e) {
@@ -369,8 +381,7 @@
     );
     if (l === "ja") {
       const s = document.createElement("small");
-      s.textContent =
-        "Cần bật bàn phím tiếng Nhật (Cài đặt › Cài đặt chung › Bàn phím). Nhập bằng hiragana, katakana hoặc kanji.";
+      s.textContent = "Nhập bằng hiragana, katakana hoặc kanji.";
       p.append(s);
     }
     input.value = "";
@@ -846,6 +857,10 @@
     toast("Đã xóa tiến trình.");
   });
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && Tour.active()) {
+      Tour.skip();
+      return;
+    }
     if (e.key === "Escape") {
       if (!sheet.hidden) closeSheet();
       if (!questSheet.hidden) questSheet.hidden = true;
@@ -985,6 +1000,7 @@
       return;
     }
     roomId = id;
+    setRoomSize(ROOM[id]);
     stage.classList.remove("reveal");
     $("#bg-error").hidden = true;
     bg.alt = ROOM[id].alt;
@@ -1049,12 +1065,14 @@
     doneSheet.hidden = true;
   });
   $("#btn-start").addEventListener("click", () => {
-    if (!state.char) {
-      show("charpick");
-      return;
+    if (!state.char) show("charpick");
+    else {
+      renderRooms();
+      show("rooms");
     }
-    renderRooms();
-    show("rooms");
+    // lần đầu chơi: hướng dẫn bắt đầu từ màn hình kế tiếp (không hướng dẫn ở màn hình bắt đầu)
+    if (!state.tour)
+      setTimeout(() => Tour.run(state.char ? "rooms" : "char"), 150);
   }); // lần đầu: chọn nhân vật
   function setChar(c) {
     state.char = c;
@@ -1127,7 +1145,7 @@
       )
     )
       return;
-    const keep = { mode: state.mode, char: state.char };
+    const keep = { mode: state.mode, char: state.char, tour: state.tour };
     try {
       localStorage.removeItem(KEY);
     } catch (e) {
@@ -1152,6 +1170,27 @@
   };
   $("#btn-settings").addEventListener("click", openSettings);
   $("#btn-settings-rooms").addEventListener("click", openSettings);
+  let tourBtn = $("#btn-tour");
+  if (!tourBtn) {
+    // index.html cũ chưa có nút: tự tạo để game không bị dừng giữa chừng
+    tourBtn = document.createElement("button");
+    tourBtn.type = "button";
+    tourBtn.id = "btn-tour";
+    tourBtn.className = "secondary";
+    tourBtn.textContent = "Xem hướng dẫn";
+    tourBtn.style.cssText = "width:100%;margin:4px 0 10px";
+    const anchor = $("#settings .rules-fold") || $("#btn-restart");
+    if (anchor && anchor.parentNode)
+      anchor.parentNode.insertBefore(tourBtn, anchor);
+  }
+  tourBtn.addEventListener("click", () => {
+    settings.hidden = true;
+    if (screens.rooms.hidden) {
+      renderRooms();
+      show("rooms");
+    }
+    Tour.run("rooms"); // xem lại hướng dẫn
+  });
   $("#settings-close").addEventListener("click", () => {
     settings.hidden = true;
   });
@@ -1434,6 +1473,460 @@
     renderRooms();
     show("rooms");
   });
+
+  /* ---------- Hướng dẫn lần đầu: mũi tên chỉ vào nút và chữ ---------- */
+  const Tour = (function () {
+    // kiểu dáng đi kèm trong JS: hướng dẫn vẫn hiện đúng dù style.css chưa được cập nhật
+    if (!document.getElementById("tour-css")) {
+      const st = document.createElement("style");
+      st.id = "tour-css";
+      st.textContent = `
+#tour {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+}
+#tour .tour-block,
+#tour .tour-hole,
+#tour .tour-ring,
+#tour .tour-arrow,
+#tour .tour-bubble {
+  position: fixed;
+}
+#tour .tour-block {
+  background: rgba(20, 10, 4, 0.68);
+  pointer-events: auto;
+}
+#tour .tour-hole {
+  pointer-events: auto;
+}
+#tour .tour-hole.pass {
+  pointer-events: none; /* nút được chỉ vẫn bấm được */
+}
+#tour .tour-ring {
+  pointer-events: none;
+  border: 3px solid var(--gold);
+  border-radius: 14px;
+  box-shadow:
+    0 0 0 2px rgba(255, 248, 216, 0.55),
+    0 0 22px 6px rgba(232, 184, 48, 0.65);
+  animation: tour-glow 1.4s ease-in-out infinite;
+}
+#tour .tour-arrow {
+  width: 28px;
+  height: 30px;
+  color: var(--gold);
+  pointer-events: none;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
+}
+#tour .tour-arrow svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: tour-bob-up 0.8s ease-in-out infinite;
+}
+#tour .tour-arrow.down svg {
+  transform: rotate(180deg);
+  animation-name: tour-bob-down;
+}
+#tour .tour-bubble {
+  pointer-events: auto;
+  background: var(--cream);
+  color: var(--wood-d);
+  border: 3px solid var(--wood);
+  border-radius: 16px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  font-size: 15px;
+  line-height: 1.45;
+}
+#tour .tour-text {
+  margin: 0 0 10px;
+}
+#tour .tour-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#tour .tour-step {
+  margin-right: auto;
+  font-size: 12px;
+  opacity: 0.7;
+}
+#tour .tour-tap {
+  margin-right: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--leaf-d);
+}
+#tour .tour-skip {
+  padding: 6px 4px;
+  border: 0;
+  background: none;
+  color: var(--wood);
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+#tour .tour-next {
+  padding: 8px 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--leaf);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 var(--leaf-d);
+  cursor: pointer;
+}
+#tour .tour-next:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--leaf-d);
+}
+@keyframes tour-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(255, 248, 216, 0.55),
+      0 0 14px 3px rgba(232, 184, 48, 0.5);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(255, 248, 216, 0.8),
+      0 0 28px 9px rgba(232, 184, 48, 0.85);
+  }
+}
+@keyframes tour-bob-up {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes tour-bob-down {
+  0%,
+  100% {
+    transform: rotate(180deg) translateY(0);
+  }
+  50% {
+    transform: rotate(180deg) translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #tour .tour-ring,
+  #tour .tour-arrow svg {
+    animation: none;
+  }
+}
+`;
+      document.head.append(st);
+    }
+    const root = document.createElement("div");
+    root.id = "tour";
+    root.hidden = true;
+    root.innerHTML =
+      '<div class="tour-block"></div>'.repeat(4) +
+      '<div class="tour-hole"></div><div class="tour-ring"></div>' +
+      '<div class="tour-arrow"><svg viewBox="0 0 28 30" aria-hidden="true"><path d="M14 1L27 15H19V29H9V15H1Z" fill="currentColor" stroke="#7a4e0b" stroke-width="1.5" stroke-linejoin="round"/></svg></div>' +
+      '<div class="tour-bubble" role="dialog" aria-live="polite"><p class="tour-text"></p>' +
+      '<div class="tour-foot"><span class="tour-step"></span><span class="tour-tap">Bấm vào chỗ được chỉ</span>' +
+      '<button type="button" class="tour-skip">Bỏ qua</button>' +
+      '<button type="button" class="tour-next">Tiếp</button></div></div>';
+    document.body.append(root);
+    const q1 = (s) => root.querySelector(s);
+    const blocks = Array.from(root.querySelectorAll(".tour-block")),
+      hole = q1(".tour-hole"),
+      ring = q1(".tour-ring"),
+      arrow = q1(".tour-arrow"),
+      bubble = q1(".tour-bubble"),
+      textEl = q1(".tour-text"),
+      stepEl = q1(".tour-step"),
+      tapEl = q1(".tour-tap"),
+      skipBtn = q1(".tour-skip"),
+      nextBtn = q1(".tour-next");
+    let cur = null;
+
+    const vis = (el) => !!el && el.getClientRects().length > 0;
+    const resolve = (s) =>
+      typeof s === "function" ? s() : document.querySelector(s);
+
+    // chọn một đồ vật đang nằm gọn trên màn hình để chỉ vào
+    function pickHotspot() {
+      const vw = innerWidth,
+        vh = innerHeight;
+      const all = Array.from(spots.querySelectorAll(".hotspot"));
+      const info = all
+        .map((el) => ({ el, r: el.getBoundingClientRect() }))
+        .filter(
+          (o) =>
+            o.r.width >= 44 &&
+            o.r.height >= 44 &&
+            o.r.width * o.r.height < vw * vh * 0.12,
+        );
+      if (!info.length) return all[0] || null;
+      const inside = info.filter(
+        (o) =>
+          o.r.left >= 0 &&
+          o.r.right <= vw &&
+          o.r.top >= 80 &&
+          o.r.bottom <= vh - 90,
+      );
+      let pool = inside.length ? inside : info;
+      const fresh = pool.filter((o) => !o.el.classList.contains("seen"));
+      if (fresh.length) pool = fresh;
+      const d = (o) =>
+        Math.hypot(
+          o.r.left + o.r.width / 2 - vw / 2,
+          o.r.top + o.r.height / 2 - vh / 2,
+        );
+      pool.sort((a, b) => d(a) - d(b));
+      return pool[0].el;
+    }
+
+    const PARTS = {
+      char: {
+        ready: () => !screens.charpick.hidden,
+        steps: [
+          {
+            sel: ".char-grid",
+            click: true,
+            clickSel: ".char-card",
+            text: "Chọn một nhân vật. Bạn ấy sẽ cùng bạn đi mua sắm ở tiệm tạp hóa. Có thể đổi lại trong Cài đặt.",
+          },
+        ],
+        next: () => "rooms",
+      },
+      rooms: {
+        ready: () => !screens.rooms.hidden,
+        steps: [
+          {
+            sel: () => document.querySelector("#room-list .room.locked"),
+            text: "Phòng có nhãn “Khóa” sẽ mở ra khi bạn học đủ từ ở phòng trước đó.",
+          },
+          {
+            sel: "#btn-shop",
+            text: "Mua sắm: dùng xu kiếm được để mua bánh kẹo ở tiệm tạp hóa.",
+          },
+          {
+            sel: "#btn-settings-rooms",
+            text: "Cài đặt: chọn học tiếng Anh, tiếng Nhật hoặc cả hai, đổi nhân vật và xem luật chơi.",
+          },
+          {
+            sel: "#room-list .room",
+            click: true,
+            text: "Bắt đầu từ phòng đầu tiên nhé! Bấm vào phòng này để vào học.",
+          },
+        ],
+        next: () => "game",
+      },
+      game: {
+        ready: () => !screens.game.hidden,
+        steps: [
+          {
+            sel: "#btn-rooms",
+            text: "Bấm “Phòng” để quay về danh sách phòng bất cứ lúc nào.",
+          },
+          {
+            sel: () => $("#coins").parentNode,
+            text: "Số xu của bạn. Gõ đúng một từ được 10 xu, hoàn thành phòng được thưởng thêm 50 xu.",
+          },
+          {
+            sel: () => $("#room-learned").parentNode,
+            text: "Tiến độ của phòng này: học đủ số từ ở đây để mở khóa phòng tiếp theo.",
+          },
+          {
+            sel: "#btn-box",
+            text: "Hộp từ đã lưu: cất những từ khó vào đây để ôn lại sau.",
+          },
+          {
+            sel: "#btn-notebook",
+            text: "Sổ tay từ vựng: xem đáp án đầy đủ và nghe phát âm. Xem sổ tay không nhận xu.",
+          },
+          {
+            sel: "#btn-find",
+            text: "Tìm đồ vật: những chấm vàng sẽ chỉ ra đồ vật bạn chưa khám phá.",
+          },
+          { sel: "#btn-zoom", text: "Phóng to để nhìn rõ những đồ vật nhỏ." },
+          {
+            sel: "#btn-quests",
+            text: "Nhiệm vụ hằng ngày cho thêm xu, làm mới mỗi ngày.",
+          },
+          {
+            sel: pickHotspot,
+            center: true,
+            click: true,
+            text: "Chạm vào một đồ vật để học từ. Thử chạm vào đồ vật đang được chỉ nhé! (Vuốt ngang để xem cả căn phòng.)",
+          },
+        ],
+        next: () => "sheet",
+      },
+      sheet: {
+        ready: () => !sheet.hidden,
+        steps: [
+          {
+            sel: "#prompt",
+            text: "Đây là câu hỏi: gõ từ tiếng Anh hoặc tiếng Nhật của đồ vật này.",
+          },
+          {
+            sel: "#sheet .tabs",
+            text: "Chuyển qua lại giữa tiếng Anh và tiếng Nhật.",
+          },
+          { sel: "#answer", text: "Gõ đáp án vào ô này." },
+          {
+            sel: "#answer-form .primary",
+            text: "Bấm “Kiểm tra”. Đúng được 10 xu; sai không bị trừ xu và còn có gợi ý.",
+          },
+          {
+            sel: "#later",
+            text: "Chưa biết từ này? Bấm “Để sau” rồi quay lại sau.",
+          },
+          {
+            sel: "#save-word",
+            text: "Ngôi sao dùng để lưu từ khó vào hộp. Vậy là xong, chúc bạn học vui!",
+          },
+        ],
+        next: null,
+      },
+    };
+
+    function clear() {
+      if (cur && cur.off) cur.off();
+      cur = null;
+      root.hidden = true;
+    }
+    function finish(mark) {
+      clear();
+      if (mark) {
+        state.tour = true;
+        save();
+      }
+    }
+    function run(name) {
+      const p = PARTS[name];
+      if (!p) return;
+      clear();
+      const token = (cur = { name, i: -1, list: [], off: null, el: null });
+      const t0 = Date.now();
+      (function poll() {
+        if (cur !== token) return;
+        if (p.ready()) {
+          const hint = $("#hint");
+          if (name === "game" && hint) hint.hidden = true;
+          token.list = p.steps.filter((s) => vis(resolve(s.sel)));
+          go(token, 0);
+        } else if (Date.now() - t0 < 4000) setTimeout(poll, 100);
+        else finish(false);
+      })();
+    }
+    function go(token, i) {
+      if (cur !== token) return;
+      if (token.off) {
+        token.off();
+        token.off = null;
+      }
+      while (i < token.list.length) {
+        const el = resolve(token.list[i].sel);
+        if (vis(el)) return show(token, i, el);
+        i++;
+      }
+      const nx = PARTS[token.name].next && PARTS[token.name].next();
+      if (nx) run(nx);
+      else finish(true);
+    }
+    function show(token, i, el) {
+      const s = token.list[i];
+      try {
+        el.scrollIntoView({
+          block: s.center ? "center" : "nearest",
+          inline: s.center ? "center" : "nearest",
+        });
+      } catch (e) {}
+      token.i = i;
+      token.el = el;
+      textEl.textContent = s.text;
+      stepEl.textContent = i + 1 + "/" + token.list.length;
+      const last = i === token.list.length - 1 && !PARTS[token.name].next;
+      nextBtn.textContent = last ? "Xong" : "Tiếp";
+      nextBtn.hidden = !!s.click;
+      tapEl.hidden = !s.click;
+      hole.classList.toggle("pass", !!s.click);
+      root.hidden = false;
+      if (s.click) {
+        const h = (e) => {
+          if (s.clickSel && !(e.target.closest && e.target.closest(s.clickSel)))
+            return;
+          el.removeEventListener("click", h, true);
+          token.off = null;
+          setTimeout(() => go(token, i + 1), 90);
+        };
+        el.addEventListener("click", h, true);
+        token.off = () => el.removeEventListener("click", h, true);
+      }
+      place();
+      // cửa sổ có thể đang trượt vào: bám theo mục tiêu trong ~0,7 giây đầu
+      let frames = 0;
+      (function follow() {
+        if (cur !== token || ++frames > 42) return;
+        place();
+        requestAnimationFrame(follow);
+      })();
+      if (!s.click) nextBtn.focus({ preventScroll: true });
+    }
+    function place() {
+      if (!cur || !cur.el) return;
+      const vw = innerWidth,
+        vh = innerHeight,
+        pad = 6;
+      const r = cur.el.getBoundingClientRect();
+      const hx = Math.max(0, r.left - pad),
+        hy = Math.max(0, r.top - pad);
+      const hw = Math.min(vw, r.right + pad) - hx,
+        hh = Math.min(vh, r.bottom + pad) - hy;
+      const put = (e, x, y, w, h) => {
+        e.style.left = x + "px";
+        e.style.top = y + "px";
+        e.style.width = Math.max(0, w) + "px";
+        e.style.height = Math.max(0, h) + "px";
+      };
+      put(blocks[0], 0, 0, vw, hy);
+      put(blocks[1], 0, hy + hh, vw, vh - hy - hh);
+      put(blocks[2], 0, hy, hx, hh);
+      put(blocks[3], hx + hw, hy, vw - hx - hw, hh);
+      put(hole, hx, hy, hw, hh);
+      put(ring, hx, hy, hw, hh);
+
+      const bw = Math.min(310, vw - 24);
+      bubble.style.width = bw + "px";
+      const bh = bubble.offsetHeight,
+        AH = 30,
+        gap = 6;
+      const below = vh - (hy + hh),
+        above = hy,
+        need = bh + AH + gap + 12;
+      const down = below >= need || (above < need && below >= above); // bong bóng nằm dưới mục tiêu
+      const cx = hx + hw / 2;
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      let by;
+      if (down) {
+        arrow.style.top = hy + hh + gap + "px";
+        by = hy + hh + gap + AH;
+      } else {
+        arrow.style.top = hy - gap - AH + "px";
+        by = hy - gap - AH - bh;
+      }
+      arrow.classList.toggle("down", !down); // mũi tên chỉ lên khi bong bóng ở dưới
+      arrow.style.left = clamp(cx - 14, 12, vw - 40) + "px";
+      bubble.style.left = clamp(cx - bw / 2, 12, vw - bw - 12) + "px";
+      bubble.style.top = clamp(by, 12, vh - bh - 12) + "px";
+    }
+    nextBtn.addEventListener("click", () => cur && go(cur, cur.i + 1));
+    skipBtn.addEventListener("click", () => finish(true));
+    window.addEventListener("resize", place);
+    return { run, active: () => !!cur, skip: () => finish(true) };
+  })();
 
   /* ---------- Khởi động ---------- */
   bg.addEventListener("error", () => {
