@@ -14,6 +14,12 @@
     />
     <meta name="theme-color" content="#2b1a0e" />
     <title>kotoba world – Học tiếng Anh và tiếng Nhật</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
@@ -25,7 +31,7 @@
     <section id="start" class="screen" aria-labelledby="start-title">
       <img
         class="start-bg"
-        src="assets/start-garden.jpg"
+        src="assets/start-garden.PNG"
         alt=""
         draggable="false"
       />
@@ -63,10 +69,10 @@
         </p>
         <div class="char-grid">
           <button type="button" class="char-card" data-char="boy">
-            <img src="assets/boy.png" alt="" draggable="false" /><b>Bạn trai</b>
+            <img src="assets/boy.png" alt="" draggable="false" /><b>cu đen</b>
           </button>
           <button type="button" class="char-card" data-char="girl">
-            <img src="assets/girl.png" alt="" draggable="false" /><b>Bạn gái</b>
+            <img src="assets/girl.png" alt="" draggable="false" /><b>bé na</b>
           </button>
         </div>
       </div>
@@ -82,20 +88,7 @@
           <h2 id="rooms-title">Chọn phòng</h2>
           <button
             type="button"
-            class="pill pill-btn right shop-open"
-            id="btn-shop"
-            aria-label="Mở cửa hàng tạp hóa"
-          >
-            <img
-              class="cart-ico"
-              src="assets/basket.png"
-              alt=""
-              draggable="false"
-            /><span class="shop-lbl">Mua sắm</span>
-          </button>
-          <button
-            type="button"
-            class="pill pill-btn gear-btn"
+            class="pill pill-btn gear-btn right"
             id="btn-settings-rooms"
             aria-label="Cài đặt"
           >
@@ -137,7 +130,7 @@
       </div>
       <header class="shop-top">
         <button type="button" class="pill pill-btn" id="shop-back">
-          ‹ Phòng
+          ‹ Quay lại
         </button>
         <div class="pill" id="shop-wallet">
           <span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu
@@ -207,13 +200,27 @@
         </div>
 
         <button
-          class="pill pill-btn right"
+          class="pill pill-btn right shop-open"
+          id="btn-shop"
+          type="button"
+          aria-label="Mở cửa hàng tạp hóa"
+        >
+          <img
+            class="cart-ico"
+            src="assets/basket.png"
+            alt=""
+            draggable="false"
+          />
+        </button>
+
+        <button
+          class="pill pill-btn"
           id="btn-box"
           type="button"
           aria-label="lưu trữ "
         >
-          <span class="box-ico" aria-hidden="true">📦</span
-          ><b class="box-count" id="box-count" hidden>0</b>
+          <img class="box-ico" src="assets/box.png" alt="" />
+          <b class="box-count" id="box-count" hidden>0</b>
         </button>
 
         <button
@@ -224,18 +231,47 @@
         >
           <img class="nb-ico" src="assets/notebook.png" alt="" />
         </button>
+
+        <button
+          class="pill pill-btn gear-btn"
+          id="btn-settings-game"
+          type="button"
+          aria-label="Cài đặt"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              fill="currentColor"
+              d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"
+            />
+          </svg>
+        </button>
       </header>
+
+      <!-- Mẩu giấy nhiệm vụ ở góc trái: chạm để mở bảng làm nhiệm vụ -->
+      <button
+        class="quest-note"
+        id="btn-quests"
+        type="button"
+        aria-label="Việc bà giao: mở nhiệm vụ của phòng"
+      >
+        <span class="qn-title">Việc bà giao</span>
+        <span class="qn-list" id="quest-note-list"></span>
+      </button>
 
       <nav class="hud bottom">
         <button class="act" id="btn-find" type="button">Tìm đồ vật</button>
         <button class="act" id="btn-zoom" type="button">Phóng to</button>
-        <button class="act alt" id="btn-quests" type="button">
-          Nhiệm vụ <b id="quest-mini">0/2</b>
-        </button>
       </nav>
 
       <div id="hint" class="hint" hidden>
-        Vuốt ngang để đi quanh căn bếp. Chạm vào đồ vật để học từ.
+        Vuốt ngang để đi quanh phòng. Chạm đồ vật để học từ, chạm nút vàng ở cửa
+        hoặc cầu thang để sang phòng khác.
       </div>
       <div id="bg-error" class="bg-error" hidden>
         <p>
@@ -247,6 +283,34 @@
     </div>
     <!-- /#game -->
 
+    <!-- Lời chào lần đầu chơi -->
+    <div
+      id="welcome"
+      class="welcome"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="welcome-text"
+    >
+      <img id="welcome-char" class="welcome-char" alt="" draggable="false" />
+      <div class="welcome-say">
+        <p id="welcome-text">
+          Chào mừng bạn đã đến quê mình! Chơi cùng mình khám phá thôi nào!
+        </p>
+        <button type="button" class="primary" id="welcome-ok">
+          Khám phá thôi nào!
+        </button>
+      </div>
+    </div>
+
+    <!-- Hiệu ứng khi hoàn thành một bước nhiệm vụ -->
+    <div id="task-fx" class="task-fx" hidden aria-live="polite">
+      <span class="fx-emoji" id="task-fx-emoji"></span>
+      <img class="fx-img" id="task-fx-img" alt="" draggable="false" hidden />
+      <b class="fx-msg" id="task-fx-msg"></b>
+    </div>
+
+    <div id="fade"></div>
     <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
 
     <!-- Luật chơi -->
@@ -342,7 +406,11 @@
               Hoàn thành phòng sẽ được thưởng <b>50 xu</b> và mở khóa phòng tiếp
               theo. Phòng chưa mở sẽ bị khóa.
             </li>
-            <li>Nhiệm vụ hằng ngày cho thêm xu và làm mới mỗi ngày.</li>
+            <li>
+              Mỗi phòng có nhiệm vụ hằng ngày theo từng bước (như bật bếp, nấu
+              cơm, rửa chén). Gõ đúng câu của từng việc để hoàn thành, nhận xu và
+              làm mới mỗi ngày.
+            </li>
           </ol>
         </details>
         <button type="button" class="secondary danger" id="btn-restart">
@@ -470,7 +538,7 @@
           ×
         </button>
         <h2 id="box-title">
-          <span class="box-ico big" aria-hidden="true">📦</span>Hộp từ đã lưu
+          <span class="box-ico big" aria-hidden="true"></span>Rương lưu trữ
         </h2>
         <p class="stats" id="box-stats"></p>
         <p class="tip">
@@ -498,6 +566,7 @@
           ×
         </button>
         <h2 id="quests-title">Nhiệm vụ hôm nay</h2>
+        <p class="quest-sub"></p>
         <div id="quest-list"></div>
         <p class="stats" id="stats"></p>
         <button type="button" class="secondary danger" id="btn-reset">

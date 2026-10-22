@@ -849,14 +849,12 @@ details.entry[open] summary {
     margin-top: 8px;
   }
   .start-actions {
-    flex-direction: row;
-    width: min(100%, 520px);
-  }
-  .start-actions .start-btn {
-    flex: 1;
+    flex-direction: column; /* Bắt đầu luôn nằm trên Cài đặt */
+    width: min(100%, 320px);
+    gap: 8px;
   }
   .start-btn {
-    min-height: 50px;
+    min-height: 46px;
     font-size: 18px;
   }
 }
@@ -1314,8 +1312,13 @@ details.entry[open] summary {
 
 /* ---------- Hộp từ đã lưu ---------- */
 .box-ico {
-  font-size: 18px;
+  flex: none;
+  width: 28px;
+  height: 38px;
+  margin-right: 6px;
+  font-size: 24px;
   line-height: 1;
+  vertical-align: middle;
 }
 .box-ico.big {
   font-size: 34px;
@@ -1959,4 +1962,605 @@ details.entry[open] summary {
   #tour .tour-arrow svg {
     animation: none;
   }
+}
+
+
+/* Cửa nối giữa các phòng */
+.go:not(.start-btn) {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 24px;
+  font: inherit;
+  font-size: clamp(14px, 1.9vw, 19px);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--wood-d);
+  background: rgba(232, 184, 48, 0.95);
+  border: 3px solid var(--wood);
+  box-shadow: 0 3px 10px rgba(40, 24, 10, 0.45);
+}
+.go:not(.start-btn):active {
+  transform: translate(-50%, -50%) scale(0.95);
+}
+.go.locked:not(.start-btn) {
+  background: rgba(241, 226, 182, 0.92);
+  color: #7a6246;
+  border-color: #8a6a45;
+}
+.go.ready:not(.start-btn) {
+  animation: goPulse 1.2s ease-in-out infinite;
+}
+@keyframes goPulse {
+  50% {
+    box-shadow:
+      0 0 0 8px rgba(255, 230, 120, 0.55),
+      0 3px 10px rgba(40, 24, 10, 0.45);
+  }
+}
+#fade {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  background: #1a0f06;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+#fade.on {
+  opacity: 1;
+  pointer-events: auto;
+}
+#stage {
+  transition: transform 0.32s ease-in;
+}
+
+/* ---------- Nút mua sắm cạnh rương lưu trữ (trong phòng) ---------- */
+.hud.top .shop-open {
+  flex: none;
+  gap: 6px;
+  background: var(--gold);
+  border-color: #b98512;
+  font-weight: 700;
+}
+.hud.top .shop-open .cart-ico {
+  width: 26px;
+  height: 26px;
+}
+
+/* Nút cài đặt trong phòng, cạnh sổ tay */
+.hud.top .gear-btn {
+  min-width: 40px;
+  padding: 0 8px;
+}
+@media (max-width: 430px) {
+  .hud.top .gear-btn {
+    min-width: 36px;
+    padding: 0 6px;
+  }
+  .hud.top .gear-btn svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* ---------- Lời chào lần đầu chơi ---------- */
+.welcome {
+  --ch: min(54vh, 560px);
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: rgba(30, 16, 6, 0.5);
+}
+.welcome[hidden] {
+  display: none;
+}
+.welcome-char {
+  position: absolute;
+  left: calc(6px + var(--sal));
+  bottom: calc(8px + var(--sab));
+  height: var(--ch);
+  width: auto;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(30, 16, 6, 0.55));
+  animation: sayin 0.3s ease-out;
+}
+.welcome-say {
+  position: absolute;
+  left: calc(var(--ch) * 0.5 + 16px + var(--sal));
+  bottom: calc(var(--ch) * 0.55 + var(--sab));
+  max-width: max(180px, calc(100vw - var(--ch) * 0.5 - 32px));
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 3px solid var(--wood);
+  background: var(--cream);
+  color: var(--wood-d);
+  box-shadow: 0 4px 14px rgba(30, 16, 6, 0.5);
+  animation: sayin 0.3s ease-out 0.15s backwards;
+}
+.welcome-say p {
+  margin: 0 0 12px;
+  font-size: clamp(16px, 4vw, 19px);
+  font-weight: 600;
+  line-height: 1.45;
+}
+.welcome-say .primary {
+  width: 100%;
+}
+.welcome-say::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  bottom: 22px;
+  border: 9px solid transparent;
+  border-right: 12px solid var(--wood);
+  border-left: 0;
+}
+.welcome-say::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  bottom: 25px;
+  border: 6px solid transparent;
+  border-right: 9px solid var(--cream);
+  border-left: 0;
+}
+
+/* ---------- Nhiệm vụ theo phòng: tờ giấy ghi chú ---------- */
+#quests {
+  align-items: center;
+  padding: 24px 16px;
+}
+#quests .card {
+  --hand: "Mali", "Patrick Hand", "Segoe Print", "Bradley Hand", "Comic Sans MS",
+    cursive;
+  width: min(100%, 380px);
+  max-height: none;
+  overflow: visible;
+  padding: 34px 22px 22px 26px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  isolation: isolate;
+  font-family: var(--hand);
+  color: #3a2a1a;
+  transform: rotate(-1.2deg);
+  filter: drop-shadow(0 8px 14px rgba(30, 16, 6, 0.5));
+  animation: noteIn 0.3s ease-out;
+}
+@keyframes noteIn {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(-4deg);
+  }
+}
+/* tờ giấy kẻ ngang, mép xé răng cưa */
+#quests .card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 33px,
+      rgba(112, 150, 196, 0.4) 33px 35px
+    ),
+    #fbf1d6;
+  background-position: 0 14px, 0 0;
+  clip-path: polygon(
+    0 5px, 4% 0, 8% 6px, 13% 1px, 18% 5px, 24% 0, 30% 6px, 36% 1px, 42% 5px,
+    48% 0, 54% 6px, 60% 1px, 66% 5px, 72% 0, 78% 6px, 84% 1px, 90% 5px,
+    95% 0, 100% 4px,
+    100% calc(100% - 5px), 95% 100%, 90% calc(100% - 6px), 84% calc(100% - 1px),
+    78% calc(100% - 5px), 72% 100%, 66% calc(100% - 6px), 60% calc(100% - 1px),
+    54% calc(100% - 5px), 48% 100%, 42% calc(100% - 6px), 36% calc(100% - 1px),
+    30% calc(100% - 5px), 24% 100%, 18% calc(100% - 6px), 13% calc(100% - 1px),
+    8% calc(100% - 5px), 4% 100%, 0 calc(100% - 4px)
+  );
+}
+/* miếng băng keo dán trên đỉnh */
+#quests .card::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  width: 96px;
+  height: 28px;
+  margin-left: -48px;
+  transform: rotate(-3deg);
+  background: rgba(214, 170, 92, 0.82);
+  box-shadow: 0 1px 3px rgba(60, 36, 12, 0.3);
+  clip-path: polygon(
+    0 10%, 4% 0, 8% 12%, 12% 0, 88% 0, 92% 12%, 96% 0, 100% 10%,
+    100% 90%, 96% 100%, 92% 88%, 88% 100%, 12% 100%, 8% 88%, 4% 100%, 0 90%
+  );
+  pointer-events: none;
+}
+#quests .card h2 {
+  margin: 0;
+  font-family: var(--hand);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #3a2a1a;
+}
+#quests .close {
+  top: 20px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #6b4423;
+}
+.quest-sub {
+  margin: 2px 0 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #8a6a45;
+}
+#quest-list {
+  max-height: min(58dvh, 440px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 2px 2px 0;
+}
+.task-step {
+  margin: 0;
+  padding: 8px 0 6px;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.task-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+/* ô vuông để tick */
+.task-box {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid #4a3320;
+  border-radius: 4px;
+  background: rgba(255, 252, 240, 0.7);
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1;
+  color: #c0392b;
+}
+.task-step.done .task-box.checked {
+  border-color: #4a3320;
+}
+.task-step.done .task-box.checked::before {
+  content: "";
+}
+.task-step.done .task-title b {
+  text-decoration: line-through;
+  text-decoration-color: #c0392b;
+  text-decoration-thickness: 3px;
+  color: #3a2a1a;
+}
+.task-step.later {
+  opacity: 0.6;
+}
+.task-step.later .task-title b {
+  font-weight: 500;
+}
+.task-ask,
+.task-ans,
+.task-read,
+.task-form {
+  margin-left: 36px;
+}
+.task-ask {
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  color: #6b4d2f;
+}
+.task-ans {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin-top: 4px;
+  font-weight: 700;
+}
+.task-ans .ja {
+  font-size: 17px;
+  font-family: var(--body);
+}
+.task-ans .en {
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b4d2f;
+}
+.task-read {
+  margin-top: 0;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #8a6a45;
+}
+.task-form {
+  margin-top: 6px;
+}
+.task-form input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 2px solid #6b4423;
+  background: rgba(255, 253, 244, 0.92);
+  font-family: var(--body);
+  font-size: 18px;
+}
+.task-form .row {
+  margin-top: 8px;
+}
+.task-fb {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+.task-fb:empty {
+  display: none;
+}
+.task-fb.bad {
+  color: #b03a22;
+}
+.task-fb.help {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(241, 226, 182, 0.85);
+  color: #3a2a1a;
+}
+.task-complete {
+  margin: 12px 0 0 2px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: #b03a22;
+  transform: rotate(-1deg);
+}
+.task-others {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: 2px dashed rgba(107, 68, 35, 0.4);
+}
+.task-others-h {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #8a6a45;
+}
+.task-other {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 2px 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+#quests .stats {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #8a6a45;
+}
+#quests .secondary.danger {
+  margin-top: 8px;
+}
+
+/* Hiệu ứng khi làm xong một việc */
+.task-fx {
+  position: fixed;
+  left: 50%;
+  top: 42%;
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: min(86vw, 360px);
+  padding: 18px 20px;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  border-radius: 24px;
+  border: 3px solid var(--wood);
+  background: rgba(251, 243, 220, 0.96);
+  box-shadow: 0 8px 28px rgba(30, 16, 6, 0.5);
+  pointer-events: none;
+}
+.task-fx[hidden] {
+  display: none;
+}
+.task-fx.on {
+  animation: fxpop 2.4s ease both;
+}
+.task-fx .fx-emoji {
+  font-size: 64px;
+  line-height: 1;
+  animation: fxbounce 0.7s ease-out 0.1s both;
+}
+.task-fx .fx-msg {
+  font-size: clamp(17px, 4.4vw, 21px);
+  line-height: 1.4;
+  color: var(--wood-d);
+}
+@keyframes fxpop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.6);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  22% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -58%) scale(1);
+  }
+}
+@keyframes fxbounce {
+  0% {
+    transform: scale(0.3) rotate(-15deg);
+  }
+  60% {
+    transform: scale(1.25) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* ---------- Mẩu giấy nhiệm vụ ở góc trái màn hình ---------- */
+.quest-note {
+  position: fixed;
+  z-index: 5;
+  left: calc(10px + var(--sal));
+  top: calc(66px + var(--sat));
+  isolation: isolate;
+  width: clamp(132px, 36vw, 176px);
+  padding: 18px 12px 14px 16px;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: "Mali", "Patrick Hand", "Segoe Print", "Bradley Hand",
+    "Comic Sans MS", cursive;
+  color: #3a2a1a;
+  transform: rotate(-2deg);
+  filter: drop-shadow(0 4px 7px rgba(30, 16, 6, 0.5));
+  transition: transform 0.15s ease;
+}
+.quest-note:active {
+  transform: rotate(-2deg) scale(0.96);
+}
+.quest-note:focus-visible {
+  outline: 3px solid #fff3b0;
+  outline-offset: 4px;
+}
+.quest-note::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0 21px,
+      rgba(112, 150, 196, 0.4) 21px 22px
+    ),
+    #fbf1d6;
+  background-position: 0 9px, 0 0;
+  clip-path: polygon(
+    0 4px, 6% 0, 13% 4px, 21% 0, 29% 4px, 38% 0, 47% 4px, 56% 0, 65% 4px,
+    74% 0, 83% 4px, 92% 0, 100% 3px,
+    100% calc(100% - 4px), 92% 100%, 83% calc(100% - 4px), 74% 100%,
+    65% calc(100% - 4px), 56% 100%, 47% calc(100% - 4px), 38% 100%,
+    29% calc(100% - 4px), 21% 100%, 13% calc(100% - 4px), 6% 100%,
+    0 calc(100% - 3px)
+  );
+}
+.quest-note::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 56px;
+  height: 18px;
+  margin-left: -28px;
+  transform: rotate(-3deg);
+  background: rgba(214, 170, 92, 0.85);
+  box-shadow: 0 1px 2px rgba(60, 36, 12, 0.3);
+  clip-path: polygon(
+    0 12%, 5% 0, 10% 14%, 15% 0, 85% 0, 90% 14%, 95% 0, 100% 12%,
+    100% 88%, 95% 100%, 90% 86%, 85% 100%, 15% 100%, 10% 86%, 5% 100%, 0 88%
+  );
+}
+.qn-title {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.qn-list {
+  display: block;
+}
+.qn-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  padding: 2px 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.qn-item.now {
+  font-weight: 700;
+}
+.qn-box {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  margin-top: 1px;
+  border: 2px solid #4a3320;
+  border-radius: 3px;
+  background: rgba(255, 252, 240, 0.7);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1;
+  color: #c0392b;
+}
+.qn-item.done .qn-txt {
+  text-decoration: line-through;
+  text-decoration-color: #c0392b;
+  text-decoration-thickness: 2px;
+}
+@media (max-width: 430px) {
+  .quest-note {
+    top: calc(62px + var(--sat));
+  }
+}
+
+/* Ảnh minh họa kết quả nhiệm vụ (thay cho emoji) */
+.task-fx .fx-img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(70vw, 220px);
+  max-height: min(34vh, 200px);
+  object-fit: contain;
+  animation: fxbounce 0.7s ease-out 0.1s both;
+  filter: drop-shadow(0 3px 5px rgba(30, 16, 6, 0.35));
 }

@@ -15,10 +15,8 @@
     ROOM_BONUS = 50; // cần học đúng 75% đồ vật để qua phòng, thưởng 50 xu
   const ZOOMS = [1, 1.6, 2.4];
   const ZOOM_LABELS = ["Phóng to", "Phóng to hơn", "Thu nhỏ"];
-  const QUESTS = [
-    { id: "explore", label: "Khám phá 5 đồ vật", goal: 5, reward: 20 },
-    { id: "learn", label: "Trả lời đúng 3 từ", goal: 3, reward: 20 },
-  ];
+  const TASK_STEP_REWARD = 5, // xu cho mỗi bước nhiệm vụ
+    TASK_CHAIN_BONUS = 20; // thưởng thêm khi xong cả chuỗi của phòng
 
   const $ = (s) => document.querySelector(s);
   const viewport = $("#viewport"),
@@ -50,7 +48,8 @@
       inv: {},
       saved: [],
       tour: false, // đã xem hướng dẫn lần đầu chưa
-      daily: { date: today(), explored: [], correct: [], claimed: {} },
+      welcomed: false, // đã được nhân vật chào lần đầu chưa
+      daily: { date: today(), explored: [], correct: [], claimed: {}, tasks: {} },
     };
   }
   function load() {
@@ -64,6 +63,7 @@
           (s.coins > 0 || (s.items && Object.keys(s.items).length))
         )
           s.tour = true;
+        if (s.welcomed === undefined && s.tour) s.welcomed = true;
         return Object.assign(defaults(), s);
       }
     } catch (e) {
@@ -191,19 +191,40 @@
   }
 
   /* ---------- HUD, nhiệm vụ ---------- */
-  function questProgress(q) {
-    return q.id === "explore"
-      ? state.daily.explored.length
-      : state.daily.correct.length;
+  const tasksOf = (id) =>
+    (typeof ROOM_TASKS !== "undefined" && ROOM_TASKS[id]) || [];
+  function taskDone(id) {
+    rollDaily();
+    if (!state.daily.tasks) state.daily.tasks = {};
+    return Math.min(state.daily.tasks[id] || 0, tasksOf(id).length);
+  }
+  // Mẩu giấy ghi chú ở góc trái: danh sách việc của phòng, việc xong thì tick và gạch đỏ
+  function renderQuestNote() {
+    const note = $("#btn-quests"),
+      box = $("#quest-note-list");
+    const steps = tasksOf(roomId);
+    note.hidden = !steps.length;
+    box.textContent = "";
+    const done = taskDone(roomId);
+    steps.forEach((t, i) => {
+      const row = document.createElement("span");
+      row.className =
+        "qn-item" + (i < done ? " done" : i === done ? " now" : "");
+      const b = document.createElement("span");
+      b.className = "qn-box";
+      b.textContent = i < done ? "✓" : "";
+      const txt = document.createElement("span");
+      txt.className = "qn-txt";
+      txt.textContent = t.vi;
+      row.append(b, txt);
+      box.append(row);
+    });
   }
   function updateHud(bump) {
     $("#coins").textContent = state.coins;
     $("#room-learned").textContent = learnedIn(roomId);
     $("#room-need").textContent = needOf(roomId);
-    $("#quest-mini").textContent =
-      QUESTS.filter((q) => questProgress(q) >= q.goal).length +
-      "/" +
-      QUESTS.length;
+    renderQuestNote();
     if (bump) {
       const p = $("#coins").parentNode;
       p.classList.remove("bump");
@@ -224,51 +245,215 @@
     refreshSaveUi();
   }
   function checkQuests() {
+    // nhiệm vụ nay tính theo từng bước đã gõ đúng; chỉ cần làm mới giao diện
     rollDaily();
-    let gained = false;
-    QUESTS.forEach((q) => {
-      if (questProgress(q) >= q.goal && !state.daily.claimed[q.id]) {
-        state.daily.claimed[q.id] = true;
-        state.coins += q.reward;
-        gained = true;
-        toast("Hoàn thành nhiệm vụ “" + q.label + "”: +" + q.reward + " xu");
-      }
-    });
     save();
-    updateHud(gained);
+    updateHud();
+  }
+
+  /* ---------- Nhiệm vụ theo phòng: gõ đúng câu để làm từng việc ---------- */
+  // Làm gọn câu tiếng Anh: bỏ mạo từ, "my/your", "please", "I"... để gõ tự nhiên vẫn đúng
+  function taskNormEn(s) {
+    return String(s)
+      .normalize("NFKC")
+      .toLowerCase()
+      .replace(/[.!?,]+/g, " ")
+      .replace(/\b(please|i|you|we|let's|to|a|an|the|my|your|our|some)\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+  function taskMatch(step, text, lang) {
+    if (lang === "en") {
+      const n = taskNormEn(text);
+      return !!n && step.en.some((a) => taskNormEn(a) === n);
+    }
+    const n = norm(text, "ja");
+    const ok = step.ja.concat(step.reading ? [step.reading] : []);
+    return !!n && ok.some((a) => norm(a, "ja") === n);
   }
   function renderQuests() {
     const list = $("#quest-list");
+    const oldInput = list.querySelector("input");
+    // giữ chữ đang gõ dở, nhưng chỉ khi vẫn là cùng một bước
+    const keepVal =
+      oldInput && oldInput.dataset.step === String(taskDone(roomId))
+        ? oldInput.value
+        : "";
     list.textContent = "";
-    QUESTS.forEach((q) => {
-      const n = Math.min(questProgress(q), q.goal);
-      const box = document.createElement("div");
-      box.className = "quest";
-      const p = document.createElement("p");
-      const a = document.createElement("span");
-      a.textContent = q.label;
-      const b = document.createElement("b");
-      b.textContent = state.daily.claimed[q.id]
-        ? "Xong · +" + q.reward + " xu"
-        : n + "/" + q.goal;
-      p.append(a, b);
-      const bar = document.createElement("div");
-      bar.className = "bar";
-      const fill = document.createElement("i");
-      fill.style.width = (n / q.goal) * 100 + "%";
-      bar.append(fill);
-      box.append(p, bar);
+    const mk = (tag, cls, txt) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (txt != null) e.textContent = txt;
+      return e;
+    };
+    const steps = tasksOf(roomId);
+    const done = taskDone(roomId);
+    $("#quests-title").textContent = "Việc bà giao";
+    $(".quest-sub").textContent =
+      ROOM[roomId].name + (steps.length ? " · " + done + "/" + steps.length : "");
+
+    if (!steps.length) {
+      list.append(mk("p", "stats", "Phòng này chưa có nhiệm vụ."));
+    } else {
+
+      const modeTxt =
+        state.mode === "ja"
+          ? "tiếng Nhật"
+          : state.mode === "en"
+            ? "tiếng Anh"
+            : "tiếng Nhật hoặc tiếng Anh";
+
+      steps.forEach((t, i) => {
+        const st = i < done ? "done" : i === done ? "now" : "later";
+        const row = mk("div", "task-step " + st);
+        const title = mk("p", "task-title");
+        title.append(
+          mk("span", "task-box" + (st === "done" ? " checked" : ""), st === "done" ? "✓" : ""),
+          mk("b", "", t.vi),
+        );
+        row.append(title);
+
+        if (st === "done") {
+          const jaTxt = t.ja[0];
+          const ans = mk("p", "task-ans");
+          ans.append(mk("span", "ja", jaTxt), mk("span", "en", t.en[0]));
+          row.append(ans, mk("p", "task-read", t.reading + " · " + t.romaji));
+        } else if (st === "now") {
+          row.append(mk("p", "task-ask", "Gõ câu bằng " + modeTxt + " để " + t.vi.toLowerCase() + "."));
+          const f = document.createElement("form");
+          f.className = "task-form";
+          f.autocomplete = "off";
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.autocapitalize = "off";
+          inp.autocomplete = "off";
+          inp.spellcheck = false;
+          inp.setAttribute("aria-label", "Câu cho việc: " + t.vi);
+          inp.value = keepVal;
+          inp.dataset.step = String(i);
+          const rowBtns = mk("div", "row");
+          const ok = mk("button", "primary", "Kiểm tra");
+          ok.type = "submit";
+          const hintBtn = mk("button", "secondary", "Gợi ý");
+          hintBtn.type = "button";
+          rowBtns.append(ok, hintBtn);
+          const fb = mk("div", "task-fb");
+          fb.setAttribute("role", "status");
+          fb.setAttribute("aria-live", "polite");
+          f.append(inp, rowBtns, fb);
+          row.append(f);
+          hintBtn.addEventListener("click", () => {
+            fb.className = "task-fb help";
+            fb.textContent = t.hint;
+          });
+          f.addEventListener("submit", (e) => {
+            e.preventDefault();
+            submitTask(t, i, inp.value, fb);
+          });
+        }
+        list.append(row);
+      });
+
+      if (done >= steps.length)
+        list.append(
+          mk(
+            "p",
+            "task-complete",
+            "Xong hết việc ở " + ROOM[roomId].name + " rồi! Mai bà sẽ giao việc mới nhé.",
+          ),
+        );
+    }
+
+    // tóm tắt các phòng khác đã mở
+    const others = ROOMS.filter((r) => r.id !== roomId && isUnlocked(r.id) && tasksOf(r.id).length);
+    if (others.length) {
+      const box = mk("div", "task-others");
+      box.append(mk("p", "task-others-h", "Phòng khác"));
+      others.forEach((r) => {
+        const p = mk("p", "task-other");
+        const d = taskDone(r.id),
+          n = tasksOf(r.id).length;
+        p.append(mk("span", "", r.name), mk("b", "", d >= n ? "Xong" : d + "/" + n));
+        box.append(p);
+      });
       list.append(box);
-    });
-    const op = openItems();
-    $("#stats").textContent =
-      "Đã khám phá " +
-      op.filter((i) => i.discovered).length +
-      "/" +
-      op.length +
-      " đồ vật. Đã học " +
-      op.filter((i) => i.learned).length +
-      " từ. Nhiệm vụ làm mới mỗi ngày.";
+    }
+    $("#stats").textContent = "Nhiệm vụ làm mới mỗi ngày.";
+  }
+
+  const fxEl = $("#task-fx");
+  let fxTimer = 0;
+  const FX_MS = 4500; // thời gian card kết quả hiện trên màn hình (ms)
+  fxEl.style.setProperty("--fx-ms", FX_MS + "ms");
+  const fxImg = $("#task-fx-img"),
+    fxEmoji = $("#task-fx-emoji");
+  // fx có thể là emoji hoặc đường dẫn ảnh (vd "assets/fx/tv.png")
+  const isImgPath = (s) => /[\/]|\.(png|jpe?g|gif|webp|svg)$/i.test(s || "");
+  fxImg.addEventListener("error", () => {
+    fxImg.hidden = true; // ảnh lỗi hoặc chưa có: dùng tạm biểu tượng
+    fxEmoji.textContent = "✨";
+    fxEmoji.hidden = false;
+  });
+  function showTaskFx(fx, msg) {
+    if (isImgPath(fx)) {
+      fxEmoji.hidden = true;
+      fxImg.hidden = false;
+      fxImg.src = fx;
+    } else {
+      fxImg.hidden = true;
+      fxEmoji.hidden = false;
+      fxEmoji.textContent = fx || "✨";
+    }
+    $("#task-fx-msg").textContent = msg;
+    fxEl.hidden = false;
+    fxEl.classList.remove("on");
+    void fxEl.offsetWidth;
+    fxEl.classList.add("on");
+    clearTimeout(fxTimer);
+    fxTimer = setTimeout(() => {
+      fxEl.hidden = true;
+      fxEl.classList.remove("on");
+    }, FX_MS);
+  }
+  function submitTask(step, i, text, fb) {
+    const steps = tasksOf(roomId);
+    if (i !== taskDone(roomId)) return; // chỉ làm đúng bước hiện tại
+    const t = String(text).trim();
+    if (!t) {
+      fb.className = "task-fb bad";
+      fb.textContent = "Hãy gõ câu trước đã.";
+      return;
+    }
+    const langs = state.mode === "both" ? ["ja", "en"] : [state.mode];
+    const hit = langs.find((l) => taskMatch(step, t, l));
+    if (!hit) {
+      fb.className = "task-fb bad";
+      if (state.mode === "ja" && !hasCJK(t))
+        fb.textContent = "Bước này cần gõ bằng tiếng Nhật.";
+      else if (state.mode === "en" && hasCJK(t))
+        fb.textContent = "Bước này cần gõ bằng tiếng Anh.";
+      else
+        fb.textContent =
+          "Chưa đúng. Bấm “Gợi ý” để xem mẫu câu. Không bị trừ xu đâu.";
+      return;
+    }
+    rollDaily();
+    state.daily.tasks[roomId] = i + 1;
+    state.coins += TASK_STEP_REWARD;
+    let msg = step.result + " +" + TASK_STEP_REWARD + " xu";
+    if (i + 1 >= steps.length && !state.daily.claimed[roomId]) {
+      state.daily.claimed[roomId] = true;
+      state.coins += TASK_CHAIN_BONUS;
+      msg += " (xong cả phòng: +" + TASK_CHAIN_BONUS + " xu)";
+    }
+    save();
+    speak(hit === "ja" ? step.ja[0] : step.en[0], hit);
+    questSheet.hidden = true;
+    updateHud(true);
+    showTaskFx(step.fx, step.result);
+    toast("Hoàn thành “" + step.vi + "”: +" + TASK_STEP_REWARD + " xu");
+    if (i + 1 >= steps.length)
+      toast("Xong nhiệm vụ " + ROOM[roomId].name + ": +" + TASK_CHAIN_BONUS + " xu");
   }
 
   /* ---------- Vùng chạm ---------- */
@@ -294,8 +479,65 @@
         spots.append(b);
       });
     });
+    buildDoors(id);
   }
   if (/[?&]debug/.test(location.search)) stage.classList.add("debug");
+
+  /* ---------- Cửa nối các phòng ---------- */
+  // ROOMS[i].doors: { to, x, y, label, icon, at } — x, y theo pixel của ảnh phòng; at = vị trí (0–1) xuất hiện ở phòng mới
+  function buildDoors(id) {
+    (ROOM[id].doors || []).forEach((d) => {
+      const to = ROOM[d.to];
+      if (!to) return;
+      const open = isUnlocked(d.to);
+      const forward = roomIndex(d.to) === roomIndex(id) + 1;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className =
+        "go" +
+        (open ? "" : " locked") +
+        (open && forward && state.done[id] ? " ready" : "");
+      b.style.left = (d.x / IMG_W) * 100 + "%";
+      b.style.top = (d.y / IMG_H) * 100 + "%";
+      b.textContent = (open ? d.icon || "➜" : "🔒") + " " + d.label;
+      b.addEventListener("click", () => {
+        if (open) {
+          goTo(d.to, d.at);
+          return;
+        }
+        const need = ROOMS[roomIndex(d.to) - 1];
+        toast(
+          "Học đủ " +
+            needOf(need.id) +
+            " từ trong “" +
+            need.name +
+            "” (đã học " +
+            Math.min(learnedIn(need.id), needOf(need.id)) +
+            ") để mở “" +
+            to.name +
+            "”.",
+        );
+      });
+      spots.append(b);
+    });
+  }
+  let moving = false;
+  function goTo(id, at) {
+    if (moving || !isUnlocked(id)) return;
+    moving = true;
+    const fade = $("#fade");
+    stage.style.transform = "scale(1.15)";
+    fade.classList.add("on");
+    setTimeout(() => {
+      stage.style.transition = "none";
+      stage.style.transform = "";
+      enterRoom(id, at);
+      void stage.offsetWidth;
+      stage.style.transition = "";
+      fade.classList.remove("on");
+      moving = false;
+    }, 340);
+  }
 
   function markDiscovered(item) {
     const s = itemState(item.id);
@@ -992,7 +1234,7 @@
   }
 
   let hintShown = false;
-  function enterRoom(id) {
+  function enterRoom(id, at) {
     if (!isUnlocked(id)) {
       toast(
         "Hãy hoàn thành “" + ROOMS[roomIndex(id) - 1].name + "” trước nhé.",
@@ -1010,7 +1252,7 @@
     $("#btn-zoom").textContent = ZOOM_LABELS[0];
     show("game");
     layout();
-    relayout([0.48, 0.5]);
+    relayout([at == null ? 0.48 : at, 0.5]);
     updateHud();
     if (!hintShown && viewport.clientHeight > viewport.clientWidth) {
       hintShown = true;
@@ -1040,6 +1282,7 @@
     const id = pendingDone;
     pendingDone = null;
     if (!id) return;
+    if (!screens.game.hidden && roomId === id) buildSpots(id); // cập nhật nút cửa (mở khóa)
     const nx = nextRoom(id);
     $("#done-title").textContent = "Hoàn thành " + ROOM[id].name + "!";
     $("#done-text").textContent =
@@ -1056,7 +1299,7 @@
     $("#done-next").textContent = nx ? "Sang " + nx.name : "Về danh sách phòng";
     $("#done-next").onclick = () => {
       doneSheet.hidden = true;
-      if (nx) enterRoom(nx.id);
+      if (nx) goTo(nx.id, 0.15);
       else goRooms();
     };
     doneSheet.hidden = false;
@@ -1064,16 +1307,31 @@
   $("#done-stay").addEventListener("click", () => {
     doneSheet.hidden = true;
   });
+  // Bắt đầu: vào thẳng phòng khách (lần đầu chơi thì chọn nhân vật trước)
+  const START_ROOM = "khach";
+  const welcomeEl = $("#welcome");
+  function closeWelcome() {
+    if (welcomeEl.hidden) return;
+    welcomeEl.hidden = true;
+    // sau lời chào mới tới hướng dẫn các nút (lần đầu chơi)
+    if (!state.tour) setTimeout(() => Tour.run("game"), 150);
+  }
+  function showWelcome() {
+    state.welcomed = true;
+    save();
+    $("#welcome-char").src = "assets/" + state.char + ".png";
+    welcomeEl.hidden = false;
+  }
+  $("#welcome-ok").addEventListener("click", closeWelcome);
+  function startGame() {
+    enterRoom(START_ROOM);
+    if (!state.welcomed) showWelcome();
+    else if (!state.tour) setTimeout(() => Tour.run("game"), 150);
+  }
   $("#btn-start").addEventListener("click", () => {
-    if (!state.char) show("charpick");
-    else {
-      renderRooms();
-      show("rooms");
-    }
-    // lần đầu chơi: hướng dẫn bắt đầu từ màn hình kế tiếp (không hướng dẫn ở màn hình bắt đầu)
-    if (!state.tour)
-      setTimeout(() => Tour.run(state.char ? "rooms" : "char"), 150);
-  }); // lần đầu: chọn nhân vật
+    if (!state.char) show("charpick"); // lần đầu: chọn nhân vật rồi mới vào nhà
+    else startGame();
+  });
   function setChar(c) {
     state.char = c;
     save();
@@ -1082,8 +1340,7 @@
   document.querySelectorAll(".char-card").forEach((b) =>
     b.addEventListener("click", () => {
       setChar(b.dataset.char);
-      renderRooms();
-      show("rooms");
+      startGame();
     }),
   );
   $("#charpick-back").addEventListener("click", () => show("start"));
@@ -1145,7 +1402,12 @@
       )
     )
       return;
-    const keep = { mode: state.mode, char: state.char, tour: state.tour };
+    const keep = {
+      mode: state.mode,
+      char: state.char,
+      tour: state.tour,
+      welcomed: state.welcomed,
+    };
     try {
       localStorage.removeItem(KEY);
     } catch (e) {
@@ -1170,6 +1432,7 @@
   };
   $("#btn-settings").addEventListener("click", openSettings);
   $("#btn-settings-rooms").addEventListener("click", openSettings);
+  $("#btn-settings-game").addEventListener("click", openSettings);
   let tourBtn = $("#btn-tour");
   if (!tourBtn) {
     // index.html cũ chưa có nút: tự tạo để game không bị dừng giữa chừng
@@ -1185,11 +1448,8 @@
   }
   tourBtn.addEventListener("click", () => {
     settings.hidden = true;
-    if (screens.rooms.hidden) {
-      renderRooms();
-      show("rooms");
-    }
-    Tour.run("rooms"); // xem lại hướng dẫn
+    if (screens.game.hidden) enterRoom(START_ROOM);
+    Tour.run("game"); // xem lại hướng dẫn
   });
   $("#settings-close").addEventListener("click", () => {
     settings.hidden = true;
@@ -1470,8 +1730,9 @@
   $("#shop-back").addEventListener("click", () => {
     closeBuy();
     stopSay();
-    renderRooms();
-    show("rooms");
+    show("game");
+    relayout();
+    updateHud();
   });
 
   /* ---------- Hướng dẫn lần đầu: mũi tên chỉ vào nút và chữ ---------- */
@@ -1697,7 +1958,7 @@
             text: "Chọn một nhân vật. Bạn ấy sẽ cùng bạn đi mua sắm ở tiệm tạp hóa. Có thể đổi lại trong Cài đặt.",
           },
         ],
-        next: () => "rooms",
+        next: () => "game",
       },
       rooms: {
         ready: () => !screens.rooms.hidden,
@@ -1705,10 +1966,6 @@
           {
             sel: () => document.querySelector("#room-list .room.locked"),
             text: "Phòng có nhãn “Khóa” sẽ mở ra khi bạn học đủ từ ở phòng trước đó.",
-          },
-          {
-            sel: "#btn-shop",
-            text: "Mua sắm: dùng xu kiếm được để mua bánh kẹo ở tiệm tạp hóa.",
           },
           {
             sel: "#btn-settings-rooms",
@@ -1738,6 +1995,10 @@
             text: "Tiến độ của phòng này: học đủ số từ ở đây để mở khóa phòng tiếp theo.",
           },
           {
+            sel: "#btn-shop",
+            text: "Mua sắm: dùng xu kiếm được để mua bánh kẹo ở tiệm tạp hóa.",
+          },
+          {
             sel: "#btn-box",
             text: "Hộp từ đã lưu: cất những từ khó vào đây để ôn lại sau.",
           },
@@ -1746,13 +2007,17 @@
             text: "Sổ tay từ vựng: xem đáp án đầy đủ và nghe phát âm. Xem sổ tay không nhận xu.",
           },
           {
+            sel: "#btn-settings-game",
+            text: "Cài đặt: chọn ngôn ngữ học, đổi nhân vật và xem luật chơi.",
+          },
+          {
             sel: "#btn-find",
             text: "Tìm đồ vật: những chấm vàng sẽ chỉ ra đồ vật bạn chưa khám phá.",
           },
           { sel: "#btn-zoom", text: "Phóng to để nhìn rõ những đồ vật nhỏ." },
           {
             sel: "#btn-quests",
-            text: "Nhiệm vụ hằng ngày cho thêm xu, làm mới mỗi ngày.",
+            text: "Tờ giấy “Việc bà giao” ở góc trái: chạm vào để làm lần lượt từng việc của phòng (như bật bếp, nấu cơm, rửa chén) bằng cách gõ đúng câu. Làm mới mỗi ngày.",
           },
           {
             sel: pickHotspot,
