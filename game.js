@@ -42,6 +42,7 @@
       coins: 0,
       lang: "en",
       mode: "both",
+      sound: true, // bật/tắt đọc từ
       char: null,
       items: {},
       done: {},
@@ -154,7 +155,7 @@
   const canSpeak =
     "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
   function speak(text, lang) {
-    if (!canSpeak) return;
+    if (!canSpeak || state.sound === false) return;
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
@@ -790,7 +791,7 @@
       first ? "gain" : "",
       first ? "+" + COIN + " xu" : "Bạn đã nhận xu cho đồ vật này rồi.",
     );
-    if (canSpeak) {
+    if (canSpeak && state.sound !== false) {
       const s = document.createElement("button");
       s.type = "button";
       s.className = "speak";
@@ -815,7 +816,7 @@
     return e;
   };
   const sayBtn = (text, k) => {
-    if (!canSpeak) return null;
+    if (!canSpeak || state.sound === false) return null;
     const s = mk("button", "say", "Nghe");
     s.type = "button";
     s.addEventListener("click", (ev) => {
@@ -1425,8 +1426,27 @@
     settings.hidden = true;
     toast("Đã bắt đầu lại từ đầu.");
   });
+  /* ---------- Cài đặt: bật/tắt đọc từ ---------- */
+  const swSound = $("#sw-sound");
+  function renderSound() {
+    swSound.setAttribute("aria-checked", String(state.sound !== false));
+  }
+  swSound.addEventListener("click", () => {
+    state.sound = state.sound === false;
+    save();
+    renderSound();
+    if (!state.sound && canSpeak) {
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {
+        /* bỏ qua */
+      }
+    }
+    toast(state.sound ? "Đã bật đọc từ." : "Đã tắt đọc từ.");
+  });
   const openSettings = () => {
     renderMode();
+    renderSound();
     renderChar();
     settings.hidden = false;
   };
