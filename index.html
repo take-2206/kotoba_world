@@ -126,14 +126,22 @@
           <h2 id="study-title">Luyện N1</h2>
           <button
             type="button"
-            class="pill pill-btn study-add right"
-            id="study-add"
-            aria-label="Thêm từ mới"
+            class="pill pill-btn study-head-btn right"
+            id="study-hint"
+            hidden
+          >
+            Gợi ý
+          </button>
+          <button
+            type="button"
+            class="pill pill-btn study-head-btn"
+            id="study-today"
             aria-expanded="false"
           >
-            +
+            Hôm nay
           </button>
         </header>
+        <div id="study-today-panel" class="study-today" hidden></div>
         <div id="study-body" class="study-body"></div>
       </div>
     </section>

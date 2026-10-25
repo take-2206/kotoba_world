@@ -39,6 +39,7 @@
   st.custom = Array.isArray(st.custom) ? st.custom : [];
   st.learned = st.learned || {};
   st.days = st.days || {};
+  st.daily = st.daily || {};
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -95,9 +96,12 @@
   /* ---------- Khung màn hình ---------- */
   const screen = $("#study");
   const body = $("#study-body");
-  const addBtn = $("#study-add");
+  const hintBtn = $("#study-hint");
+  const todayBtn = $("#study-today");
+  const todayPanel = $("#study-today-panel");
   let view = "home"; // home | vocab | grammar | reading | done
   let addOpen = false;
+  let todayOpen = false;
   let flash = "";
   let sess = null;
 
@@ -116,6 +120,39 @@
       done: renderDone,
     };
     views[view]();
+    hintBtn.hidden = view !== "vocab";
+    renderTodayPanel();
+  }
+
+  /* ---------- Danh sách từ đã học hôm nay ---------- */
+  function recordToday(item, ok) {
+    const k = dateKey(new Date());
+    const list = (st.daily[k] = st.daily[k] || []);
+    const found = list.find((x) => x.w === item.w);
+    if (found) found.ok = ok;
+    else list.push({ w: item.w, r: item.r || "", m: item.m, ok });
+    save();
+    renderTodayPanel();
+  }
+
+  function renderTodayPanel() {
+    todayPanel.hidden = !todayOpen;
+    todayBtn.classList.toggle("open", todayOpen);
+    todayBtn.setAttribute("aria-expanded", String(todayOpen));
+    if (!todayOpen) return;
+    todayPanel.textContent = "";
+    const list = st.daily[dateKey(new Date())] || [];
+    todayPanel.append(el("h3", "study-h", "Từ học hôm nay (" + list.length + ")"));
+    if (!list.length) todayPanel.append(el("p", "study-sub", "Hôm nay bạn chưa học từ nào."));
+    list.forEach((x) => {
+      const row = el("div", "study-today-row " + (x.ok ? "ok" : "bad"));
+      row.append(
+        el("b", null, x.w + (x.r ? "（" + x.r + "）" : "")),
+        el("span", null, x.m),
+        el("i", null, x.ok ? "✓" : "✗")
+      );
+      todayPanel.append(row);
+    });
   }
 
   function progressBar(cur, total) {
@@ -154,6 +191,13 @@
       body.append(b);
     });
 
+    const addToggle = el("button", "secondary full", addOpen ? "Ẩn form thêm từ" : "Thêm từ mới");
+    addToggle.type = "button";
+    addToggle.addEventListener("click", () => {
+      addOpen = !addOpen;
+      render();
+    });
+    body.append(addToggle);
     if (addOpen) body.append(addForm());
   }
 
@@ -209,8 +253,14 @@
       progressBar(sess.i, items.length)
     );
     const card = el("div", "study-card");
-    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"));
+    const hintTxt = el("div", "study-hint-txt");
+    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), hintTxt);
     body.append(card);
+    const chars = Array.from(item.w);
+    hintBtn.onclick = () => {
+      hintTxt.textContent =
+        "Gợi ý: bắt đầu bằng「" + chars[0] + "」, gồm " + chars.length + " ký tự";
+    };
 
     const form = el("form", "study-typing");
     const input = el("input", "study-input");
@@ -238,6 +288,7 @@
       if (!val) return;
       const ok = val === item.w || (!!item.r && val === item.r);
       sess.total++;
+      recordToday(item, ok);
       if (ok) {
         sess.score++;
         st.learned[item.w] = true;
@@ -373,10 +424,8 @@
     render();
   });
   $("#study-back").addEventListener("click", () => showStudy(false));
-  addBtn.addEventListener("click", () => {
-    addOpen = !addOpen;
-    addBtn.setAttribute("aria-expanded", String(addOpen));
-    addBtn.classList.toggle("open", addOpen);
-    if (view === "home") render();
+  todayBtn.addEventListener("click", () => {
+    todayOpen = !todayOpen;
+    renderTodayPanel();
   });
 })();

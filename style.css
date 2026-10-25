@@ -2767,3 +2767,59 @@ details.entry[open] summary {
 .study-note.bad {
   border-left: 4px solid var(--bad);
 }
+
+/* Nút trên thanh đầu Luyện N1, gợi ý và danh sách từ hôm nay */
+.study-head-btn {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+.study-head-btn.open {
+  background: var(--gold);
+  color: var(--wood-d);
+}
+.study-hint-txt {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--leaf-d);
+  min-height: 1em;
+}
+.study-today {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.study-today .study-h {
+  margin: 0;
+}
+.study-today-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--cream);
+  color: var(--wood-d);
+}
+.study-today-row span {
+  grid-column: 1;
+  font-size: 14px;
+}
+.study-today-row i {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  font-style: normal;
+  font-weight: 700;
+  align-self: center;
+}
+.study-today-row.ok i {
+  color: var(--leaf);
+}
+.study-today-row.bad i {
+  color: var(--bad);
+}
