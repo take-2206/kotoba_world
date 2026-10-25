@@ -96,27 +96,32 @@
     return wrap;
   }
 
-  /* ---------- Từ vựng hôm nay: chỉ chọn từ chưa thuộc, cố định trong ngày ---------- */
-  function vocabPlan() {
-    const k = dateKey(new Date());
+  /* ---------- Từ vựng: mỗi buổi chọn ngẫu nhiên 20 từ chưa thuộc ---------- */
+  function startVocab() {
     const all = allVocab();
-    if (st.plan && st.plan.date === k && Array.isArray(st.plan.words)) {
-      const byWord = new Map(all.map((v) => [v.w, v]));
-      const saved = st.plan.words.map((w) => byWord.get(w)).filter(Boolean);
-      if (saved.length) return saved;
-    }
     const fresh = all.filter((v) => !st.learned[v.w]);
-    const pool = fresh.length ? fresh : all; // đã thuộc hết thì ôn lại từ đầu
-    const picked = pick(pool, SIZE.vocab, (dayNum() * SIZE.vocab) % pool.length);
-    st.plan = { date: k, words: picked.map((v) => v.w) };
+    const picked = shuffle(fresh.length ? fresh : all).slice(0, SIZE.vocab);
+    const k = dateKey(new Date());
+    if (!st.today || st.today.date !== k) st.today = { date: k, words: [] };
+    picked.forEach((v) => {
+      if (!st.today.words.includes(v.w)) st.today.words.push(v.w);
+    });
     save();
     return picked;
+  }
+
+  /* Các từ đã học trong ngày (từ các buổi hôm nay) */
+  function todayVocab() {
+    const k = dateKey(new Date());
+    if (!st.today || st.today.date !== k) return [];
+    const byWord = new Map(allVocab().map((v) => [v.w, v]));
+    return st.today.words.map((w) => byWord.get(w)).filter(Boolean);
   }
 
   /* ---------- Bài học hôm nay theo từng mục ---------- */
   function planFor(section) {
     const d = dayNum();
-    if (section === "vocab") return vocabPlan();
+    if (section === "vocab") return startVocab();
     if (section === "grammar") {
       return pick(D.grammar, SIZE.grammar, (d * SIZE.grammar) % D.grammar.length);
     }
@@ -193,8 +198,9 @@
       return;
     }
 
-    const words = vocabPlan();
-    todayPanel.append(el("h3", "study-h", "Từ vựng (" + words.length + ")"));
+    const words = todayVocab();
+    todayPanel.append(el("h3", "study-h", "Từ vựng đã học hôm nay (" + words.length + ")"));
+    if (!words.length) todayPanel.append(el("p", "study-sub", "Chưa có từ nào. Hãy bắt đầu một buổi từ vựng."));
     words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
