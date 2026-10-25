@@ -172,6 +172,7 @@
   let todayTab = "chart"; // chart | words
   function renderTodayPanel() {
     todayPanel.hidden = !todayOpen;
+    body.hidden = todayOpen;
     todayBtn.classList.toggle("open", todayOpen);
     todayBtn.setAttribute("aria-expanded", String(todayOpen));
     if (!todayOpen) return;
@@ -194,7 +195,7 @@
     todayPanel.append(tabs);
 
     if (todayTab === "chart") {
-      todayPanel.append(stickerChart(), el("p", "study-stat", "Chuỗi " + streak() + " ngày"));
+      todayPanel.append(stickerChart());
       return;
     }
 
@@ -234,36 +235,44 @@
     const total = allVocab().length;
     const learned = Object.keys(st.learned).length;
     const doneToday = !!st.days[dateKey(new Date())];
+    const pct = total ? Math.round((learned / total) * 100) : 0;
 
-    body.append(
-      el("p", "study-stat", "Đã thuộc " + learned + "/" + total + " từ · Chuỗi " + streak() + " ngày"),
-      el(
-        "p",
-        "study-sub",
-        doneToday ? "Hôm nay bạn đã học. Có thể học thêm để ôn tập." : "Chọn phần bạn muốn luyện hôm nay."
-      )
+    const hero = el("section", "study-hero");
+    const chips = el("div", "study-chips");
+    chips.append(
+      el("span", "study-chip", "Chuỗi " + streak() + " ngày"),
+      el("span", "study-chip " + (doneToday ? "done" : "soft"), doneToday ? "Đã học hôm nay" : "Chưa học hôm nay")
     );
+    hero.append(
+      chips,
+      el("p", "study-hero-title", "Đã thuộc " + learned + " / " + total + " từ"),
+      progressBar(learned, total),
+      el("p", "study-sub", pct + "% kho từ vựng")
+    );
+    body.append(hero);
 
-    const choices = [
+    body.append(el("h3", "study-h", "Chọn phần để luyện"));
+    const list = el("div", "study-choices");
+    [
       ["vocab", "Từ vựng", SIZE.vocab + " từ, gõ từ tiếng Nhật theo nghĩa"],
       ["grammar", "Ngữ pháp", SIZE.grammar + " câu điền chỗ trống"],
       ["reading", "Bài đọc", "1 bài kèm câu hỏi"],
-    ];
-    choices.forEach(([key, title, desc]) => {
+    ].forEach(([key, title, desc]) => {
       const b = el("button", "study-choice");
       b.type = "button";
       b.append(el("b", null, title), el("small", null, desc));
       b.addEventListener("click", () => start(key));
-      body.append(b);
+      list.append(b);
     });
+    body.append(list);
 
-    const addToggle = el("button", "secondary full", addOpen ? "Ẩn form thêm từ" : "Thêm từ mới");
-    addToggle.type = "button";
-    addToggle.addEventListener("click", () => {
+    const toggle = el("button", "study-add-toggle", addOpen ? "Đóng form thêm từ" : "+ Thêm từ mới");
+    toggle.type = "button";
+    toggle.addEventListener("click", () => {
       addOpen = !addOpen;
       render();
     });
-    body.append(addToggle);
+    body.append(toggle);
     if (addOpen) body.append(addForm());
   }
 
@@ -502,11 +511,15 @@
   }
 
   function renderDone() {
-    body.append(
+    const pct = sess.total ? Math.round((sess.score / sess.total) * 100) : 0;
+    const card = el("div", "study-done");
+    card.append(
       el("h3", "study-h", "Xong rồi!"),
-      el("p", "study-stat", "Đúng " + sess.score + "/" + sess.total + " câu"),
-      el("p", "study-sub", "Chuỗi học hiện tại: " + streak() + " ngày.")
+      el("div", "study-score", sess.score + "/" + sess.total),
+      el("p", "study-sub", "câu đúng · " + pct + "%"),
+      el("p", "study-stat", "Chuỗi học hiện tại: " + streak() + " ngày")
     );
+    body.append(card);
     const back = el("button", "primary full", "Về trang luyện N1");
     back.type = "button";
     back.addEventListener("click", () => {
