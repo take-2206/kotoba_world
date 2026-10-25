@@ -56,11 +56,24 @@
     return out;
   };
 
+  /* ---------- Danh sách từ: sách (nếu có) + từ có sẵn + từ tự thêm ---------- */
+  function allVocab() {
+    const book = Array.isArray(window.N1_VOCAB_BOOK) ? window.N1_VOCAB_BOOK : [];
+    const seen = new Set();
+    return D.vocab
+      .concat(book, st.custom)
+      .filter((v) => {
+        if (!v || !v.w || seen.has(v.w)) return false;
+        seen.add(v.w);
+        return true;
+      });
+  }
+
   /* ---------- Bài học hôm nay theo từng mục ---------- */
   function planFor(section) {
     const d = dayNum();
     if (section === "vocab") {
-      const words = D.vocab.concat(st.custom);
+      const words = allVocab();
       return pick(words, SIZE.vocab, (d * SIZE.vocab) % words.length);
     }
     if (section === "grammar") {
@@ -115,7 +128,7 @@
 
   /* ---------- Màn hình chọn mục ---------- */
   function renderHome() {
-    const total = D.vocab.length + st.custom.length;
+    const total = allVocab().length;
     const learned = Object.keys(st.learned).length;
     const doneToday = !!st.days[dateKey(new Date())];
 
