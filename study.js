@@ -39,7 +39,6 @@
   st.custom = Array.isArray(st.custom) ? st.custom : [];
   st.learned = st.learned || {};
   st.days = st.days || {};
-  st.daily = st.daily || {};
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -96,7 +95,6 @@
   /* ---------- Khung màn hình ---------- */
   const screen = $("#study");
   const body = $("#study-body");
-  const hintBtn = $("#study-hint");
   const todayBtn = $("#study-today");
   const todayPanel = $("#study-today-panel");
   let view = "home"; // home | vocab | grammar | reading | done
@@ -120,36 +118,25 @@
       done: renderDone,
     };
     views[view]();
-    hintBtn.hidden = view !== "vocab";
     renderTodayPanel();
   }
 
   /* ---------- Danh sách từ đã học hôm nay ---------- */
-  function recordToday(item, ok) {
-    const k = dateKey(new Date());
-    const list = (st.daily[k] = st.daily[k] || []);
-    const found = list.find((x) => x.w === item.w);
-    if (found) found.ok = ok;
-    else list.push({ w: item.w, r: item.r || "", m: item.m, ok });
-    save();
-    renderTodayPanel();
-  }
-
   function renderTodayPanel() {
     todayPanel.hidden = !todayOpen;
     todayBtn.classList.toggle("open", todayOpen);
     todayBtn.setAttribute("aria-expanded", String(todayOpen));
     if (!todayOpen) return;
     todayPanel.textContent = "";
-    const list = st.daily[dateKey(new Date())] || [];
-    todayPanel.append(el("h3", "study-h", "Từ học hôm nay (" + list.length + ")"));
-    if (!list.length) todayPanel.append(el("p", "study-sub", "Hôm nay bạn chưa học từ nào."));
+    const list = planFor("vocab");
+    todayPanel.append(el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")"));
     list.forEach((x) => {
-      const row = el("div", "study-today-row " + (x.ok ? "ok" : "bad"));
+      const done = !!st.learned[x.w];
+      const row = el("div", "study-today-row " + (done ? "ok" : ""));
       row.append(
         el("b", null, x.w + (x.r ? "（" + x.r + "）" : "")),
         el("span", null, x.m),
-        el("i", null, x.ok ? "✓" : "✗")
+        el("i", null, done ? "✓" : "")
       );
       todayPanel.append(row);
     });
@@ -256,11 +243,6 @@
     const hintTxt = el("div", "study-hint-txt");
     card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), hintTxt);
     body.append(card);
-    const chars = Array.from(item.w);
-    hintBtn.onclick = () => {
-      hintTxt.textContent =
-        "Gợi ý: bắt đầu bằng「" + chars[0] + "」, gồm " + chars.length + " ký tự";
-    };
 
     const form = el("form", "study-typing");
     const input = el("input", "study-input");
@@ -269,9 +251,16 @@
     input.autocomplete = "off";
     input.autocapitalize = "off";
     input.setAttribute("aria-label", "Từ tiếng Nhật");
+    const hint = el("button", "secondary", "Gợi ý");
+    hint.type = "button";
+    const chars = Array.from(item.w);
+    hint.addEventListener("click", () => {
+      hintTxt.textContent =
+        "Gợi ý: bắt đầu bằng「" + chars[0] + "」, gồm " + chars.length + " ký tự";
+    });
     const check = el("button", "primary", "Kiểm tra");
     check.type = "submit";
-    form.append(input, check);
+    form.append(input, hint, check);
     body.append(form);
 
     const result = el("p", "study-note");
@@ -288,7 +277,6 @@
       if (!val) return;
       const ok = val === item.w || (!!item.r && val === item.r);
       sess.total++;
-      recordToday(item, ok);
       if (ok) {
         sess.score++;
         st.learned[item.w] = true;
