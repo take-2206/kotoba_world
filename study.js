@@ -164,19 +164,38 @@
   }
 
   /* ---------- Danh sách từ đã học hôm nay ---------- */
+  let todayTab = "chart"; // chart | words
   function renderTodayPanel() {
     todayPanel.hidden = !todayOpen;
     todayBtn.classList.toggle("open", todayOpen);
     todayBtn.setAttribute("aria-expanded", String(todayOpen));
     if (!todayOpen) return;
     todayPanel.textContent = "";
-    const list = vocabPlan();
-    todayPanel.append(
-      stickerChart(),
-      el("p", "study-stat", "Chuỗi " + streak() + " ngày"),
-      el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")")
-    );
-    list.forEach((x) => {
+
+    const tabs = el("div", "study-tabs");
+    [
+      ["chart", "Phiếu bé ngoan"],
+      ["words", "Từ vựng hôm nay"],
+    ].forEach(([key, label]) => {
+      const b = el("button", "study-tab" + (todayTab === key ? " on" : ""), label);
+      b.type = "button";
+      b.setAttribute("aria-pressed", String(todayTab === key));
+      b.addEventListener("click", () => {
+        todayTab = key;
+        renderTodayPanel();
+      });
+      tabs.append(b);
+    });
+    todayPanel.append(tabs);
+
+    if (todayTab === "chart") {
+      todayPanel.append(stickerChart(), el("p", "study-stat", "Chuỗi " + streak() + " ngày"));
+      return;
+    }
+
+    const words = vocabPlan();
+    todayPanel.append(el("h3", "study-h", "Từ vựng (" + words.length + ")"));
+    words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
       row.append(
@@ -184,6 +203,14 @@
         el("span", null, x.m),
         el("i", null, done ? "✓" : "")
       );
+      todayPanel.append(row);
+    });
+
+    const grammar = planFor("grammar");
+    todayPanel.append(el("h3", "study-h", "Ngữ pháp (" + grammar.length + ")"));
+    grammar.forEach((q) => {
+      const row = el("div", "study-today-row");
+      row.append(el("b", null, q.s.replace("＿＿＿", q.opts[q.a])), el("span", null, q.note));
       todayPanel.append(row);
     });
   }

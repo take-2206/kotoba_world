@@ -2896,3 +2896,23 @@ details.entry[open] summary {
   background: rgba(255, 255, 255, 0.6);
   box-shadow: 0 0 0 2px #3b8a2e inset;
 }
+
+/* Hai tab trong phần Hôm nay */
+.study-tabs {
+  display: flex;
+  gap: 8px;
+}
+.study-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: 2px solid var(--gold);
+  background: var(--cream);
+  color: var(--wood-d);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.study-tab.on {
+  background: var(--gold);
+}
