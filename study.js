@@ -69,13 +69,27 @@
       });
   }
 
+  /* ---------- Từ vựng hôm nay: chỉ chọn từ chưa thuộc, cố định trong ngày ---------- */
+  function vocabPlan() {
+    const k = dateKey(new Date());
+    const all = allVocab();
+    if (st.plan && st.plan.date === k && Array.isArray(st.plan.words)) {
+      const byWord = new Map(all.map((v) => [v.w, v]));
+      const saved = st.plan.words.map((w) => byWord.get(w)).filter(Boolean);
+      if (saved.length) return saved;
+    }
+    const fresh = all.filter((v) => !st.learned[v.w]);
+    const pool = fresh.length ? fresh : all; // đã thuộc hết thì ôn lại từ đầu
+    const picked = pick(pool, SIZE.vocab, (dayNum() * SIZE.vocab) % pool.length);
+    st.plan = { date: k, words: picked.map((v) => v.w) };
+    save();
+    return picked;
+  }
+
   /* ---------- Bài học hôm nay theo từng mục ---------- */
   function planFor(section) {
     const d = dayNum();
-    if (section === "vocab") {
-      const words = allVocab();
-      return pick(words, SIZE.vocab, (d * SIZE.vocab) % words.length);
-    }
+    if (section === "vocab") return vocabPlan();
     if (section === "grammar") {
       return pick(D.grammar, SIZE.grammar, (d * SIZE.grammar) % D.grammar.length);
     }
@@ -129,7 +143,7 @@
     todayBtn.setAttribute("aria-expanded", String(todayOpen));
     if (!todayOpen) return;
     todayPanel.textContent = "";
-    const list = planFor("vocab");
+    const list = vocabPlan();
     todayPanel.append(el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")"));
     list.forEach((x) => {
       const done = !!st.learned[x.w];
