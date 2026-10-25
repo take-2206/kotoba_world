@@ -69,6 +69,23 @@
       });
   }
 
+  /* ---------- 7 ngày gần nhất, đánh dấu ngày đã học ---------- */
+  function streakStrip() {
+    const labels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
+    const today = new Date();
+    const wrap = el("div", "study-strip");
+    for (let i = 6; i >= 0; i--) {
+      const x = new Date(today);
+      x.setDate(today.getDate() - i);
+      const done = !!st.days[dateKey(x)];
+      const cls = "study-strip-day" + (done ? " done" : "") + (i === 0 ? " today" : "");
+      const cell = el("div", cls);
+      cell.append(el("span", null, labels[x.getDay()]), el("b", null, done ? "✓" : ""));
+      wrap.append(cell);
+    }
+    return wrap;
+  }
+
   /* ---------- Từ vựng hôm nay: chỉ chọn từ chưa thuộc, cố định trong ngày ---------- */
   function vocabPlan() {
     const k = dateKey(new Date());
@@ -144,7 +161,11 @@
     if (!todayOpen) return;
     todayPanel.textContent = "";
     const list = vocabPlan();
-    todayPanel.append(el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")"));
+    todayPanel.append(
+      streakStrip(),
+      el("p", "study-stat", "Chuỗi " + streak() + " ngày"),
+      el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")")
+    );
     list.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));

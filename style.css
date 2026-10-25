@@ -2835,3 +2835,32 @@ details.entry[open] summary {
 .study-typing button {
   flex: 1 1 0;
 }
+
+/* Dãy 7 ngày gần nhất trong phần Hôm nay */
+.study-strip {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+.study-strip-day {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+}
+.study-strip-day b {
+  font-size: 16px;
+  color: var(--leaf);
+}
+.study-strip-day.done {
+  background: var(--cream);
+  color: var(--wood-d);
+}
+.study-strip-day.today {
+  outline: 2px solid var(--gold);
+}
