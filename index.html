@@ -368,6 +368,16 @@
             <span class="sw-txt"><b>Đọc từ</b><small>Phát âm khi trả lời</small></span
             ><span class="sw" aria-hidden="true"></span>
           </button>
+          <button
+            type="button"
+            role="switch"
+            class="sw-row"
+            id="sw-music"
+            aria-checked="true"
+          >
+            <span class="sw-txt"><b>Nhạc nền</b><small>Phát nhạc khi chơi</small></span
+            ><span class="sw" aria-hidden="true"></span>
+          </button>
         </div>
         <h3 class="set-h" id="char-label">Nhân vật</h3>
         <div
@@ -587,6 +597,10 @@
         </button>
       </div>
     </div>
+
+    <audio id="bgm" loop preload="none">
+      <source src="assets/music/bgm.mp3" type="audio/mpeg" />
+    </audio>
 
     <script src="vocab.js"></script>
     <script src="game.js"></script>

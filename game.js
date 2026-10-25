@@ -43,6 +43,7 @@
       lang: "en",
       mode: "both",
       sound: true, // bật/tắt đọc từ
+      music: true, // bật/tắt nhạc nền
       char: null,
       items: {},
       done: {},
@@ -1444,9 +1445,33 @@
     }
     toast(state.sound ? "Đã bật đọc từ." : "Đã tắt đọc từ.");
   });
+  /* ---------- Cài đặt: nhạc nền ---------- */
+  const bgm = $("#bgm");
+  const swMusic = $("#sw-music");
+  bgm.volume = 0.35;
+  function renderMusic() {
+    swMusic.setAttribute("aria-checked", String(state.music !== false));
+  }
+  function playBgm() {
+    if (state.music === false) return;
+    // Lỗi (ví dụ chưa có file nhạc hoặc bị trình duyệt chặn) thì bỏ qua
+    const p = bgm.play();
+    if (p && p.catch) p.catch(() => {});
+  }
+  // Trình duyệt chặn tự phát nhạc, nên bắt đầu ở lần chạm đầu tiên
+  document.addEventListener("pointerdown", playBgm, { once: true });
+  swMusic.addEventListener("click", () => {
+    state.music = state.music === false;
+    save();
+    renderMusic();
+    if (state.music) playBgm();
+    else bgm.pause();
+    toast(state.music ? "Đã bật nhạc nền." : "Đã tắt nhạc nền.");
+  });
   const openSettings = () => {
     renderMode();
     renderSound();
+    renderMusic();
     renderChar();
     settings.hidden = false;
   };
