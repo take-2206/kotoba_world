@@ -33,8 +33,15 @@ const ROOMS = [
     alt: "Nhà trên",
     desc: "Bộ ghế gỗ, bàn trà, tivi, cầu thang lên gác và cánh cửa sang nhà bếp.",
     doors: [
-      {"to": "bep", "x": 590, "y": 405, "label": "Nhà bếp", "icon": "▶", "at": 0.2},
-      {"to": "ngu", "x": 1010, "y": 245, "label": "Lên phòng ngủ", "icon": "▲", "at": 0.15},
+      { to: "bep", x: 590, y: 405, label: "Nhà bếp", icon: "▶", at: 0.2 },
+      {
+        to: "ngu",
+        x: 1010,
+        y: 245,
+        label: "Lên phòng ngủ",
+        icon: "▲",
+        at: 0.15,
+      },
     ],
   },
   {
@@ -44,8 +51,15 @@ const ROOMS = [
     alt: "Căn bếp quê Việt Nam",
     desc: "Nồi, chảo, bát đũa và những món đồ quen thuộc.",
     doors: [
-      {"to": "khach", "x": 330, "y": 800, "label": "Phòng khách", "icon": "◀", "at": 0.35},
-      {"to": "san", "x": 1290, "y": 490, "label": "Sân sau", "icon": "▶", "at": 0.2},
+      {
+        to: "khach",
+        x: 330,
+        y: 800,
+        label: "Phòng khách",
+        icon: "◀",
+        at: 0.35,
+      },
+      { to: "san", x: 1290, y: 490, label: "Sân sau", icon: "▶", at: 0.2 },
     ],
   },
   {
@@ -55,7 +69,7 @@ const ROOMS = [
     alt: "Sân sau nhà quê Việt Nam",
     desc: "Cây xanh, hàng rào tre, xe đạp và cánh đồng lúa phía xa.",
     doors: [
-      {"to": "bep", "x": 330, "y": 450, "label": "Nhà bếp", "icon": "◀", "at": 0.77},
+      { to: "bep", x: 330, y: 450, label: "Nhà bếp", icon: "◀", at: 0.77 },
     ],
   },
   {
@@ -65,24 +79,30 @@ const ROOMS = [
     alt: "Phòng ngủ nhà quê Việt Nam",
     desc: "Giường có màn, bàn học, quạt máy và những chiếc rổ tre.",
     doors: [
-      {"to": "khach", "x": 1150, "y": 870, "label": "Xuống phòng khách", "icon": "▼", "at": 0.6},
-      {"to": "tam", "x": 1290, "y": 470, "label": "Phòng tắm", "icon": "▶", "at": 0.2},
+      {
+        to: "khach",
+        x: 1150,
+        y: 870,
+        label: "Xuống phòng khách",
+        icon: "▼",
+        at: 0.6,
+      },
+      { to: "tam", x: 1290, y: 470, label: "Phòng tắm", icon: "▶", at: 0.2 },
     ],
   },
   {
     id: "tam",
     name: "Phòng tắm",
-    img: "assets/bathroom.jpg",
+    img: "assets/Bathroom.png",
     alt: "Phòng tắm nhà quê Việt Nam",
     w: 1536,
     h: 1024,
     desc: "Bồn rửa, vòi sen, thùng gỗ và cánh cửa nhìn ra ruộng lúa.",
     doors: [
-      {"to": "ngu", "x": 110, "y": 620, "label": "Phòng ngủ", "icon": "◀", "at": 0.77},
+      { to: "ngu", x: 110, y: 620, label: "Phòng ngủ", icon: "◀", at: 0.77 },
     ],
   },
 ];
-
 
 const VOCAB = [
   // Đồ vật lớn xếp trước để đồ vật nhỏ nằm đè lên khi chồng vùng chạm
@@ -556,7 +576,10 @@ VOCAB.push(
     "かんようしょくぶつ",
     "kanyou shokubutsu",
     "Chậu cây xanh làm mát mắt cho căn phòng.",
-    [[262, 292, 150, 300], [0, 480, 150, 445]],
+    [
+      [262, 292, 150, 300],
+      [0, 480, 150, 445],
+    ],
     {
       植物: ["しょくぶつ", "shokubutsu"],
       しょくぶつ: ["しょくぶつ", "shokubutsu"],
@@ -620,7 +643,13 @@ VOCAB.push(
     "え",
     "e",
     "Bức tranh phong cảnh treo trên tường.",
-    [[5, 75, 70, 180], [0, 288, 70, 125], [1265, 208, 60, 95], [1628, 108, 43, 155], [885, 203, 55, 55]],
+    [
+      [5, 75, 70, 180],
+      [0, 288, 70, 125],
+      [1265, 208, 60, 95],
+      [1628, 108, 43, 155],
+      [885, 203, 55, 55],
+    ],
     { 絵画: ["かいが", "kaiga"], かいが: ["かいが", "kaiga"] },
   ),
   L(
@@ -631,7 +660,10 @@ VOCAB.push(
     "しゃしん",
     "shashin",
     "Ảnh gia đình đặt trên kệ.",
-    [[10, 418, 75, 52], [165, 413, 50, 55]],
+    [
+      [10, 418, 75, 52],
+      [165, 413, 50, 55],
+    ],
     {
       写真立て: ["しゃしんたて", "shashintate"],
       しゃしんたて: ["しゃしんたて", "shashintate"],
@@ -671,7 +703,10 @@ VOCAB.push(
     "かご",
     "kago",
     "Rổ tre nhỏ đặt cạnh cửa.",
-    [[397, 478, 50, 62], [764, 512, 54, 55]],
+    [
+      [397, 478, 50, 62],
+      [764, 512, 54, 55],
+    ],
     { バスケット: ["バスケット", "basuketto"] },
   ),
   L(
@@ -682,7 +717,11 @@ VOCAB.push(
     "かびん",
     "kabin",
     "Lọ sứ xanh trắng cắm hoa tươi.",
-    [[88, 315, 65, 152], [1612, 338, 59, 118], [1138, 462, 50, 80]],
+    [
+      [88, 315, 65, 152],
+      [1612, 338, 59, 118],
+      [1138, 462, 50, 80],
+    ],
   ),
   L(
     "teapot",
@@ -703,7 +742,10 @@ VOCAB.push(
     "ゆのみ",
     "yunomi",
     "Tách trà nhỏ cạnh ấm.",
-    [[1178, 538, 26, 22], [1230, 540, 26, 22]],
+    [
+      [1178, 538, 26, 22],
+      [1230, 540, 26, 22],
+    ],
     { カップ: ["カップ", "kappu"], コップ: ["コップ", "koppu"] },
   ),
   L(
@@ -714,7 +756,12 @@ VOCAB.push(
     "クッション",
     "kusshon",
     "Gối tựa thêu hoa trên ghế dài.",
-    [[1365, 472, 80, 70], [1425, 480, 70, 70], [1470, 485, 100, 85], [910, 505, 55, 90]],
+    [
+      [1365, 472, 80, 70],
+      [1425, 480, 70, 70],
+      [1470, 485, 100, 85],
+      [910, 505, 55, 90],
+    ],
     {
       くっしょん: ["クッション", "kusshon"],
       枕: ["まくら", "makura"],
@@ -729,7 +776,10 @@ VOCAB.push(
     "ランプ",
     "ranpu",
     "Chao đèn tre treo giữa nhà và đèn bàn đặt cạnh ghế.",
-    [[752, 18, 165, 118], [1262, 438, 55, 72]],
+    [
+      [752, 18, 165, 118],
+      [1262, 438, 55, 72],
+    ],
     {
       らんぷ: ["ランプ", "ranpu"],
       電灯: ["でんとう", "dentou"],
@@ -804,7 +854,10 @@ VOCAB.push(
     "き",
     "ki",
     "Cây lớn tỏa bóng mát ngoài sân.",
-    [[540, 0, 1131, 250], [1440, 0, 230, 480]],
+    [
+      [540, 0, 1131, 250],
+      [1440, 0, 230, 480],
+    ],
     { 樹木: ["じゅもく", "jumoku"], じゅもく: ["じゅもく", "jumoku"] },
   ),
   S(
@@ -826,7 +879,10 @@ VOCAB.push(
     "さく",
     "saku",
     "Hàng rào gỗ quanh sân nhà.",
-    [[595, 478, 450, 135], [1148, 475, 430, 140]],
+    [
+      [595, 478, 450, 135],
+      [1148, 475, 430, 140],
+    ],
     {
       フェンス: ["フェンス", "fensu"],
       垣根: ["かきね", "kakine"],
@@ -841,7 +897,10 @@ VOCAB.push(
     "やしのき",
     "yashi no ki",
     "Cây dừa cao mọc ở cuối cánh đồng.",
-    [[925, 350, 48, 100], [1185, 320, 62, 125]],
+    [
+      [925, 350, 48, 100],
+      [1185, 320, 62, 125],
+    ],
     {
       椰子: ["やし", "yashi"],
       やし: ["やし", "yashi"],
@@ -869,7 +928,12 @@ VOCAB.push(
     "はな",
     "hana",
     "Hoa nở rực rỡ trong những chậu sứ.",
-    [[810, 478, 115, 135], [1215, 512, 95, 95], [0, 800, 90, 140], [105, 800, 150, 140]],
+    [
+      [810, 478, 115, 135],
+      [1215, 512, 95, 95],
+      [0, 800, 90, 140],
+      [105, 800, 150, 140],
+    ],
     {
       お花: ["おはな", "ohana"],
       おはな: ["おはな", "ohana"],
@@ -883,7 +947,10 @@ VOCAB.push(
     "つぼ",
     "tsubo",
     "Chum sành lớn đựng nước mưa ở góc sân.",
-    [[598, 515, 85, 98], [0, 693, 172, 150]],
+    [
+      [598, 515, 85, 98],
+      [0, 693, 172, 150],
+    ],
     { 甕: ["かめ", "kame"], かめ: ["かめ", "kame"] },
   ),
   S(
@@ -927,7 +994,10 @@ VOCAB.push(
     "かご",
     "kago",
     "Rổ tre lớn đựng nông sản.",
-    [[1602, 583, 69, 190], [167, 703, 88, 122]],
+    [
+      [1602, 583, 69, 190],
+      [167, 703, 88, 122],
+    ],
     { バスケット: ["バスケット", "basuketto"] },
   ),
   S(
@@ -1861,13 +1931,56 @@ const CATEGORIES = [
     id: "khach",
     name: "Phòng khách",
     room: "khach",
-    ids: ["lv_sofa", "lv_armchair", "lv_table", "lv_stool", "lv_cushion", "lv_rug", "lv_tv", "lv_tvstand", "lv_radio", "lv_cabinet", "lv_fu", "lv_painting", "lv_photos", "lv_calendar", "lv_teapot", "lv_cup", "lv_vase", "lv_plant", "lv_window", "lv_blind", "lv_lamp", "lv_basket", "lv_hat", "lv_stairs", "lv_door"],
+    ids: [
+      "lv_sofa",
+      "lv_armchair",
+      "lv_table",
+      "lv_stool",
+      "lv_cushion",
+      "lv_rug",
+      "lv_tv",
+      "lv_tvstand",
+      "lv_radio",
+      "lv_cabinet",
+      "lv_fu",
+      "lv_painting",
+      "lv_photos",
+      "lv_calendar",
+      "lv_teapot",
+      "lv_cup",
+      "lv_vase",
+      "lv_plant",
+      "lv_window",
+      "lv_blind",
+      "lv_lamp",
+      "lv_basket",
+      "lv_hat",
+      "lv_stairs",
+      "lv_door",
+    ],
   },
   {
     id: "sansau",
     name: "Sân sau",
     room: "san",
-    ids: ["sn_house", "sn_yard", "sn_cloud", "sn_tree", "sn_field", "sn_fence", "sn_palm", "sn_laundry", "sn_flower", "sn_jar", "sn_broom", "sn_bicycle", "sn_bucket", "sn_basket", "sn_hat", "sn_corn"],
+    ids: [
+      "sn_house",
+      "sn_yard",
+      "sn_cloud",
+      "sn_tree",
+      "sn_field",
+      "sn_fence",
+      "sn_palm",
+      "sn_laundry",
+      "sn_flower",
+      "sn_jar",
+      "sn_broom",
+      "sn_bicycle",
+      "sn_bucket",
+      "sn_basket",
+      "sn_hat",
+      "sn_corn",
+    ],
   },
   {
     id: "ngu",
@@ -1952,7 +2065,6 @@ const CATEGORIES = [
   },
 ];
 
-
 /* Nhiệm vụ hằng ngày theo phòng: làm lần lượt từng bước, mỗi bước gõ đúng một câu.
  * vi: việc cần làm | ja / en: các câu đúng (game tự chấp nhận thêm cách đọc hiragana ở `reading`)
  * hint: gợi ý ngữ pháp | result + fx: kết quả hiện ra khi làm đúng. */
@@ -1960,7 +2072,12 @@ const ROOM_TASKS = {
   bep: [
     {
       vi: "Bật bếp",
-      ja: ["コンロをつける", "コンロをつけます", "ガスコンロをつける", "コンロに火をつける"],
+      ja: [
+        "コンロをつける",
+        "コンロをつけます",
+        "ガスコンロをつける",
+        "コンロに火をつける",
+      ],
       en: ["turn on the stove", "turn the stove on"],
       reading: "こんろをつける",
       romaji: "konro o tsukeru",
@@ -1970,7 +2087,13 @@ const ROOM_TASKS = {
     },
     {
       vi: "Nấu cơm",
-      ja: ["ご飯を炊く", "ご飯を炊きます", "ご飯を作る", "ご飯を作ります", "ごはんをたく"],
+      ja: [
+        "ご飯を炊く",
+        "ご飯を炊きます",
+        "ご飯を作る",
+        "ご飯を作ります",
+        "ごはんをたく",
+      ],
       en: ["cook rice", "cook the rice", "make rice"],
       reading: "ごはんをたく",
       romaji: "gohan o taku",
@@ -2002,7 +2125,13 @@ const ROOM_TASKS = {
     },
     {
       vi: "Lau bàn",
-      ja: ["テーブルを拭く", "テーブルを拭きます", "机を拭く", "机を拭きます", "テーブルをふく"],
+      ja: [
+        "テーブルを拭く",
+        "テーブルを拭きます",
+        "机を拭く",
+        "机を拭きます",
+        "テーブルをふく",
+      ],
       en: ["wipe the table", "clean the table"],
       reading: "てーぶるをふく",
       romaji: "teeburu o fuku",
@@ -2012,20 +2141,55 @@ const ROOM_TASKS = {
     },
     {
       vi: "Quét nhà",
-      ja: ["床を掃く", "床を掃きます", "床を掃除する", "床を掃除します", "ゆかをはく"],
+      ja: [
+        "床を掃く",
+        "床を掃きます",
+        "床を掃除する",
+        "床を掃除します",
+        "ゆかをはく",
+      ],
       en: ["sweep the floor", "sweep the house"],
       reading: "ゆかをはく",
       romaji: "yuka o haku",
       hint: "床 (ゆか) = sàn nhà, 掃く (はく) = quét. Tiếng Anh: sweep the floor.",
       result: "sàn nhà cũng sạch bong",
-      fx: "assets/fx/sweep.jpg",
+      fx: "assets/fx/sweep.png",
+    },
+
+    {
+      vi: "cắm hoa",
+      ja: [
+        "花を生ける",
+        "花を生けます",
+        "花を飾る",
+        "花を飾ります",
+        "はなをいける",
+      ],
+      en: ["arrange flowers", "put flowers in a vase"],
+      reading: "はなをいける",
+      romaji: "hana o ikeru",
+      hint: "花 (はな) = hoa, 生ける (いける) = cắm hoa. Tiếng Anh: arrange flowers.",
+      result: "hoa tưới đẹp quá!",
+      fx: "assets/fx/flower.png",
     },
   ],
   san: [
     {
       vi: "Tưới cây",
-      ja: ["木に水をやる", "木に水をやります", "花に水をやる", "植物に水をやる", "植物に水をやります", "花に水をやります"],
-      en: ["water the plants", "water the plant", "water the trees", "water the flowers"],
+      ja: [
+        "木に水をやる",
+        "木に水をやります",
+        "花に水をやる",
+        "植物に水をやる",
+        "植物に水をやります",
+        "花に水をやります",
+      ],
+      en: [
+        "water the plants",
+        "water the plant",
+        "water the trees",
+        "water the flowers",
+      ],
       reading: "きにみずをやる",
       romaji: "ki ni mizu o yaru",
       hint: "Tưới cho cây: 〜に水をやる (cho nước vào 〜). Tiếng Anh: water the plants.",
@@ -2035,7 +2199,12 @@ const ROOM_TASKS = {
     {
       vi: "Đạp xe",
       ja: ["自転車に乗る", "自転車に乗ります", "じてんしゃにのる"],
-      en: ["ride a bike", "ride the bike", "ride a bicycle", "ride the bicycle"],
+      en: [
+        "ride a bike",
+        "ride the bike",
+        "ride a bicycle",
+        "ride the bicycle",
+      ],
       reading: "じてんしゃにのる",
       romaji: "jitensha ni noru",
       hint: "Đi phương tiện dùng trợ từ に, không phải を: 自転車に乗る. Tiếng Anh: ride a bike.",
@@ -2045,7 +2214,11 @@ const ROOM_TASKS = {
     {
       vi: "Ngắm ruộng lúa",
       ja: ["田んぼを見る", "田んぼを見ます", "たんぼをみる"],
-      en: ["look at the rice field", "look at the rice fields", "see the rice field"],
+      en: [
+        "look at the rice field",
+        "look at the rice fields",
+        "see the rice field",
+      ],
       reading: "たんぼをみる",
       romaji: "tanbo o miru",
       hint: "田んぼ (ruộng lúa) + を + 見る (nhìn). Tiếng Anh: look at the rice field.",
