@@ -60,7 +60,7 @@
   function allVocab() {
     const book = Array.isArray(window.N1_VOCAB_BOOK) ? window.N1_VOCAB_BOOK : [];
     const seen = new Set();
-    return D.vocab
+    return (D.vocab || [])
       .concat(book, st.custom)
       .filter((v) => {
         if (!v || !v.w || seen.has(v.w)) return false;

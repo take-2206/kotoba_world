@@ -1,53 +1,9 @@
 /* Dữ liệu luyện thi JLPT N1 (tiếng Nhật).
    Thêm từ / mẫu ngữ pháp / bài đọc mới vào các mảng bên dưới.
-   - vocab:   { w: từ, r: cách đọc, m: nghĩa tiếng Việt }
+   - vocab:   không còn trong file này; từ vựng lấy từ study-vocab.js (xem .gitignore)
    - grammar: { s: câu có ＿＿＿, opts: 4 lựa chọn, a: chỉ số đáp án đúng (bắt đầu từ 0), note: giải thích }
    - reading: { title, text, qs: [{ q, opts, a }] } */
 window.N1_DATA = {
-  vocab: [
-    { w: "曖昧", r: "あいまい", m: "mơ hồ, nhập nhằng" },
-    { w: "充実", r: "じゅうじつ", m: "đầy đủ, phong phú" },
-    { w: "妥協", r: "だきょう", m: "thỏa hiệp" },
-    { w: "抑制", r: "よくせい", m: "kiềm chế, kìm nén" },
-    { w: "頻繁", r: "ひんぱん", m: "thường xuyên" },
-    { w: "支持", r: "しじ", m: "ủng hộ, tán thành" },
-    { w: "把握", r: "はあく", m: "nắm bắt, hiểu rõ" },
-    { w: "逆転", r: "ぎゃくてん", m: "đảo ngược, lật ngược tình thế" },
-    { w: "達成", r: "たっせい", m: "đạt được, hoàn thành" },
-    { w: "提唱", r: "ていしょう", m: "đề xướng" },
-    { w: "徹底", r: "てってい", m: "triệt để" },
-    { w: "漠然", r: "ばくぜん", m: "lờ mờ, không rõ ràng" },
-    { w: "煩雑", r: "はんざつ", m: "rắc rối, phức tạp" },
-    { w: "円滑", r: "えんかつ", m: "suôn sẻ, trôi chảy" },
-    { w: "著しい", r: "いちじるしい", m: "rõ rệt, đáng kể" },
-    { w: "懸念", r: "けねん", m: "lo ngại" },
-    { w: "目論む", r: "もくろむ", m: "toan tính, có ý đồ" },
-    { w: "称賛", r: "しょうさん", m: "khen ngợi, tán dương" },
-    { w: "軽視", r: "けいし", m: "coi nhẹ, xem thường" },
-    { w: "補う", r: "おぎなう", m: "bù đắp" },
-    { w: "見込み", r: "みこみ", m: "triển vọng, dự đoán" },
-    { w: "滞る", r: "とどこおる", m: "ứ đọng, bị chậm trễ" },
-    { w: "抽象", r: "ちゅうしょう", m: "trừu tượng" },
-    { w: "偏る", r: "かたよる", m: "thiên lệch, nghiêng về một phía" },
-    { w: "促す", r: "うながす", m: "thúc giục, thúc đẩy" },
-    { w: "委ねる", r: "ゆだねる", m: "giao phó" },
-    { w: "遂げる", r: "とげる", m: "hoàn thành, đạt được" },
-    { w: "強いる", r: "しいる", m: "ép buộc" },
-    { w: "紛らわしい", r: "まぎらわしい", m: "dễ nhầm lẫn" },
-    { w: "名残", r: "なごり", m: "dư vị, sự lưu luyến" },
-    { w: "兆し", r: "きざし", m: "dấu hiệu, điềm báo" },
-    { w: "厄介", r: "やっかい", m: "phiền phức" },
-    { w: "痛感", r: "つうかん", m: "thấm thía, nhận thức sâu sắc" },
-    { w: "見極める", r: "みきわめる", m: "xác định, nhận định rõ" },
-    { w: "手抜き", r: "てぬき", m: "làm qua loa, cẩu thả" },
-    { w: "露骨", r: "ろこつ", m: "lộ liễu, trắng trợn" },
-    { w: "恩恵", r: "おんけい", m: "ân huệ, lợi ích" },
-    { w: "歪む", r: "ゆがむ", m: "méo mó, bị bóp méo" },
-    { w: "確執", r: "かくしつ", m: "mâu thuẫn, bất hòa" },
-    { w: "凝らす", r: "こらす", m: "dồn (sức, tâm trí)" },
-    { w: "潜む", r: "ひそむ", m: "ẩn nấp, tiềm ẩn" },
-  ],
-
   grammar: [
     {
       s: "彼の成功は、努力の結果＿＿＿。",
