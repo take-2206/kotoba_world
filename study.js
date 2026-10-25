@@ -104,6 +104,7 @@
   let sess = null;
 
   function showStudy(on) {
+    if (!on) stopAuto();
     screen.hidden = !on;
     $("#start").hidden = on;
   }
@@ -232,9 +233,16 @@
   }
 
   /* ---------- Từ vựng: gõ từ tiếng Nhật theo nghĩa ---------- */
+  let autoTimer = null;
+  function stopAuto() {
+    if (autoTimer) clearInterval(autoTimer);
+    autoTimer = null;
+  }
+
   function renderVocab() {
     const items = sess.items;
     const item = items[sess.i];
+    let attempts = 0;
     body.append(
       el("p", "study-sub", "Từ vựng " + (sess.i + 1) + "/" + items.length),
       progressBar(sess.i, items.length)
@@ -271,31 +279,55 @@
     nextBtn.hidden = true;
     body.append(nextBtn);
 
+    const goNext = () => {
+      stopAuto();
+      next();
+    };
+    nextBtn.addEventListener("click", goNext);
+
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const val = input.value.trim();
       if (!val) return;
+      attempts++;
       const ok = val === item.w || (!!item.r && val === item.r);
-      sess.total++;
-      if (ok) {
+      const ans = item.w + (item.r ? "（" + item.r + "）" : "");
+      if (!ok) {
+        // Sai: hiện đáp án đúng, người học phải nhập lại
+        if (attempts === 1) sess.total++;
+        result.textContent = "Chưa đúng. Đáp án: " + ans + ". Hãy nhập lại từ đúng.";
+        result.classList.remove("ok");
+        result.classList.add("bad");
+        result.hidden = false;
+        input.value = "";
+        input.focus();
+        return;
+      }
+      // Đúng: ghi nhận lần đầu, rồi tự chuyển sau 5 giây
+      if (attempts === 1) {
+        sess.total++;
         sess.score++;
         st.learned[item.w] = true;
         save();
-        result.textContent = "Đúng! " + item.w + (item.r ? "（" + item.r + "）" : "");
-      } else {
-        result.textContent =
-          "Chưa đúng. Đáp án: " + item.w + (item.r ? "（" + item.r + "）" : "");
       }
-      result.classList.toggle("ok", ok);
-      result.classList.toggle("bad", !ok);
+      result.textContent = "Đúng! " + ans;
+      result.classList.remove("bad");
+      result.classList.add("ok");
       result.hidden = false;
       input.disabled = true;
       check.hidden = true;
+      hint.hidden = true;
       nextBtn.hidden = false;
-      nextBtn.focus();
+      let left = 5;
+      nextBtn.textContent = "Tiếp (" + left + ")";
+      stopAuto();
+      autoTimer = setInterval(() => {
+        left--;
+        if (left <= 0) goNext();
+        else nextBtn.textContent = "Tiếp (" + left + ")";
+      }, 1000);
     });
 
-    nextBtn.addEventListener("click", () => next());
     setTimeout(() => input.focus(), 0);
   }
 
@@ -381,6 +413,7 @@
 
   /* ---------- Chuyển bước và kết thúc ---------- */
   function next() {
+    stopAuto();
     sess.i++;
     if (sess.i >= sess.items.length) {
       st.days[dateKey(new Date())] = true;
