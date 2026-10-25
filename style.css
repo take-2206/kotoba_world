@@ -2823,3 +2823,15 @@ details.entry[open] summary {
 .study-today-row.bad i {
   color: var(--bad);
 }
+
+/* Ô nhập chiếm cả dòng, hai nút Gợi ý và Kiểm tra xuống dòng bên dưới */
+.study-typing {
+  flex-wrap: wrap;
+}
+.study-typing .study-input {
+  flex: 1 1 100%;
+  width: 100%;
+}
+.study-typing button {
+  flex: 1 1 0;
+}
