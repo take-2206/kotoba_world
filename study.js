@@ -69,19 +69,29 @@
       });
   }
 
-  /* ---------- 7 ngày gần nhất, đánh dấu ngày đã học ---------- */
-  function streakStrip() {
-    const labels = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
-    const today = new Date();
-    const wrap = el("div", "study-strip");
-    for (let i = 6; i >= 0; i--) {
-      const x = new Date(today);
-      x.setDate(today.getDate() - i);
-      const done = !!st.days[dateKey(x)];
-      const cls = "study-strip-day" + (done ? " done" : "") + (i === 0 ? " today" : "");
-      const cell = el("div", cls);
-      cell.append(el("span", null, labels[x.getDay()]), el("b", null, done ? "✓" : ""));
-      wrap.append(cell);
+  /* ---------- Phiếu bé ngoan: mỗi ngày học xong là một dấu ✓ ---------- */
+  const CHART = {
+    w: 1536,
+    h: 1024,
+    cols: [220, 445, 665, 882, 1100, 1320],
+    rows: [362, 503, 640, 780, 922],
+  };
+  function stickerChart() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth();
+    const wrap = el("div", "study-chart");
+    const img = el("img", "study-chart-img");
+    img.src = "assets/study/phieu-be-ngoan.jpg";
+    img.alt = "Phiếu bé ngoan";
+    img.draggable = false;
+    wrap.append(img);
+    for (let n = 1; n <= 30; n++) {
+      const i = n - 1;
+      const done = !!st.days[dateKey(new Date(y, m, n))];
+      const stamp = el("span", "study-stamp" + (done ? " on" : ""), done ? "✓" : "");
+      stamp.style.left = (CHART.cols[i % 6] / CHART.w) * 100 + "%";
+      stamp.style.top = (CHART.rows[Math.floor(i / 6)] / CHART.h) * 100 + "%";
+      wrap.append(stamp);
     }
     return wrap;
   }
@@ -162,7 +172,7 @@
     todayPanel.textContent = "";
     const list = vocabPlan();
     todayPanel.append(
-      streakStrip(),
+      stickerChart(),
       el("p", "study-stat", "Chuỗi " + streak() + " ngày"),
       el("h3", "study-h", "Từ cần học hôm nay (" + list.length + ")")
     );
