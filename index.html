@@ -44,6 +44,9 @@
           <button type="button" class="start-btn go" id="btn-start">
             Bắt đầu
           </button>
+          <button type="button" class="start-btn" id="btn-study">
+            Luyện N1
+          </button>
           <button type="button" class="start-btn" id="btn-settings">
             Cài đặt
           </button>
@@ -110,6 +113,19 @@
           Học đủ từ trong mỗi phòng để mở khóa phòng tiếp theo.
         </p>
         <div id="room-list" class="room-list"></div>
+      </div>
+    </section>
+
+    <!-- Luyện thi JLPT N1 -->
+    <section id="study" class="screen study" hidden aria-labelledby="study-title">
+      <div class="study-wrap">
+        <header class="rooms-head">
+          <button type="button" class="pill pill-btn" id="study-back">
+            ‹ Trang chủ
+          </button>
+          <h2 id="study-title">Luyện N1</h2>
+        </header>
+        <div id="study-body" class="study-body"></div>
       </div>
     </section>
 
@@ -604,5 +620,7 @@
 
     <script src="vocab.js"></script>
     <script src="game.js"></script>
+    <script src="study-data.js"></script>
+    <script src="study.js"></script>
   </body>
 </html>
