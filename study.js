@@ -4,8 +4,7 @@
   if (!D) return;
 
   const KEY = "bepque.n1.v1";
-  const DAILY_WORDS = 20,
-    DAILY_GRAMMAR = 5;
+  const SIZE = { vocab: 20, grammar: 5 };
 
   const $ = (s) => document.querySelector(s);
   const el = (tag, cls, txt) => {
@@ -15,10 +14,8 @@
     return e;
   };
   const pad = (n) => String(n).padStart(2, "0");
-  const todayStr = () => {
-    const d = new Date();
-    return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-  };
+  const dateKey = (d) =>
+    d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
   const dayNum = () =>
     Math.floor((Date.now() - new Date().getTimezoneOffset() * 60000) / 86400000);
 
@@ -31,14 +28,14 @@
       return {};
     }
   }
-  function save(s) {
+  function save() {
     try {
-      localStorage.setItem(KEY, JSON.stringify(s));
+      localStorage.setItem(KEY, JSON.stringify(st));
     } catch (e) {
       /* bỏ qua */
     }
   }
-  let st = load();
+  const st = load();
   st.custom = Array.isArray(st.custom) ? st.custom : [];
   st.learned = st.learned || {};
   st.days = st.days || {};
@@ -59,110 +56,53 @@
     return out;
   };
 
-  /* ---------- Bài học hôm nay ---------- */
-  function todaysPlan() {
-    const words = D.vocab.concat(st.custom);
+  /* ---------- Bài học hôm nay theo từng mục ---------- */
+  function planFor(section) {
     const d = dayNum();
-    const grammar = D.grammar;
-    const reading = D.reading;
-    return {
-      words: pick(words, DAILY_WORDS, (d * DAILY_WORDS) % words.length),
-      grammar: pick(grammar, DAILY_GRAMMAR, (d * DAILY_GRAMMAR) % grammar.length),
-      reading: reading.length ? reading[d % reading.length] : null,
-    };
+    if (section === "vocab") {
+      const words = D.vocab.concat(st.custom);
+      return pick(words, SIZE.vocab, (d * SIZE.vocab) % words.length);
+    }
+    if (section === "grammar") {
+      return pick(D.grammar, SIZE.grammar, (d * SIZE.grammar) % D.grammar.length);
+    }
+    return D.reading.length ? [D.reading[d % D.reading.length]] : [];
   }
 
   function streak() {
     let n = 0;
     const d = new Date();
-    for (;;) {
-      const key =
-        d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
-      if (!st.days[key]) break;
+    while (st.days[dateKey(d)]) {
       n++;
       d.setDate(d.getDate() - 1);
     }
     return n;
   }
 
-  /* ---------- Màn hình chính của chế độ luyện N1 ---------- */
-  let flash = "";
+  /* ---------- Khung màn hình ---------- */
   const screen = $("#study");
   const body = $("#study-body");
+  const addBtn = $("#study-add");
+  let view = "home"; // home | vocab | grammar | reading | done
+  let addOpen = false;
+  let flash = "";
+  let sess = null;
 
   function showStudy(on) {
     screen.hidden = !on;
     $("#start").hidden = on;
   }
 
-  function renderHome() {
+  function render() {
     body.textContent = "";
-    const total = D.vocab.length + st.custom.length;
-    const learned = Object.keys(st.learned).length;
-    const doneToday = !!st.days[todayStr()];
-
-    body.append(
-      el("p", "study-stat", "Đã thuộc " + learned + "/" + total + " từ · Chuỗi " + streak() + " ngày"),
-      el(
-        "p",
-        "study-sub",
-        doneToday
-          ? "Hôm nay bạn đã hoàn thành. Có thể học lại để ôn tập."
-          : "Hôm nay: " + DAILY_WORDS + " từ, " + DAILY_GRAMMAR + " mẫu ngữ pháp, 1 bài đọc."
-      )
-    );
-
-    const go = el("button", "primary full", doneToday ? "Học lại" : "Bắt đầu hôm nay");
-    go.type = "button";
-    go.addEventListener("click", () => startSession());
-    body.append(go);
-
-    body.append(el("h3", "study-h", "Thêm từ mới"));
-    const form = el("form", "study-form");
-    const inputs = {
-      w: mkInput("Từ (kanji hoặc kana)", "w"),
-      r: mkInput("Cách đọc (kana)", "r"),
-      m: mkInput("Nghĩa tiếng Việt", "m"),
+    const views = {
+      home: renderHome,
+      vocab: renderVocab,
+      grammar: renderGrammar,
+      reading: renderReading,
+      done: renderDone,
     };
-    const msg = el("p", "study-sub", flash);
-    flash = "";
-    const addBtn = el("button", "secondary", "Thêm vào danh sách");
-    addBtn.type = "submit";
-    form.append(inputs.w.wrap, inputs.r.wrap, inputs.m.wrap, addBtn, msg);
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const w = inputs.w.input.value.trim(),
-        r = inputs.r.input.value.trim(),
-        m = inputs.m.input.value.trim();
-      if (!w || !m) {
-        msg.textContent = "Cần nhập ít nhất từ và nghĩa.";
-        return;
-      }
-      st.custom.push({ w, r, m });
-      save(st);
-      flash = "Đã thêm. Từ này sẽ xuất hiện trong bài học sắp tới.";
-      renderHome();
-    });
-    body.append(form);
-  }
-
-  function mkInput(label, key) {
-    const wrap = el("label", "study-field");
-    wrap.append(el("span", null, label));
-    const input = el("input");
-    input.type = "text";
-    input.name = key;
-    input.autocomplete = "off";
-    wrap.append(input);
-    return { wrap, input };
-  }
-
-  /* ---------- Buổi học: từ vựng → ngữ pháp → bài đọc ---------- */
-  let session = null;
-
-  function startSession() {
-    session = { plan: todaysPlan(), step: "vocab", i: 0, gScore: 0, rScore: 0 };
-    renderStep();
+    views[view]();
   }
 
   function progressBar(cur, total) {
@@ -173,85 +113,164 @@
     return wrap;
   }
 
-  function renderStep() {
-    body.textContent = "";
-    const s = session;
-    if (s.step === "vocab") return renderVocab();
-    if (s.step === "grammar") return renderGrammar();
-    if (s.step === "reading") return renderReading();
-    return renderDone();
+  /* ---------- Màn hình chọn mục ---------- */
+  function renderHome() {
+    const total = D.vocab.length + st.custom.length;
+    const learned = Object.keys(st.learned).length;
+    const doneToday = !!st.days[dateKey(new Date())];
+
+    body.append(
+      el("p", "study-stat", "Đã thuộc " + learned + "/" + total + " từ · Chuỗi " + streak() + " ngày"),
+      el(
+        "p",
+        "study-sub",
+        doneToday ? "Hôm nay bạn đã học. Có thể học thêm để ôn tập." : "Chọn phần bạn muốn luyện hôm nay."
+      )
+    );
+
+    const choices = [
+      ["vocab", "Từ vựng", SIZE.vocab + " từ, gõ từ tiếng Nhật theo nghĩa"],
+      ["grammar", "Ngữ pháp", SIZE.grammar + " câu điền chỗ trống"],
+      ["reading", "Bài đọc", "1 bài kèm câu hỏi"],
+    ];
+    choices.forEach(([key, title, desc]) => {
+      const b = el("button", "study-choice");
+      b.type = "button";
+      b.append(el("b", null, title), el("small", null, desc));
+      b.addEventListener("click", () => start(key));
+      body.append(b);
+    });
+
+    if (addOpen) body.append(addForm());
   }
 
+  function addForm() {
+    const form = el("form", "study-form");
+    const fields = [
+      ["w", "Từ tiếng Nhật (kanji hoặc kana)"],
+      ["r", "Cách đọc (kana, không bắt buộc)"],
+      ["m", "Nghĩa tiếng Việt"],
+    ].map(([key, label]) => {
+      const wrap = el("label", "study-field");
+      wrap.append(el("span", null, label));
+      const input = el("input");
+      input.type = "text";
+      input.name = key;
+      input.autocomplete = "off";
+      wrap.append(input);
+      form.append(wrap);
+      return [key, input];
+    });
+    const msg = el("p", "study-sub", flash);
+    flash = "";
+    const submit = el("button", "secondary", "Thêm vào danh sách");
+    submit.type = "submit";
+    form.append(submit, msg);
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(fields.map(([k, i]) => [k, i.value.trim()]));
+      if (!v.w || !v.m) {
+        msg.textContent = "Cần nhập ít nhất từ và nghĩa.";
+        return;
+      }
+      st.custom.push(v);
+      save();
+      flash = "Đã thêm. Từ này sẽ xuất hiện trong bài học sắp tới.";
+      render();
+    });
+    return form;
+  }
+
+  function start(section) {
+    sess = { section, items: planFor(section), i: 0, score: 0, total: 0 };
+    view = section;
+    render();
+  }
+
+  /* ---------- Từ vựng: gõ từ tiếng Nhật theo nghĩa ---------- */
   function renderVocab() {
-    const s = session;
-    const words = s.plan.words;
-    const item = words[s.i];
+    const items = sess.items;
+    const item = items[sess.i];
     body.append(
-      el("p", "study-sub", "Từ vựng " + (s.i + 1) + "/" + words.length),
-      progressBar(s.i, words.length)
+      el("p", "study-sub", "Từ vựng " + (sess.i + 1) + "/" + items.length),
+      progressBar(sess.i, items.length)
     );
     const card = el("div", "study-card");
-    card.append(el("div", "study-word", item.w));
-    const hidden = el("div", "study-answer");
-    hidden.hidden = true;
-    hidden.append(el("div", "study-read", item.r || ""), el("div", "study-mean", item.m));
-    card.append(hidden);
+    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"));
     body.append(card);
 
-    const reveal = el("button", "secondary full", "Hiện nghĩa");
-    reveal.type = "button";
-    const actions = el("div", "study-actions");
-    const forgot = el("button", "secondary", "Chưa nhớ");
-    const knew = el("button", "primary", "Nhớ rồi");
-    forgot.type = knew.type = "button";
-    actions.append(forgot, knew);
-    actions.hidden = true;
+    const form = el("form", "study-typing");
+    const input = el("input", "study-input");
+    input.type = "text";
+    input.lang = "ja";
+    input.autocomplete = "off";
+    input.autocapitalize = "off";
+    input.setAttribute("aria-label", "Từ tiếng Nhật");
+    const check = el("button", "primary", "Kiểm tra");
+    check.type = "submit";
+    form.append(input, check);
+    body.append(form);
 
-    reveal.addEventListener("click", () => {
-      hidden.hidden = false;
-      reveal.hidden = true;
-      actions.hidden = false;
-    });
-    const next = (remember) => {
-      if (remember && item.w) st.learned[item.w] = true;
-      save(st);
-      s.i++;
-      if (s.i >= words.length) {
-        s.step = "grammar";
-        s.i = 0;
+    const result = el("p", "study-note");
+    result.hidden = true;
+    body.append(result);
+    const nextBtn = el("button", "primary full", "Tiếp");
+    nextBtn.type = "button";
+    nextBtn.hidden = true;
+    body.append(nextBtn);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const val = input.value.trim();
+      if (!val) return;
+      const ok = val === item.w || (!!item.r && val === item.r);
+      sess.total++;
+      if (ok) {
+        sess.score++;
+        st.learned[item.w] = true;
+        save();
+        result.textContent = "Đúng! " + item.w + (item.r ? "（" + item.r + "）" : "");
+      } else {
+        result.textContent =
+          "Chưa đúng. Đáp án: " + item.w + (item.r ? "（" + item.r + "）" : "");
       }
-      renderStep();
-    };
-    knew.addEventListener("click", () => next(true));
-    forgot.addEventListener("click", () => next(false));
+      result.classList.toggle("ok", ok);
+      result.classList.toggle("bad", !ok);
+      result.hidden = false;
+      input.disabled = true;
+      check.hidden = true;
+      nextBtn.hidden = false;
+      nextBtn.focus();
+    });
 
-    body.append(reveal, actions);
+    nextBtn.addEventListener("click", () => next());
+    setTimeout(() => input.focus(), 0);
   }
 
+  /* ---------- Ngữ pháp ---------- */
   function renderGrammar() {
-    const s = session;
-    const list = s.plan.grammar;
-    const q = list[s.i];
+    const list = sess.items;
+    const q = list[sess.i];
     body.append(
-      el("p", "study-sub", "Ngữ pháp " + (s.i + 1) + "/" + list.length),
-      progressBar(s.i, list.length),
+      el("p", "study-sub", "Ngữ pháp " + (sess.i + 1) + "/" + list.length),
+      progressBar(sess.i, list.length),
       el("div", "study-card study-q", q.s)
     );
     const correct = q.opts[q.a];
-    const opts = shuffle(q.opts);
     const box = el("div", "study-opts");
     const note = el("p", "study-note");
     note.hidden = true;
-    const nextBtn = el("button", "primary full", s.i + 1 < list.length ? "Câu tiếp" : "Sang bài đọc");
+    const nextBtn = el("button", "primary full", sess.i + 1 < list.length ? "Câu tiếp" : "Xong");
     nextBtn.type = "button";
     nextBtn.hidden = true;
 
-    opts.forEach((o) => {
+    shuffle(q.opts).forEach((o) => {
       const b = el("button", "study-opt", o);
       b.type = "button";
       b.addEventListener("click", () => {
         const ok = o === correct;
-        if (ok) s.gScore++;
+        sess.total++;
+        if (ok) sess.score++;
         box.querySelectorAll("button").forEach((x) => (x.disabled = true));
         b.classList.add(ok ? "ok" : "bad");
         if (!ok) {
@@ -266,28 +285,20 @@
       box.append(b);
     });
     body.append(box, note, nextBtn);
-
-    nextBtn.addEventListener("click", () => {
-      s.i++;
-      if (s.i >= list.length) {
-        s.step = "reading";
-        s.i = 0;
-      }
-      renderStep();
-    });
+    nextBtn.addEventListener("click", () => next());
   }
 
+  /* ---------- Bài đọc ---------- */
   function renderReading() {
-    const s = session;
-    const rd = s.plan.reading;
-    if (!rd) {
-      s.step = "done";
-      return renderStep();
-    }
+    const rd = sess.items[0];
     body.append(el("p", "study-sub", "Bài đọc"), el("h3", "study-h", rd.title));
     body.append(el("div", "study-card study-text", rd.text));
 
     let answered = 0;
+    const finishBtn = el("button", "primary full", "Xong");
+    finishBtn.type = "button";
+    finishBtn.hidden = true;
+
     rd.qs.forEach((q) => {
       const correct = q.opts[q.a];
       body.append(el("p", "study-q-text", q.q));
@@ -299,7 +310,8 @@
           if (box.dataset.done) return;
           box.dataset.done = "1";
           answered++;
-          if (o === correct) s.rScore++;
+          sess.total++;
+          if (o === correct) sess.score++;
           box.querySelectorAll("button").forEach((x) => (x.disabled = true));
           b.classList.add(o === correct ? "ok" : "bad");
           [...box.querySelectorAll("button")]
@@ -311,42 +323,47 @@
       });
       body.append(box);
     });
-    const finishBtn = el("button", "primary full", "Hoàn thành hôm nay");
-    finishBtn.type = "button";
-    finishBtn.hidden = true;
-    finishBtn.addEventListener("click", () => {
-      s.step = "done";
-      renderStep();
-    });
     body.append(finishBtn);
+    finishBtn.addEventListener("click", () => next());
+  }
+
+  /* ---------- Chuyển bước và kết thúc ---------- */
+  function next() {
+    sess.i++;
+    if (sess.i >= sess.items.length) {
+      st.days[dateKey(new Date())] = true;
+      save();
+      view = "done";
+    }
+    render();
   }
 
   function renderDone() {
-    const s = session;
-    st.days[todayStr()] = true;
-    save(st);
     body.append(
       el("h3", "study-h", "Xong rồi!"),
-      el(
-        "p",
-        "study-stat",
-        "Ngữ pháp đúng " + s.gScore + "/" + s.plan.grammar.length +
-          " · Bài đọc đúng " + s.rScore + "/" + (s.plan.reading ? s.plan.reading.qs.length : 0)
-      ),
+      el("p", "study-stat", "Đúng " + sess.score + "/" + sess.total + " câu"),
       el("p", "study-sub", "Chuỗi học hiện tại: " + streak() + " ngày.")
     );
     const back = el("button", "primary full", "Về trang luyện N1");
     back.type = "button";
-    back.addEventListener("click", renderHome);
+    back.addEventListener("click", () => {
+      view = "home";
+      render();
+    });
     body.append(back);
   }
 
   /* ---------- Gắn sự kiện ---------- */
   $("#btn-study").addEventListener("click", () => {
     showStudy(true);
-    renderHome();
+    view = "home";
+    render();
   });
-  $("#study-back").addEventListener("click", () => {
-    showStudy(false);
+  $("#study-back").addEventListener("click", () => showStudy(false));
+  addBtn.addEventListener("click", () => {
+    addOpen = !addOpen;
+    addBtn.setAttribute("aria-expanded", String(addOpen));
+    addBtn.classList.toggle("open", addOpen);
+    if (view === "home") render();
   });
 })();
