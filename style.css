@@ -3407,3 +3407,16 @@ details.entry[open] summary {
   border: 2px solid rgba(238, 242, 228, 0.6);
   box-shadow: none;
 }
+
+/* Luyện N1 · gõ từ vựng: đẩy nội dung xuống giữa màn hình */
+.study.chalk .study-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+.study.chalk .study-body {
+  flex: 1;
+  justify-content: center;
+  margin-top: 0;
+}
