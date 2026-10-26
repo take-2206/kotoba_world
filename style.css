@@ -3423,6 +3423,7 @@ details.entry[open] summary {
 
 /* Nút “Tiếp” trong phần gõ từ vựng: gọn hơn, không kéo hết chiều ngang */
 .study.chalk .study-body > .primary.full {
+  flex: 0 0 auto;
   align-self: center;
   width: auto;
   min-height: 44px;
