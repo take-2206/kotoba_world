@@ -91,7 +91,16 @@
           <h2 id="rooms-title">Chọn phòng</h2>
           <button
             type="button"
-            class="pill pill-btn gear-btn right"
+            class="pill pill-btn map-open right"
+            id="btn-map"
+            aria-label="Khám phá khu phố"
+          >
+            <span class="map-ico" aria-hidden="true">🗺️</span
+            ><span class="map-lbl">Bản đồ</span>
+          </button>
+          <button
+            type="button"
+            class="pill pill-btn gear-btn"
             id="btn-settings-rooms"
             aria-label="Cài đặt"
           >
@@ -142,6 +151,34 @@
         <div id="study-body" class="study-body"></div>
       </div>
     </section>
+
+    <!-- Nhân vật chào khi vào Luyện N1 -->
+    <div
+      id="study-welcome"
+      class="welcome"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="study-welcome-text"
+    >
+      <img
+        id="study-welcome-char"
+        class="welcome-char"
+        alt=""
+        draggable="false"
+      />
+      <div class="welcome-say">
+        <p id="study-welcome-text"></p>
+        <div class="row">
+          <button type="button" class="secondary" id="study-welcome-later" hidden>
+            Để sau
+          </button>
+          <button type="button" class="primary" id="study-welcome-ok">
+            Học thôi!
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Cửa hàng tạp hóa -->
     <section id="shop" class="screen" hidden aria-labelledby="shop-title">
@@ -550,6 +587,40 @@
         </form>
         <div id="feedback" role="status" aria-live="polite"></div>
       </div>
+    </div>
+
+    <!-- Bản đồ toàn màn hình: Khám phá khu phố -->
+    <div
+      id="map"
+      class="sheet map-full"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="map-title"
+    >
+      <div class="map-scroll" id="map-scroll">
+        <div class="map-stage" id="map-stage">
+          <img
+            class="map-img"
+            src="assets/khu-pho.jpg"
+            alt="Khu phố có chợ, tiệm làm tóc, quán nhậu, quán ăn vặt và tiệm may vá"
+            draggable="false"
+          />
+          <div id="map-spots"></div>
+        </div>
+      </div>
+      <header class="map-top">
+        <h2 class="pill" id="map-title">Khám phá khu phố</h2>
+        <button
+          class="pill pill-btn map-close"
+          id="map-close"
+          type="button"
+          aria-label="Đóng bản đồ"
+        >
+          về nhà 
+        </button>
+      </header>
+      <p class="map-hint">Vuốt ngang · chạm vào cửa hàng để chọn</p>
     </div>
 
     <!-- Sổ tay từ vựng -->

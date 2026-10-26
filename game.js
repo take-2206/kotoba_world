@@ -1058,6 +1058,56 @@
     if (e.target === notebook) notebook.hidden = true;
   });
 
+  /* ---------- Bản đồ: Khám phá khu phố ---------- */
+  /* rect = [x, y, rộng, cao] theo pixel của ảnh assets/khu-pho.jpg (1778 × 592).
+     Muốn mở một cửa hàng thật: thêm hàm go cho cửa hàng đó, ví dụ go: () => openShop() */
+  const MAP_W = 1778,
+    MAP_H = 592;
+  const MAP_SHOPS = [
+    { id: "cho", name: "Chợ Lộc Tài", rect: [20, 120, 395, 450] },
+    { id: "toc", name: "Tiệm làm tóc", rect: [415, 120, 317, 445] },
+    { id: "nhau", name: "Quán nhậu", rect: [732, 115, 340, 450] },
+    { id: "anvat", name: "Quán ăn vặt", rect: [1075, 120, 335, 445] },
+    { id: "mayva", name: "Tiệm may vá", rect: [1410, 120, 335, 445] },
+  ];
+  const mapSheet = $("#map");
+  function enterMapShop(shop) {
+    if (typeof shop.go === "function") {
+      shop.go();
+      return;
+    }
+    toast(shop.name + " sắp mở cửa. Bạn quay lại sau nhé!");
+  }
+  (function buildMapSpots() {
+    const box = $("#map-spots");
+    MAP_SHOPS.forEach((shop) => {
+      const [x, y, w, h] = shop.rect;
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "map-shop";
+      b.dataset.shop = shop.id;
+      b.setAttribute("aria-label", shop.name);
+      b.style.left = (x / MAP_W) * 100 + "%";
+      b.style.top = (y / MAP_H) * 100 + "%";
+      b.style.width = (w / MAP_W) * 100 + "%";
+      b.style.height = (h / MAP_H) * 100 + "%";
+      const lbl = document.createElement("span");
+      lbl.className = "map-shop-lbl";
+      lbl.textContent = shop.name;
+      b.append(lbl);
+      b.addEventListener("click", () => enterMapShop(shop));
+      box.append(b);
+    });
+  })();
+  $("#btn-map").addEventListener("click", () => {
+    mapSheet.hidden = false;
+    const sc = $("#map-scroll");
+    sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) / 2; // mở ra ở giữa khu phố
+  });
+  $("#map-close").addEventListener("click", () => {
+    mapSheet.hidden = true;
+  });
+
   /* ---------- Nút điều khiển ---------- */
   let revealTimer = null;
   $("#btn-find").addEventListener("click", () => {
@@ -1110,6 +1160,7 @@
       if (!questSheet.hidden) questSheet.hidden = true;
       if (!notebook.hidden) notebook.hidden = true;
       if (!boxSheet.hidden) boxSheet.hidden = true;
+      if (!mapSheet.hidden) mapSheet.hidden = true;
       if (!buyDlg.hidden) closeBuy();
       if (!settings.hidden) settings.hidden = true;
       if (!doneSheet.hidden) doneSheet.hidden = true;
@@ -1275,6 +1326,7 @@
     questSheet.hidden = true;
     notebook.hidden = true;
     boxSheet.hidden = true;
+    mapSheet.hidden = true;
     doneSheet.hidden = true;
     $("#hint").hidden = true;
     renderRooms();

@@ -39,6 +39,9 @@
   st.custom = Array.isArray(st.custom) ? st.custom : [];
   st.learned = st.learned || {};
   st.days = st.days || {};
+  st.hist = st.hist || {}; // ngày -> các từ đã được chọn học trong ngày đó
+  st.tests = Array.isArray(st.tests) ? st.tests : []; // lịch sử bài test nhỏ
+  st.testBlock = st.testBlock || 0; // đã làm test cho bao nhiêu đợt 7 ngày
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -69,6 +72,25 @@
       });
   }
 
+  /* ---------- Ngữ pháp: ưu tiên bộ câu từ tài liệu (grammar-data.js), không có thì dùng bộ cũ ---------- */
+  let grammarCache = null;
+  function allGrammar() {
+    const book = Array.isArray(window.N1_GRAMMAR_BOOK) ? window.N1_GRAMMAR_BOOK : [];
+    const src = book.length ? book : D.grammar || [];
+    if (!grammarCache || grammarCache.src !== src) {
+      // Xáo trộn cố định để các câu cùng một mẫu không dồn vào cùng một ngày
+      const order = src.map((_, i) => i);
+      let seed = 20261026;
+      for (let i = order.length - 1; i > 0; i--) {
+        seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+        const j = seed % (i + 1);
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      grammarCache = { src, list: order.map((i) => src[i]) };
+    }
+    return grammarCache.list;
+  }
+
   /* ---------- Phiếu bé ngoan: mỗi ngày học xong là một dấu ✓ ---------- */
   const CHART = {
     w: 1536,
@@ -88,7 +110,39 @@
     for (let n = 1; n <= 30; n++) {
       const i = n - 1;
       const done = !!st.days[dateKey(new Date(y, m, n))];
-      const stamp = el("span", "study-stamp" + (done ? " on" : ""), done ? "✓" : "");
+      const stamp = el("span", "study-stamp" + (done ? " on" : ""));
+      if (done) {
+        const rot = ((n * 37) % 17) - 8; // mỗi dấu nghiêng một chút cho tự nhiên
+        stamp.title = "Ngày " + n + ": bé ngoan";
+        stamp.style.setProperty("--rot", rot + "deg");
+        // Tự vẽ dấu bằng style trực tiếp để không phụ thuộc CSS bên ngoài
+        const st0 = stamp.style;
+        st0.position = "absolute";
+        st0.display = "block";
+        st0.width = "8%";
+        st0.aspectRatio = "1 / 1";
+        st0.transform = "translate(-50%, -50%) rotate(" + rot + "deg)";
+        st0.opacity = "1";
+        st0.visibility = "visible";
+        st0.zIndex = "2";
+        st0.pointerEvents = "none";
+        st0.background = "none";
+        const si = el("img");
+        si.src = "assets/study/stamp-be-ngoan.png";
+        si.alt = "✓";
+        si.draggable = false;
+        si.style.cssText = "width:100%;height:100%;object-fit:contain;display:block";
+        si.addEventListener("error", () => {
+          si.remove();
+          stamp.textContent = "✓";
+          st0.color = "#d6336c";
+          st0.fontWeight = "800";
+          st0.fontSize = "clamp(14px, 3.4vw, 28px)";
+          st0.textAlign = "center";
+          st0.lineHeight = "1";
+        });
+        stamp.append(si);
+      }
       stamp.style.left = (CHART.cols[i % 6] / CHART.w) * 100 + "%";
       stamp.style.top = (CHART.rows[Math.floor(i / 6)] / CHART.h) * 100 + "%";
       wrap.append(stamp);
@@ -96,26 +150,28 @@
     return wrap;
   }
 
-  /* ---------- Từ vựng: mỗi buổi chọn ngẫu nhiên 20 từ chưa thuộc ---------- */
-  function startVocab() {
-    const all = allVocab();
-    const fresh = all.filter((v) => !st.learned[v.w]);
-    const picked = shuffle(fresh.length ? fresh : all).slice(0, SIZE.vocab);
+  /* ---------- Từ vựng: mỗi ngày cố định 20 từ phải học ---------- */
+  function ensureToday() {
     const k = dateKey(new Date());
-    if (!st.today || st.today.date !== k) st.today = { date: k, words: [] };
-    picked.forEach((v) => {
-      if (!st.today.words.includes(v.w)) st.today.words.push(v.w);
-    });
+    if (st.today && st.today.date === k && st.today.fixed && st.today.words.length) return;
+    const all = allVocab();
+    const fresh = shuffle(all.filter((v) => !st.learned[v.w]));
+    const rest = shuffle(all.filter((v) => st.learned[v.w]));
+    const picked = fresh.concat(rest).slice(0, SIZE.vocab); // thiếu từ mới thì lấy thêm từ đã thuộc cho đủ 20
+    st.today = { date: k, fixed: true, words: picked.map((v) => v.w) };
+    st.hist[k] = Array.from(new Set((st.hist[k] || []).concat(st.today.words)));
     save();
-    return picked;
   }
 
-  /* Các từ đã học trong ngày (từ các buổi hôm nay) */
+  /* 20 từ của hôm nay (giữ nguyên cả ngày, mở lại vẫn là các từ đó) */
   function todayVocab() {
-    const k = dateKey(new Date());
-    if (!st.today || st.today.date !== k) return [];
+    ensureToday();
     const byWord = new Map(allVocab().map((v) => [v.w, v]));
     return st.today.words.map((w) => byWord.get(w)).filter(Boolean);
+  }
+
+  function startVocab() {
+    return todayVocab();
   }
 
   /* ---------- Bài học hôm nay theo từng mục ---------- */
@@ -123,7 +179,8 @@
     const d = dayNum();
     if (section === "vocab") return startVocab();
     if (section === "grammar") {
-      return pick(D.grammar, SIZE.grammar, (d * SIZE.grammar) % D.grammar.length);
+      const g = allGrammar();
+      return pick(g, SIZE.grammar, (d * SIZE.grammar) % Math.max(1, g.length));
     }
     return D.reading.length ? [D.reading[d % D.reading.length]] : [];
   }
@@ -138,10 +195,58 @@
     return n;
   }
 
+  /* ---------- Bài test nhỏ: cứ học đủ 7 ngày là có một bài ---------- */
+  const TEST = { days: 7, vocab: 8, grammar: 2 };
+  const lab = (v) => v.w + (v.r ? "（" + v.r + "）" : "");
+  const studyDays = () => Object.keys(st.days).filter((d) => st.days[d]).sort();
+  const testReady = () => Math.floor(studyDays().length / TEST.days) > st.testBlock;
+
+  function buildTest() {
+    const all = allVocab();
+    const byWord = new Map(all.map((v) => [v.w, v]));
+    const words = [];
+    studyDays()
+      .slice(-TEST.days)
+      .forEach((d) =>
+        (st.hist[d] || []).forEach((w) => {
+          if (st.learned[w] && !words.includes(w)) words.push(w);
+        })
+      );
+    let pool = words.map((w) => byWord.get(w)).filter(Boolean);
+    if (pool.length < 4) pool = all.filter((v) => st.learned[v.w]);
+    if (pool.length < 4) pool = all;
+
+    const qs = shuffle(pool)
+      .slice(0, TEST.vocab)
+      .map((item) => {
+        const wrong = shuffle(all.filter((v) => v.w !== item.w)).slice(0, 3);
+        return {
+          type: "vocab",
+          q: item.m,
+          opts: shuffle([item].concat(wrong).map(lab)),
+          a: lab(item),
+          item,
+        };
+      });
+    shuffle(allGrammar())
+      .slice(0, TEST.grammar)
+      .forEach((g) =>
+        qs.push({ type: "grammar", q: g.s, opts: shuffle(g.opts), a: g.opts[g.a], note: g.note })
+      );
+    return qs;
+  }
+
   /* ---------- Khung màn hình ---------- */
   const screen = $("#study");
   const body = $("#study-body");
-  const todayBtn = $("#study-today");
+  const todayBtn = $("#study-today"); // nút "Từ vựng hôm nay"
+  todayBtn.type = "button";
+  todayBtn.textContent = "Từ vựng hôm nay";
+  const chartBtn = todayBtn.cloneNode(false); // nút "Phiếu bé ngoan" nằm cạnh nút trên
+  chartBtn.id = "study-chart-btn";
+  chartBtn.type = "button";
+  chartBtn.textContent = "Phiếu bé ngoan";
+  todayBtn.after(chartBtn);
   const todayPanel = $("#study-today-panel");
   let view = "home"; // home | vocab | grammar | reading | done
   let addOpen = false;
@@ -150,7 +255,10 @@
   let sess = null;
 
   function showStudy(on) {
-    if (!on) stopAuto();
+    if (!on) {
+      stopAuto();
+      welcome.hidden = true;
+    }
     screen.hidden = !on;
     $("#start").hidden = on;
   }
@@ -163,6 +271,8 @@
       grammar: renderGrammar,
       reading: renderReading,
       done: renderDone,
+      test: renderTest,
+      testdone: renderTestDone,
     };
     views[view]();
     renderTodayPanel();
@@ -173,26 +283,14 @@
   function renderTodayPanel() {
     todayPanel.hidden = !todayOpen;
     body.hidden = todayOpen;
-    todayBtn.classList.toggle("open", todayOpen);
-    todayBtn.setAttribute("aria-expanded", String(todayOpen));
+    const onWords = todayOpen && todayTab === "words";
+    const onChart = todayOpen && todayTab === "chart";
+    todayBtn.classList.toggle("open", onWords);
+    todayBtn.setAttribute("aria-expanded", String(onWords));
+    chartBtn.classList.toggle("open", onChart);
+    chartBtn.setAttribute("aria-expanded", String(onChart));
     if (!todayOpen) return;
     todayPanel.textContent = "";
-
-    const tabs = el("div", "study-tabs");
-    [
-      ["chart", "Phiếu bé ngoan"],
-      ["words", "Từ vựng hôm nay"],
-    ].forEach(([key, label]) => {
-      const b = el("button", "study-tab" + (todayTab === key ? " on" : ""), label);
-      b.type = "button";
-      b.setAttribute("aria-pressed", String(todayTab === key));
-      b.addEventListener("click", () => {
-        todayTab = key;
-        renderTodayPanel();
-      });
-      tabs.append(b);
-    });
-    todayPanel.append(tabs);
 
     if (todayTab === "chart") {
       todayPanel.append(stickerChart());
@@ -200,8 +298,9 @@
     }
 
     const words = todayVocab();
-    todayPanel.append(el("h3", "study-h", "Từ vựng đã học hôm nay (" + words.length + ")"));
-    if (!words.length) todayPanel.append(el("p", "study-sub", "Chưa có từ nào. Hãy bắt đầu một buổi từ vựng."));
+    const doneCount = words.filter((x) => st.learned[x.w]).length;
+    todayPanel.append(el("h3", "study-h", "Từ vựng hôm nay (thuộc " + doneCount + "/" + words.length + ")"));
+    if (!words.length) todayPanel.append(el("p", "study-sub", "Chưa có từ vựng nào trong kho."));
     words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
@@ -250,6 +349,7 @@
       el("p", "study-sub", pct + "% kho từ vựng")
     );
     body.append(hero);
+    body.append(testCard());
 
     body.append(el("h3", "study-h", "Chọn phần để luyện"));
     const list = el("div", "study-choices");
@@ -274,6 +374,28 @@
     });
     body.append(toggle);
     if (addOpen) body.append(addForm());
+  }
+
+  function testCard() {
+    const box = el("section", "study-test" + (testReady() ? " ready" : ""));
+    const ready = testReady();
+    const filled = ready ? TEST.days : Math.min(TEST.days, studyDays().length - st.testBlock * TEST.days);
+    box.append(
+      el("h3", "study-h", ready ? "Bài test nhỏ đã sẵn sàng!" : "Bài test nhỏ sau 7 ngày học")
+    );
+    const dots = el("div", "study-dots");
+    for (let n = 0; n < TEST.days; n++) dots.append(el("span", "study-dot" + (n < filled ? " on" : "")));
+    box.append(dots);
+    if (ready) {
+      box.append(el("p", "study-sub", "Bạn đã học đủ 7 ngày. Làm thử " + (TEST.vocab + TEST.grammar) + " câu để xem mình nhớ được bao nhiêu nhé."));
+      const b = el("button", "primary full", "Làm bài test");
+      b.type = "button";
+      b.addEventListener("click", startTest);
+      box.append(b);
+    } else {
+      box.append(el("p", "study-sub", "Đã học " + filled + "/" + TEST.days + " ngày. Còn " + (TEST.days - filled) + " ngày nữa là có bài test."));
+    }
+    return box;
   }
 
   function addForm() {
@@ -319,10 +441,18 @@
     render();
   }
 
+  function startTest() {
+    todayOpen = false;
+    sess = { section: "test", items: buildTest(), i: 0, score: 0, total: 0, wrong: [] };
+    view = "test";
+    render();
+  }
+
   /* ---------- Từ vựng: gõ từ tiếng Nhật theo nghĩa ---------- */
+  const AUTO_NEXT_MS = 1000; // đúng rồi thì sau 1 giây tự sang từ tiếp theo
   let autoTimer = null;
   function stopAuto() {
-    if (autoTimer) clearInterval(autoTimer);
+    if (autoTimer) clearTimeout(autoTimer);
     autoTimer = null;
   }
 
@@ -390,7 +520,7 @@
         input.focus();
         return;
       }
-      // Đúng: ghi nhận lần đầu, rồi tự chuyển sau 5 giây
+      // Đúng: ghi nhận lần đầu, rồi tự chuyển sau 1 giây
       if (attempts === 1) {
         sess.total++;
         sess.score++;
@@ -405,14 +535,8 @@
       check.hidden = true;
       hint.hidden = true;
       nextBtn.hidden = false;
-      let left = 5;
-      nextBtn.textContent = "Tiếp (" + left + ")";
       stopAuto();
-      autoTimer = setInterval(() => {
-        left--;
-        if (left <= 0) goNext();
-        else nextBtn.textContent = "Tiếp (" + left + ")";
-      }, 1000);
+      autoTimer = setTimeout(goNext, AUTO_NEXT_MS);
     });
 
     setTimeout(() => input.focus(), 0);
@@ -510,10 +634,20 @@
     render();
   }
 
+  /* Con dấu bé ngoan đóng xuống thẻ kết quả */
+  function bigStamp() {
+    const img = el("img", "study-big-stamp");
+    img.src = "assets/study/stamp-be-ngoan.png";
+    img.alt = "Con dấu bé ngoan";
+    img.draggable = false;
+    return img;
+  }
+
   function renderDone() {
     const pct = sess.total ? Math.round((sess.score / sess.total) * 100) : 0;
     const card = el("div", "study-done");
     card.append(
+      bigStamp(),
       el("h3", "study-h", "Xong rồi!"),
       el("div", "study-score", sess.score + "/" + sess.total),
       el("p", "study-sub", "câu đúng · " + pct + "%"),
@@ -529,15 +663,170 @@
     body.append(back);
   }
 
+  /* ---------- Bài test nhỏ: màn hình câu hỏi và kết quả ---------- */
+  function renderTest() {
+    const list = sess.items;
+    const q = list[sess.i];
+    body.append(
+      el("p", "study-sub", "Bài test nhỏ " + (sess.i + 1) + "/" + list.length),
+      progressBar(sess.i, list.length)
+    );
+    if (q.type === "vocab") {
+      const card = el("div", "study-card");
+      card.append(el("div", "study-mean", q.q), el("div", "study-hint", "Chọn từ tiếng Nhật đúng"));
+      body.append(card);
+    } else {
+      body.append(el("div", "study-card study-q", q.q));
+    }
+    const box = el("div", "study-opts");
+    const note = el("p", "study-note");
+    note.hidden = true;
+    const last = sess.i + 1 >= list.length;
+    const nextBtn = el("button", "primary full", last ? "Xem kết quả" : "Câu tiếp");
+    nextBtn.type = "button";
+    nextBtn.hidden = true;
+
+    q.opts.forEach((o) => {
+      const b = el("button", "study-opt", o);
+      b.type = "button";
+      b.addEventListener("click", () => {
+        const ok = o === q.a;
+        sess.total++;
+        if (ok) sess.score++;
+        else sess.wrong.push(q);
+        box.querySelectorAll("button").forEach((x) => (x.disabled = true));
+        b.classList.add(ok ? "ok" : "bad");
+        if (!ok) {
+          [...box.querySelectorAll("button")].find((x) => x.textContent === q.a)?.classList.add("ok");
+        }
+        note.textContent = (ok ? "Đúng! " : "Chưa đúng, đáp án là " + q.a + ". ") + (q.note || "");
+        note.classList.toggle("ok", ok);
+        note.classList.toggle("bad", !ok);
+        note.hidden = false;
+        nextBtn.hidden = false;
+      });
+      box.append(b);
+    });
+    body.append(box, note, nextBtn);
+    nextBtn.addEventListener("click", () => {
+      sess.i++;
+      if (sess.i >= list.length) {
+        st.testBlock = Math.floor(studyDays().length / TEST.days);
+        st.tests.push({ date: dateKey(new Date()), score: sess.score, total: sess.total });
+        save();
+        view = "testdone";
+      }
+      render();
+    });
+  }
+
+  function renderTestDone() {
+    const pct = sess.total ? Math.round((sess.score / sess.total) * 100) : 0;
+    const msg =
+      pct >= 80
+        ? "Tuyệt vời! Bạn nhớ bài rất tốt."
+        : pct >= 50
+        ? "Khá lắm! Ôn lại vài từ nữa là vững."
+        : "Đừng nản nhé, tuần sau mình cùng cố gắng tiếp!";
+    const card = el("div", "study-done");
+    if (pct >= 80) card.append(bigStamp()); // đạt từ 80% thì được đóng dấu bé ngoan
+    card.append(
+      el("h3", "study-h", "Kết quả bài test nhỏ"),
+      el("div", "study-score", sess.score + "/" + sess.total),
+      el("p", "study-sub", "câu đúng · " + pct + "%"),
+      el("p", "study-stat", msg)
+    );
+    if (sess.wrong.length) {
+      card.append(el("p", "study-stat", "Cần ôn lại:"));
+      sess.wrong.forEach((q) => {
+        const row = el("div", "study-wrong-row");
+        if (q.type === "vocab") row.append(el("b", null, lab(q.item)), el("span", null, q.item.m));
+        else row.append(el("b", null, q.q.replace("＿＿＿", q.a)), el("span", null, q.note));
+        card.append(row);
+      });
+    }
+    body.append(card);
+    const back = el("button", "primary full", "Về trang luyện N1");
+    back.type = "button";
+    back.addEventListener("click", () => {
+      view = "home";
+      render();
+    });
+    body.append(back);
+  }
+
+  /* ---------- Nhân vật chào khi bấm "Đi học thôi nào!" ---------- */
+  const welcome = $("#study-welcome");
+  const welcomeOk = $("#study-welcome-ok");
+  const welcomeLater = $("#study-welcome-later");
+  let welcomeAction = null;
+
+  function chosenChar() {
+    try {
+      const s = JSON.parse(localStorage.getItem("bepque.v1"));
+      return s && (s.char === "boy" || s.char === "girl") ? s.char : null;
+    } catch (e) {
+      return null;
+    }
+  }
+  const CHEER = [
+    "Hôm nay mình cùng cố gắng nào!",
+    "Chào bạn! Hôm nay chúng mình cùng cố gắng nhé!",
+    "Mỗi ngày một chút, mình sẽ giỏi lên thôi. Cố gắng nào!",
+  ];
+  function showStudyWelcome() {
+    const c = chosenChar();
+    if (!c) return;
+    const ready = testReady();
+    const doneToday = !!st.days[dateKey(new Date())];
+    let text = CHEER[Math.floor(Math.random() * CHEER.length)];
+    if (ready) text = "Bạn đã học đủ 7 ngày rồi! Mình làm bài test nhỏ nhé?";
+    else if (doneToday) text = "Hôm nay bạn đã học rồi, giỏi quá! Học thêm chút nữa nhé?";
+    else if (streak() > 0) text += " Bạn đã học " + streak() + " ngày liền rồi, đừng để đứt nhé!";
+
+    $("#study-welcome-char").src = "assets/" + c + ".png";
+    $("#study-welcome-text").textContent = text;
+    welcomeLater.hidden = !ready;
+    welcomeOk.textContent = ready ? "Làm test luôn" : "Học thôi!";
+    welcomeAction = ready ? startTest : null;
+    welcome.hidden = false;
+  }
+  welcomeOk.addEventListener("click", () => {
+    welcome.hidden = true;
+    if (welcomeAction) welcomeAction();
+    welcomeAction = null;
+  });
+  welcomeLater.addEventListener("click", () => {
+    welcome.hidden = true;
+    welcomeAction = null;
+  });
+
   /* ---------- Gắn sự kiện ---------- */
   $("#btn-study").addEventListener("click", () => {
     showStudy(true);
     view = "home";
     render();
+    showStudyWelcome();
   });
-  $("#study-back").addEventListener("click", () => showStudy(false));
-  todayBtn.addEventListener("click", () => {
-    todayOpen = !todayOpen;
+  $("#study-back").addEventListener("click", () => {
+    if (view !== "home") {
+      // Đang luyện (từ vựng, ngữ pháp, bài đọc, test, kết quả) thì quay về trang luyện N1
+      stopAuto();
+      todayOpen = false;
+      view = "home";
+      render();
+      return;
+    }
+    showStudy(false); // đang ở trang luyện N1 thì mới thoát ra trang chủ
+  });
+  function toggleToday(tab) {
+    if (todayOpen && todayTab === tab) todayOpen = false; // bấm lại đúng nút đang mở thì đóng
+    else {
+      todayOpen = true;
+      todayTab = tab;
+    }
     renderTodayPanel();
-  });
+  }
+  todayBtn.addEventListener("click", () => toggleToday("words"));
+  chartBtn.addEventListener("click", () => toggleToday("chart"));
 })();

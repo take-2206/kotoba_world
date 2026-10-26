@@ -2081,9 +2081,9 @@ const ROOM_TASKS = {
       en: ["turn on the stove", "turn the stove on"],
       reading: "こんろをつける",
       romaji: "konro o tsukeru",
-      hint: "つける = bật. Đồ vật bị tác động đi với trợ từ を: コンロ + を + つける.",
+      hint: "つける = bật. Tiếng Anh: turn on + the stove.",
       result: "Bếp đã bật, ngọn lửa xanh lên!",
-      fx: "🔥",
+     fx: "assets/fx/stove.png",
     },
     {
       vi: "Nấu cơm",
@@ -2099,7 +2099,7 @@ const ROOM_TASKS = {
       romaji: "gohan o taku",
       hint: "ご飯 (cơm) + を + 炊く (nấu cơm). Tiếng Anh dùng cook + rice.",
       result: "Nồi cơm sôi và thơm phức!",
-      fx: "🍚",
+     fx: "assets/fx/cook.png",
     },
     {
       vi: "Rửa chén",
@@ -2108,8 +2108,8 @@ const ROOM_TASKS = {
       reading: "しょっきをあらう",
       romaji: "shokki o arau",
       hint: "食器 (chén bát) + を + 洗う (rửa). Tiếng Anh: wash the dishes.",
-      result: "Chén bát đã sạch bóng!",
-      fx: "✨",
+      result: "tranh thủ rửa chén còn nghỉ trưa",
+      fx: "assets/fx/rua-chen.png",
     },
   ],
   khach: [
@@ -2194,7 +2194,7 @@ const ROOM_TASKS = {
       romaji: "ki ni mizu o yaru",
       hint: "Tưới cho cây: 〜に水をやる (cho nước vào 〜). Tiếng Anh: water the plants.",
       result: "Cây cối xanh tươi, lá còn đọng những giọt sương!",
-      fx: "💧",
+      fx: "",
     },
     {
       vi: "Đạp xe",
@@ -2208,23 +2208,10 @@ const ROOM_TASKS = {
       reading: "じてんしゃにのる",
       romaji: "jitensha ni noru",
       hint: "Đi phương tiện dùng trợ từ に, không phải を: 自転車に乗る. Tiếng Anh: ride a bike.",
-      result: "Đi chơi thôi !",
-      fx: "🚲",
+      result: "chạy ra đầu gõ mua giúp bà ít đồ",
+      fx: "assets/fx/bike.png",
     },
-    {
-      vi: "Ngắm ruộng lúa",
-      ja: ["田んぼを見る", "田んぼを見ます", "たんぼをみる"],
-      en: [
-        "look at the rice field",
-        "look at the rice fields",
-        "see the rice field",
-      ],
-      reading: "たんぼをみる",
-      romaji: "tanbo o miru",
-      hint: "田んぼ (ruộng lúa) + を + 見る (nhìn). Tiếng Anh: look at the rice field.",
-      result: "Cánh đồng lúa vàng ươm trải dài tới chân trời!",
-      fx: "🌾",
-    },
+    
   ],
   ngu: [
     {
@@ -2235,7 +2222,7 @@ const ROOM_TASKS = {
       romaji: "futon o tatamu",
       hint: "布団 (chăn nệm) + を + たたむ (gấp). Tiếng Anh: fold the blanket.",
       result: "Chăn được gấp vuông vức gọn gàng!",
-      fx: "🛏️",
+      fx: "assets/fx/fold.png",
     },
     {
       vi: "Bật quạt",
@@ -2244,8 +2231,8 @@ const ROOM_TASKS = {
       reading: "せんぷうきをつける",
       romaji: "senpuuki o tsukeru",
       hint: "扇風機 (quạt máy) + を + つける (bật), cùng mẫu với bật bếp, bật tivi.",
-      result: "Mát quá!",
-      fx: "🌬️",
+      result: "Mát quá!ngủ trưa tí nào",
+      fx: "assets/fx/fan.png",
     },
     {
       vi: "Đọc sách",
