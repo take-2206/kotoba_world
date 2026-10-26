@@ -3420,3 +3420,12 @@ details.entry[open] summary {
   justify-content: center;
   margin-top: 0;
 }
+
+/* Nút “Tiếp” trong phần gõ từ vựng: gọn hơn, không kéo hết chiều ngang */
+.study.chalk .study-body > .primary.full {
+  align-self: center;
+  width: auto;
+  min-height: 44px;
+  padding: 0 28px;
+  font-size: 16px;
+}
