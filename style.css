@@ -1215,6 +1215,7 @@ details.entry[open] summary {
   gap: 6px;
 }
 .mk-tabs {
+  flex-wrap: wrap;
   position: absolute;
   left: 50%;
   bottom: calc(12px + var(--sab));
@@ -3342,4 +3343,75 @@ details.entry[open] summary {
 }
 .toast {
   z-index: 14; /* hiện cả khi đang mở bản đồ toàn màn hình */
+}
+/* ---------- Luyện N1: bảng đen, viết bằng phấn ---------- */
+.study {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35) 85%),
+    url("assets/study/bang-den.jpg") center / cover no-repeat,
+    #1f3d2e;
+  color: #eef2e4;
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.study::after {
+  /* máng đựng phấn ở chân bảng */
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: linear-gradient(#b8a57e, #7d6a48);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.study .rooms-head h2,
+.study-h,
+.study-mean,
+.study-hero-title {
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  color: #fbf6d2;
+}
+.study-h {
+  font-size: 26px;
+  font-weight: 400;
+}
+.study .pill,
+.study .pill-btn {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.6);
+  box-shadow: none;
+}
+.study-card,
+.study-hero,
+.study-test,
+.study-done {
+  background: transparent !important;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.55);
+  box-shadow: none;
+}
+.study-stat,
+.study-sub {
+  color: #f6e7a0;
+}
+.study-opt,
+.study-choice,
+.study-chip,
+.study-tab {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+  box-shadow: none;
+}
+.study-input,
+.study-field input {
+  background: transparent;
+  color: #fbf6d2;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+}
+.study-input::placeholder {
+  color: rgba(238, 242, 228, 0.5);
 }
