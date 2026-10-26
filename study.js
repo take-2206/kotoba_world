@@ -170,6 +170,24 @@
     return st.today.words.map((w) => byWord.get(w)).filter(Boolean);
   }
 
+  /* ---------- Phát âm tiếng Nhật (giọng đọc của trình duyệt) ---------- */
+  function speak(text) {
+    try {
+      if (!("speechSynthesis" in window) || !text) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP";
+      u.rate = 0.9;
+      const voice = window.speechSynthesis
+        .getVoices()
+        .find((v) => v.lang && v.lang.toLowerCase().startsWith("ja"));
+      if (voice) u.voice = voice;
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      /* bỏ qua nếu trình duyệt không hỗ trợ */
+    }
+  }
+
   function startVocab() {
     return todayVocab();
   }
@@ -467,7 +485,10 @@
     );
     const card = el("div", "study-card");
     const hintTxt = el("div", "study-hint-txt");
-    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), hintTxt);
+    const speakBtn = el("button", "study-speak", "🔊 Nghe");
+    speakBtn.type = "button";
+    speakBtn.addEventListener("click", () => speak(item.r || item.w));
+    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), speakBtn, hintTxt);
     body.append(card);
 
     const form = el("form", "study-typing");
@@ -513,6 +534,7 @@
       if (!ok) {
         // Sai: hiện đáp án đúng, người học phải nhập lại
         if (attempts === 1) sess.total++;
+        speak(item.r || item.w);
         result.textContent = "Chưa đúng. Đáp án: " + ans + ". Hãy nhập lại từ đúng.";
         result.classList.remove("ok");
         result.classList.add("bad");
@@ -528,6 +550,7 @@
         st.learned[item.w] = true;
         save();
       }
+      speak(item.r || item.w);
       result.textContent = "Đúng! " + ans;
       result.classList.remove("bad");
       result.classList.add("ok");

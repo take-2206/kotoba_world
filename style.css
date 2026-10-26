@@ -3430,3 +3430,20 @@ details.entry[open] summary {
   padding: 0 28px;
   font-size: 16px;
 }
+
+/* Nút nghe phát âm */
+.study-speak {
+  margin: 10px auto 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(79, 127, 53, 0.15);
+  color: var(--leaf-d);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.study-speak:active {
+  transform: scale(0.96);
+}
