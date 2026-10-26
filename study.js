@@ -323,11 +323,18 @@
     words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
-      row.append(
+      const text = el("div", "study-today-text");
+      text.append(
         el("b", null, x.w + (x.r ? "（" + x.r + "）" : "")),
-        el("span", null, x.m),
-        el("i", null, done ? "✓" : "")
+        el("span", null, x.m)
       );
+      const side = el("div", "study-today-side");
+      const speakBtn = el("button", "study-speak-mini", "🔊");
+      speakBtn.type = "button";
+      speakBtn.setAttribute("aria-label", "Nghe " + x.w);
+      speakBtn.addEventListener("click", () => speak(x.r || x.w));
+      side.append(speakBtn, el("i", null, done ? "✓" : ""));
+      row.append(text, side);
       todayPanel.append(row);
     });
 

@@ -3043,14 +3043,36 @@ details.entry[open] summary {
   color: var(--wood-d);
 }
 .study-today-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 10px 12px 10px 14px;
   border-radius: 12px;
   background: var(--cream);
   color: var(--wood-d);
   border-left: 5px solid #d9c08a;
+}
+.study-today-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.study-today-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.study-speak-mini {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(79, 127, 53, 0.15);
+  font-size: 16px;
+  cursor: pointer;
 }
 .study-today-row.ok {
   border-left-color: var(--leaf);
@@ -3059,16 +3081,13 @@ details.entry[open] summary {
   font-size: 16px;
 }
 .study-today-row span {
-  grid-column: 1;
   font-size: 14px;
   opacity: 0.85;
 }
 .study-today-row i {
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  align-self: center;
   font-style: normal;
   font-weight: 800;
+  font-size: 18px;
   color: var(--leaf);
 }
 
