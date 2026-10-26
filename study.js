@@ -492,10 +492,7 @@
     );
     const card = el("div", "study-card");
     const hintTxt = el("div", "study-hint-txt");
-    const speakBtn = el("button", "study-speak", "🔊 Nghe");
-    speakBtn.type = "button";
-    speakBtn.addEventListener("click", () => speak(item.r || item.w));
-    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), speakBtn, hintTxt);
+    card.append(el("div", "study-mean", item.m), el("div", "study-hint", "Gõ từ tiếng Nhật"), hintTxt);
     body.append(card);
 
     const form = el("form", "study-typing");
