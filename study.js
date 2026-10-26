@@ -275,6 +275,7 @@
       testdone: renderTestDone,
     };
     views[view]();
+    screen.classList.toggle("chalk", view === "vocab"); // bảng đen chỉ cho phần gõ từ vựng
     renderTodayPanel();
   }
 

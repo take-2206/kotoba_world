@@ -1200,8 +1200,7 @@ details.entry[open] summary {
   font-size: 15px;
 }
 /* vùng chạm món hàng: dùng lại kiểu .hotspot, thêm chấm gợi ý luôn hiện */
-#shop-spots .hotspot::before,
-#market-spots .hotspot::before {
+#shop-spots .hotspot::before {
   opacity: 0.9;
   animation: pulse 1.4s ease-in-out infinite;
 }
@@ -1215,58 +1214,8 @@ details.entry[open] summary {
   display: flex;
   gap: 6px;
 }
-.mk-grid {
-  position: absolute;
-  inset: 0;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
-  align-content: start;
-  gap: 12px;
-  padding: calc(84px + var(--sat)) calc(14px + var(--sar)) 96px
-    calc(14px + var(--sal));
-  background:
-    radial-gradient(circle at 30% 20%, rgba(255, 220, 140, 0.12), transparent 60%),
-    #3d2614;
-}
-.mk-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  min-height: 118px;
-  padding: 12px 8px;
-  border: 3px solid var(--wood);
-  border-radius: 16px;
-  background: #fbf3dc;
-  color: var(--wood-d);
-  font: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  box-shadow: 0 3px 0 #7a4e0b;
-}
-.mk-card:active {
-  transform: translateY(2px);
-  box-shadow: 0 1px 0 #7a4e0b;
-}
-.mk-card.done {
-  border-color: var(--leaf);
-  background: #e4f0cf;
-}
-.mk-emoji {
-  font-size: 40px;
-  line-height: 1.1;
-}
-.mk-card b {
-  font-size: 16px;
-}
-.mk-card small {
-  font-size: 13px;
-  color: #7a5a3a;
-}
 .mk-tabs {
+  flex-wrap: wrap;
   position: absolute;
   left: 50%;
   bottom: calc(12px + var(--sab));
@@ -1294,16 +1243,8 @@ details.entry[open] summary {
   border-color: var(--leaf-d);
   color: #fff;
 }
-.mk-icon {
-  display: block;
-  font-size: 64px;
-  line-height: 1;
-  padding: 8px 0;
-  text-align: center;
-}
-#market-grid .mk-card,
-#market-grid .mk-card:focus-visible {
-  outline: none;
+.mk-find {
+  background: #f6e7a6;
 }
 
 /* Thẻ xác nhận mua ở giữa màn hình */
@@ -3402,4 +3343,67 @@ details.entry[open] summary {
 }
 .toast {
   z-index: 14; /* hiện cả khi đang mở bản đồ toàn màn hình */
+}
+/* ---------- Luyện N1: bảng đen, chỉ cho phần gõ từ vựng (.chalk do study.js bật) ---------- */
+.study.chalk {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35) 85%),
+    url("assets/study/bang-den.jpg") center / cover no-repeat,
+    #1f3d2e;
+  color: #eef2e4;
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.study.chalk::after {
+  /* máng đựng phấn ở chân bảng */
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: linear-gradient(#b8a57e, #7d6a48);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.study.chalk .rooms-head h2,
+.study.chalk .study-h,
+.study.chalk .study-mean {
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  color: #fbf6d2;
+}
+.study.chalk .study-sub {
+  color: #f6e7a0;
+}
+.study.chalk .pill,
+.study.chalk .pill-btn {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.6);
+  box-shadow: none;
+}
+.study.chalk .study-card {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.55);
+  box-shadow: none;
+}
+.study.chalk .study-hint-txt {
+  color: #f6e7a0;
+}
+.study.chalk .study-input,
+.study.chalk .study-field input {
+  background: transparent;
+  color: #fbf6d2;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+}
+.study.chalk .study-input::placeholder {
+  color: rgba(238, 242, 228, 0.5);
+}
+.study.chalk .study-opt,
+.study.chalk .study-choice {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+  box-shadow: none;
 }
