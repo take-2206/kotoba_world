@@ -21,7 +21,7 @@ def data_uri(path):
     return 'data:%s;base64,%s' % (mime, base64.b64encode(buf.getvalue()).decode())
 
 read = lambda n: open(os.path.join(ROOT, n), encoding='utf-8').read()
-html, css, vocab, game = read('index.html'), read('style.css'), read('vocab.js'), read('game.js')
+html, css, vocab, market, game = read('index.html'), read('style.css'), read('vocab.js'), read('market-data.js'), read('game.js')
 
 assets = {}
 for d, _, files in os.walk(os.path.join(ROOT, 'assets')):
@@ -37,6 +37,7 @@ def inline(text):
 
 html = html.replace('<link rel="stylesheet" href="style.css">', '<style>\n' + css + '\n</style>')
 html = html.replace('<script src="vocab.js"></script>', '<script>\n' + vocab + '\n</script>')
+html = html.replace('<script src="market-data.js"></script>', '<script>\n' + market + '\n</script>')
 html = html.replace('<script src="game.js"></script>', '<script>\n' + game + '\n</script>')
 html = inline(html)
 open(OUT, 'w', encoding='utf-8').write(html)

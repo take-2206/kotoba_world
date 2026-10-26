@@ -389,7 +389,8 @@ button {
   color: #7a5a3a;
   font-size: 13px;
 }
-#answer {
+#answer,
+#mk-answer {
   width: 100%;
   min-height: 52px;
   padding: 0 14px;
@@ -402,7 +403,8 @@ button {
   -webkit-appearance: none;
   appearance: none;
 }
-#answer:focus {
+#answer:focus,
+#mk-answer:focus {
   outline: none;
   border-color: var(--leaf);
   box-shadow: 0 0 0 3px rgba(79, 127, 53, 0.25);
@@ -442,33 +444,40 @@ button {
   border-color: var(--bad);
   background: transparent;
 }
-#feedback:empty {
+#feedback:empty,
+#mk-feedback:empty {
   display: none;
 }
-#feedback {
+#feedback,
+#mk-feedback {
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: 14px;
   line-height: 1.45;
   font-size: 16px;
 }
-#feedback.ok {
+#feedback.ok,
+#mk-feedback.ok {
   background: #e4f0cf;
   border: 2px solid var(--leaf);
 }
-#feedback.no {
+#feedback.no,
+#mk-feedback.no {
   background: #f6e0d2;
   border: 2px solid var(--bad);
 }
-#feedback p {
+#feedback p,
+#mk-feedback p {
   margin: 0 0 6px;
 }
-#feedback .big {
+#feedback .big,
+#mk-feedback .big {
   font-size: 26px;
   font-weight: 700;
   font-family: var(--head);
 }
-#feedback .gain {
+#feedback .gain,
+#mk-feedback .gain {
   font-weight: 700;
   color: var(--leaf-d);
 }
@@ -1118,11 +1127,13 @@ details.entry[open] summary {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-#shop {
+#shop,
+#market {
   overflow: hidden;
   background: #2b1a0e;
 }
-#shop-view {
+#shop-view,
+#market-view {
   position: absolute;
   inset: 0;
   display: flex;
@@ -1132,10 +1143,12 @@ details.entry[open] summary {
   scrollbar-width: none;
   overscroll-behavior: contain;
 }
-#shop-view::-webkit-scrollbar {
+#shop-view::-webkit-scrollbar,
+#market-view::-webkit-scrollbar {
   display: none;
 }
-#shop-stage {
+#shop-stage,
+#market-stage {
   position: relative;
   flex: none;
   margin: auto;
@@ -1151,7 +1164,8 @@ details.entry[open] summary {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-#shop-spots {
+#shop-spots,
+#market-spots {
   position: absolute;
   inset: 0;
 }
@@ -1186,12 +1200,110 @@ details.entry[open] summary {
   font-size: 15px;
 }
 /* vùng chạm món hàng: dùng lại kiểu .hotspot, thêm chấm gợi ý luôn hiện */
-#shop-spots .hotspot::before {
+#shop-spots .hotspot::before,
+#market-spots .hotspot::before {
   opacity: 0.9;
   animation: pulse 1.4s ease-in-out infinite;
 }
-#shop-spots .hotspot {
+#shop-spots .hotspot,
+#market-spots .hotspot {
   border-radius: 14px;
+}
+
+/* ---------- Chợ Lộc Tài ---------- */
+.mk-wallet {
+  display: flex;
+  gap: 6px;
+}
+.mk-grid {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  align-content: start;
+  gap: 12px;
+  padding: calc(84px + var(--sat)) calc(14px + var(--sar)) 96px
+    calc(14px + var(--sal));
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 220, 140, 0.12), transparent 60%),
+    #3d2614;
+}
+.mk-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-height: 118px;
+  padding: 12px 8px;
+  border: 3px solid var(--wood);
+  border-radius: 16px;
+  background: #fbf3dc;
+  color: var(--wood-d);
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  box-shadow: 0 3px 0 #7a4e0b;
+}
+.mk-card:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 #7a4e0b;
+}
+.mk-card.done {
+  border-color: var(--leaf);
+  background: #e4f0cf;
+}
+.mk-emoji {
+  font-size: 40px;
+  line-height: 1.1;
+}
+.mk-card b {
+  font-size: 16px;
+}
+.mk-card small {
+  font-size: 13px;
+  color: #7a5a3a;
+}
+.mk-tabs {
+  position: absolute;
+  left: 50%;
+  bottom: calc(12px + var(--sab));
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+}
+.mk-tab {
+  padding: 9px 14px;
+  border: 2px solid var(--wood);
+  border-radius: 999px;
+  background: rgba(251, 243, 220, 0.96);
+  color: var(--wood-d);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(40, 24, 10, 0.4);
+}
+.mk-tab[aria-selected="true"] {
+  background: var(--leaf);
+  border-color: var(--leaf-d);
+  color: #fff;
+}
+.mk-icon {
+  display: block;
+  font-size: 64px;
+  line-height: 1;
+  padding: 8px 0;
+  text-align: center;
+}
+#market-grid .mk-card,
+#market-grid .mk-card:focus-visible {
+  outline: none;
 }
 
 /* Thẻ xác nhận mua ở giữa màn hình */

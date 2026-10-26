@@ -1,0 +1,97 @@
+/* Chợ Lộc Tài: quầy hàng, món hàng (giá tính bằng xu) và từ vựng tiếng Anh, tiếng Nhật.
+   MARKET_STALLS: mỗi quầy là một tranh có vùng chạm (spots: [mã món, [x, y, rộng, cao]] theo pixel
+   ảnh 1536 × 1024; chỉnh bằng ?debug), hoặc lưới (grid) nếu chưa có tranh. */
+const MARKET_ITEMS = [
+  // ----- Rau củ quả -----
+  { id: "rau-muong", vi: "Rau muống", price: 5, icon: "🥬", en: ["water spinach"], ja: ["エンサイ", "空芯菜"], reading: "えんさい", romaji: "ensai", note: "Rau muống: tiếng Anh là water spinach. Tiếng Nhật thường gọi エンサイ." },
+  { id: "xa-lach", vi: "Xà lách", price: 10, icon: "🥗", en: ["lettuce"], ja: ["レタス"], reading: "れたす", romaji: "retasu", note: "Xà lách: lettuce. Tiếng Nhật viết レタス." },
+  { id: "ngo-ri", vi: "Ngò rí", price: 5, icon: "🌿", en: ["coriander", "cilantro"], ja: ["パクチー", "コリアンダー"], reading: "ぱくちー", romaji: "pakuchī", note: "Ngò rí: coriander. Tiếng Nhật hay gọi パクチー." },
+  { id: "ca-chua", vi: "Cà chua", price: 15, icon: "🍅", en: ["tomato"], ja: ["トマト"], reading: "とまと", romaji: "tomato", note: "Cà chua: tomato. Tiếng Nhật viết トマト." },
+  { id: "dua-leo", vi: "Dưa leo", price: 12, icon: "🥒", en: ["cucumber"], ja: ["きゅうり", "キュウリ"], reading: "きゅうり", romaji: "kyūri", note: "Dưa leo: cucumber. Tiếng Nhật là きゅうり." },
+  { id: "ca-rot", vi: "Cà rốt", price: 15, icon: "🥕", en: ["carrot"], ja: ["にんじん", "ニンジン"], reading: "にんじん", romaji: "ninjin", note: "Cà rốt: carrot. Tiếng Nhật là にんじん." },
+  { id: "bap-cai", vi: "Bắp cải", price: 12, icon: "🥬", en: ["cabbage"], ja: ["キャベツ"], reading: "きゃべつ", romaji: "kyabetsu", note: "Bắp cải: cabbage. Tiếng Nhật viết キャベツ." },
+  { id: "hanh-la", vi: "Hành lá", price: 5, icon: "🧅", en: ["green onion", "spring onion", "scallion"], ja: ["ネギ", "ねぎ", "葱"], reading: "ねぎ", romaji: "negi", note: "Hành lá: green onion. Tiếng Nhật là ねぎ." },
+  { id: "dau-que", vi: "Đậu que", price: 15, icon: "🫛", en: ["green beans", "string beans"], ja: ["インゲン", "いんげん", "さやいんげん"], reading: "いんげん", romaji: "ingen", note: "Đậu que: green beans. Tiếng Nhật là いんげん." },
+  { id: "ca-tim", vi: "Cà tím", price: 12, icon: "🍆", en: ["eggplant", "aubergine"], ja: ["ナス", "なす", "茄子"], reading: "なす", romaji: "nasu", note: "Cà tím: eggplant. Tiếng Nhật là なす." },
+  { id: "khoai-tay", vi: "Khoai tây", price: 10, icon: "🥔", en: ["potato"], ja: ["ジャガイモ", "じゃがいも"], reading: "じゃがいも", romaji: "jagaimo", note: "Khoai tây: potato. Tiếng Nhật là じゃがいも." },
+  { id: "hanh-tay", vi: "Hành tây", price: 12, icon: "🧅", en: ["onion"], ja: ["タマネギ", "たまねぎ", "玉ねぎ"], reading: "たまねぎ", romaji: "tamanegi", note: "Hành tây: onion. Tiếng Nhật là たまねぎ." },
+  { id: "ot", vi: "Ớt", price: 20, icon: "🌶️", en: ["chili", "chilli", "chili pepper"], ja: ["唐辛子", "トウガラシ", "とうがらし"], reading: "とうがらし", romaji: "tōgarashi", note: "Ớt: chili. Tiếng Nhật là とうがらし." },
+  { id: "gung", vi: "Gừng", price: 20, icon: "🫚", en: ["ginger"], ja: ["しょうが", "ショウガ", "生姜"], reading: "しょうが", romaji: "shōga", note: "Gừng: ginger. Tiếng Nhật là しょうが." },
+  { id: "dau-bap", vi: "Đậu bắp", price: 15, icon: "🥦", en: ["okra"], ja: ["オクラ"], reading: "おくら", romaji: "okura", note: "Đậu bắp: okra. Tiếng Nhật viết オクラ." },
+  { id: "khoai-mon", vi: "Khoai môn", price: 15, icon: "🍠", en: ["taro"], ja: ["サトイモ", "さといも", "里芋"], reading: "さといも", romaji: "satoimo", note: "Khoai môn: taro. Tiếng Nhật là さといも." },
+  { id: "kho-qua", vi: "Khổ qua", price: 12, icon: "🥒", en: ["bitter melon", "bitter gourd"], ja: ["ゴーヤ", "にがうり"], reading: "ごーや", romaji: "gōya", note: "Khổ qua: bitter melon. Tiếng Nhật là ゴーヤ." },
+
+  // ----- Trái cây -----
+  { id: "xoai", vi: "Xoài", price: 20, icon: "🥭", en: ["mango"], ja: ["マンゴー"], reading: "まんごー", romaji: "mangō", note: "Xoài: mango. Tiếng Nhật viết マンゴー." },
+  { id: "buoi", vi: "Bưởi", price: 25, icon: "🍊", en: ["pomelo"], ja: ["ブンタン", "ぶんたん", "ザボン"], reading: "ぶんたん", romaji: "buntan", note: "Bưởi: pomelo. Tiếng Nhật là ブンタン." },
+  { id: "thanh-long", vi: "Thanh long", price: 15, icon: "🐉", en: ["dragon fruit", "pitaya"], ja: ["ドラゴンフルーツ"], reading: "どらごんふるーつ", romaji: "doragon furūtsu", note: "Thanh long: dragon fruit. Tiếng Nhật viết ドラゴンフルーツ." },
+  { id: "chuoi", vi: "Chuối", price: 12, icon: "🍌", en: ["banana"], ja: ["バナナ"], reading: "ばなな", romaji: "banana", note: "Chuối: banana. Tiếng Nhật viết バナナ." },
+  { id: "cam", vi: "Cam", price: 15, icon: "🍊", en: ["orange"], ja: ["オレンジ", "おれんじ", "みかん", "蜜柑"], reading: "おれんじ", romaji: "orenji", note: "Cam: orange. Tiếng Nhật viết オレンジ." },
+  { id: "man", vi: "Mận", price: 20, icon: "🍑", en: ["plum"], ja: ["プラム", "すもも", "李"], reading: "ぷらむ", romaji: "puramu", note: "Mận: plum. Tiếng Nhật viết プラム." },
+  { id: "nhan", vi: "Nhãn", price: 25, icon: "🫐", en: ["longan"], ja: ["リュウガン", "りゅうがん", "龍眼"], reading: "りゅうがん", romaji: "ryūgan", note: "Nhãn: longan. Tiếng Nhật là りゅうがん." },
+  { id: "oi", vi: "Ổi", price: 15, icon: "🍐", en: ["guava"], ja: ["グアバ", "ぐあば"], reading: "ぐあば", romaji: "guaba", note: "Ổi: guava. Tiếng Nhật viết グアバ." },
+  { id: "dua", vi: "Dứa", price: 15, icon: "🍍", en: ["pineapple"], ja: ["パイナップル", "ぱいなっぷる"], reading: "ぱいなっぷる", romaji: "painappuru", note: "Dứa: pineapple. Tiếng Nhật viết パイナップル." },
+  { id: "chanh", vi: "Chanh", price: 10, icon: "🍋", en: ["lime"], ja: ["ライム", "らいむ"], reading: "らいむ", romaji: "raimu", note: "Chanh: lime. Tiếng Nhật viết ライム." },
+
+  // ----- Đồ tươi sống (không có tranh, hiện dạng lưới) -----
+  { id: "ca", vi: "Cá", price: 30, icon: "🐟", en: ["fish"], ja: ["魚", "さかな"], reading: "さかな", romaji: "sakana", note: "Cá: fish. Tiếng Nhật là 魚 (さかな)." },
+  { id: "tom", vi: "Tôm", price: 35, icon: "🦐", en: ["shrimp", "prawn"], ja: ["エビ", "えび", "海老"], reading: "えび", romaji: "ebi", note: "Tôm: shrimp. Tiếng Nhật là エビ (えび)." },
+  { id: "thit-heo", vi: "Thịt heo", price: 25, icon: "🐷", en: ["pork"], ja: ["豚肉", "ぶたにく"], reading: "ぶたにく", romaji: "butaniku", note: "Thịt heo: pork. Tiếng Nhật là 豚肉 (ぶたにく)." },
+  { id: "thit-bo", vi: "Thịt bò", price: 40, icon: "🥩", en: ["beef"], ja: ["牛肉", "ぎゅうにく"], reading: "ぎゅうにく", romaji: "gyūniku", note: "Thịt bò: beef. Tiếng Nhật là 牛肉 (ぎゅうにく)." },
+  { id: "thit-ga", vi: "Thịt gà", price: 30, icon: "🍗", en: ["chicken"], ja: ["鶏肉", "とりにく"], reading: "とりにく", romaji: "toriniku", note: "Thịt gà: chicken. Tiếng Nhật là 鶏肉 (とりにく)." },
+  { id: "trung", vi: "Trứng", price: 10, icon: "🥚", en: ["egg", "eggs"], ja: ["卵", "たまご", "タマゴ"], reading: "たまご", romaji: "tamago", note: "Trứng: egg. Tiếng Nhật là 卵 (たまご)." },
+];
+
+const MARKET_STALLS = [
+  {
+    id: "rau",
+    name: "Rau củ quả",
+    img: "assets/market/rau-cu-qua.png",
+    w: 1536,
+    h: 1024,
+    spots: [
+      ["rau-muong", [140, 400, 270, 150]],
+      ["xa-lach", [380, 420, 200, 140]],
+      ["ngo-ri", [580, 440, 150, 130]],
+      ["ca-chua", [728, 460, 172, 100]],
+      ["dua-leo", [898, 455, 152, 105]],
+      ["ca-rot", [1040, 470, 175, 95]],
+      ["bap-cai", [55, 580, 245, 120]],
+      ["hanh-la", [295, 560, 215, 160]],
+      ["dau-que", [510, 595, 205, 130]],
+      ["ca-tim", [715, 590, 185, 130]],
+      ["khoai-tay", [895, 590, 195, 130]],
+      ["hanh-tay", [1075, 595, 195, 125]],
+      ["chanh", [20, 755, 250, 145]],
+      ["ot", [270, 765, 230, 135]],
+      ["gung", [495, 750, 195, 150]],
+      ["dau-bap", [695, 765, 205, 135]],
+      ["khoai-mon", [900, 750, 225, 150]],
+      ["kho-qua", [1125, 745, 235, 140]],
+    ],
+  },
+  {
+    id: "trai",
+    name: "Trái cây",
+    img: "assets/market/trai-cay-tuoi.png",
+    w: 1536,
+    h: 1024,
+    spots: [
+      ["xoai", [5, 575, 425, 125]],
+      ["buoi", [270, 440, 270, 125]],
+      ["thanh-long", [545, 485, 280, 85]],
+      ["chuoi", [830, 470, 290, 90]],
+      ["cam", [420, 615, 230, 130]],
+      ["man", [655, 610, 225, 135]],
+      ["nhan", [880, 610, 195, 140]],
+      ["oi", [1005, 575, 205, 150]],
+      ["dua", [245, 740, 340, 160]],
+      ["chanh", [585, 795, 245, 105]],
+    ],
+  },
+  {
+    id: "tuoi",
+    name: "Đồ tươi sống",
+    grid: ["ca", "tom", "thit-heo", "thit-bo", "thit-ga", "trung"],
+  },
+];

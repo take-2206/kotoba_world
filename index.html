@@ -238,6 +238,117 @@
       </div>
     </section>
 
+    <!-- Chợ Lộc Tài: mua rau củ, trái cây, đồ tươi sống và học từ vựng -->
+    <section id="market" class="screen" hidden aria-labelledby="market-title">
+      <h2 id="market-title" class="sr-only">Chợ Lộc Tài</h2>
+      <div id="market-view">
+        <div id="market-stage">
+          <img
+            class="shop-bg"
+            id="market-bg"
+            src="assets/market/rau-cu-qua.png"
+            alt=""
+            draggable="false"
+          />
+          <div id="market-spots"></div>
+        </div>
+      </div>
+      <div id="market-grid" class="mk-grid" hidden></div>
+      <header class="shop-top">
+        <button type="button" class="pill pill-btn" id="market-back">
+          ‹ Bản đồ
+        </button>
+        <div class="mk-wallet">
+          <div class="pill">
+            <span class="coin"></span><b id="market-coins">0</b>&nbsp;xu
+          </div>
+          <div class="pill" title="Giỏ hàng">
+            🧺 <b id="market-bought">0</b>
+          </div>
+        </div>
+      </header>
+      <nav class="mk-tabs" id="market-tabs" aria-label="Quầy hàng">
+        <button type="button" class="mk-tab" data-stall="rau" aria-selected="true">
+          Rau củ quả
+        </button>
+        <button type="button" class="mk-tab" data-stall="trai" aria-selected="false">
+          Trái cây
+        </button>
+        <button type="button" class="mk-tab" data-stall="tuoi" aria-selected="false">
+          Tươi sống
+        </button>
+      </nav>
+
+      <!-- Hộp xác nhận món hàng: mua hoặc học từ này -->
+      <div
+        id="mk-dialog"
+        class="buy-overlay"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mk-name"
+      >
+        <div class="buy-card">
+          <div class="buy-pic">
+            <span class="mk-icon" id="mk-icon" aria-hidden="true"></span>
+          </div>
+          <h3 id="mk-name"></h3>
+          <p class="buy-price">
+            <span class="coin"></span><b id="mk-price"></b>&nbsp;xu
+          </p>
+          <p class="buy-note" id="mk-note"></p>
+          <div class="row">
+            <button type="button" class="secondary" id="mk-cancel">Đóng</button>
+            <button type="button" class="secondary" id="mk-learn">Học từ này</button>
+          </div>
+          <button type="button" class="primary full" id="mk-buy">Mua</button>
+        </div>
+      </div>
+
+      <!-- Học từ vựng của món hàng -->
+      <div
+        id="mk-sheet"
+        class="sheet"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mk-quiz-title"
+      >
+        <div class="card">
+          <button class="close" id="mk-quiz-close" type="button" aria-label="Đóng">
+            ×
+          </button>
+          <h2 id="mk-quiz-title"></h2>
+          <div class="tabs" id="mk-tabs" role="tablist">
+            <button type="button" role="tab" data-lang="en" id="mk-tab-en">
+              English
+            </button>
+            <button type="button" role="tab" data-lang="ja" id="mk-tab-ja">
+              日本語
+            </button>
+          </div>
+          <p id="mk-prompt" class="prompt"></p>
+          <form id="mk-form" autocomplete="off">
+            <input
+              id="mk-answer"
+              type="text"
+              autocapitalize="off"
+              autocorrect="off"
+              autocomplete="off"
+              spellcheck="false"
+              enterkeyhint="done"
+              aria-label="Từ vựng"
+            />
+            <div class="row">
+              <button type="submit" class="primary">Kiểm tra</button>
+              <button type="button" class="secondary" id="mk-later">Để sau</button>
+            </div>
+          </form>
+          <div id="mk-feedback" role="status" aria-live="polite"></div>
+        </div>
+      </div>
+    </section>
+
     <div id="game" hidden>
       <main id="viewport">
         <div id="stage">
@@ -706,6 +817,7 @@
     </audio>
 
     <script src="vocab.js"></script>
+    <script src="market-data.js"></script>
     <script src="game.js"></script>
     <script src="study-data.js"></script>
     <script src="study-vocab.js"></script>

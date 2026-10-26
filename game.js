@@ -51,6 +51,7 @@
       saved: [],
       tour: false, // đã xem hướng dẫn lần đầu chưa
       welcomed: false, // đã được nhân vật chào lần đầu chưa
+      mkt: { learned: {}, rewarded: {}, bought: {} }, // chợ: từ đã học, đã nhận xu, món đã mua
       daily: { date: today(), explored: [], correct: [], claimed: {}, tasks: {} },
     };
   }
@@ -75,6 +76,7 @@
   }
   const state = load();
   if (!Array.isArray(state.saved)) state.saved = [];
+  if (!state.mkt) state.mkt = { learned: {}, rewarded: {}, bought: {} };
   if (["en", "ja", "both"].indexOf(state.mode) < 0) state.mode = "both";
   if (state.char !== "boy" && state.char !== "girl") state.char = null;
   const langsOf = () =>
@@ -1064,7 +1066,7 @@
   const MAP_W = 1778,
     MAP_H = 592;
   const MAP_SHOPS = [
-    { id: "cho", name: "Chợ Lộc Tài", rect: [20, 120, 395, 450] },
+    { id: "cho", name: "Chợ Lộc Tài", rect: [20, 120, 395, 450], go: () => openMarket() },
     { id: "toc", name: "Tiệm làm tóc", rect: [415, 120, 317, 445] },
     { id: "nhau", name: "Quán nhậu", rect: [732, 115, 340, 450] },
     { id: "anvat", name: "Quán ăn vặt", rect: [1075, 120, 335, 445] },
@@ -1162,6 +1164,8 @@
       if (!boxSheet.hidden) boxSheet.hidden = true;
       if (!mapSheet.hidden) mapSheet.hidden = true;
       if (!buyDlg.hidden) closeBuy();
+      if (!mkDlg.hidden) closeMkItem();
+      if (!mkSheet.hidden) closeMkQuiz();
       if (!settings.hidden) settings.hidden = true;
       if (!doneSheet.hidden) doneSheet.hidden = true;
     }
@@ -1211,6 +1215,7 @@
     game: $("#game"),
     shop: $("#shop"),
     charpick: $("#charpick"),
+    market: $("#market"),
   };
   const settings = $("#settings"),
     doneSheet = $("#done"),
@@ -1830,6 +1835,304 @@
     show("game");
     relayout();
     updateHud();
+  });
+
+  /* ---------- Chợ Lộc Tài: mua rau củ, trái cây, đồ tươi sống và học từ vựng ---------- */
+  const MK_REWARD = 5, // xu cho mỗi từ học đúng lần đầu
+    MK_RATIO = 1536 / 1024;
+  const MK = {};
+  MARKET_ITEMS.forEach((it) => {
+    MK[it.id] = it;
+  });
+  const mkView = $("#market-view"),
+    mkStage = $("#market-stage"),
+    mkSpots = $("#market-spots"),
+    mkGrid = $("#market-grid"),
+    mkDlg = $("#mk-dialog"),
+    mkSheet = $("#mk-sheet"),
+    mkForm = $("#mk-form"),
+    mkInput = $("#mk-answer"),
+    mkFeedbackEl = $("#mk-feedback");
+  let mkCur = null,
+    mkLang = "en",
+    mkWrong = 0;
+
+  // đã học đủ các thứ tiếng đang học (theo Cài đặt)
+  function mkDone(it) {
+    const s = state.mkt.learned[it.id] || {};
+    return langsOf().every((k) => !!s[k]);
+  }
+  function mkBoughtCount() {
+    return Object.keys(state.mkt.bought).reduce(
+      (n, id) => n + (state.mkt.bought[id] || 0),
+      0,
+    );
+  }
+  function mkRefresh() {
+    $("#market-coins").textContent = state.coins;
+    $("#market-bought").textContent = mkBoughtCount();
+    mkSpots.querySelectorAll(".hotspot").forEach((b) => {
+      b.classList.toggle("seen", mkDone(MK[b.dataset.id]));
+    });
+    mkGrid.querySelectorAll(".mk-card").forEach((c) => {
+      c.classList.toggle("done", mkDone(MK[c.dataset.id]));
+    });
+  }
+  function marketLayout(center) {
+    const vw = mkView.clientWidth,
+      vh = mkView.clientHeight;
+    const sw = mkStage.offsetWidth || 1,
+      sh = mkStage.offsetHeight || 1;
+    const cx = center ? center[0] : (mkView.scrollLeft + vw / 2) / sw;
+    const cy = center ? center[1] : (mkView.scrollTop + vh / 2) / sh;
+    const w = Math.max(vw, vh * MK_RATIO); // ảnh phủ kín màn hình, kéo để xem phần còn lại
+    mkStage.style.width = w + "px";
+    mkStage.style.height = w / MK_RATIO + "px";
+    mkView.scrollLeft = cx * mkStage.offsetWidth - vw / 2;
+    mkView.scrollTop = cy * mkStage.offsetHeight - vh / 2;
+  }
+  function buildMkScene(st) {
+    const bg = $("#market-bg");
+    bg.src = st.img;
+    bg.alt = st.name;
+    mkSpots.textContent = "";
+    st.spots.forEach(([id, r]) => {
+      const it = MK[id];
+      const b = document.createElement("button");
+      b.type = "button";
+      b.className = "hotspot" + (mkDone(it) ? " seen" : "");
+      b.dataset.id = id;
+      b.setAttribute("aria-label", it.vi + ", " + it.price + " xu");
+      b.style.left = ((r[0] + r[2] / 2) / st.w) * 100 + "%";
+      b.style.top = ((r[1] + r[3] / 2) / st.h) * 100 + "%";
+      b.style.width = (r[2] / st.w) * 100 + "%";
+      b.style.height = (r[3] / st.h) * 100 + "%";
+      b.addEventListener("click", () => {
+        b.classList.remove("tap");
+        void b.offsetWidth;
+        b.classList.add("tap");
+        setTimeout(() => openMkItem(it), 150);
+      });
+      mkSpots.append(b);
+    });
+    marketLayout([0.42, 0.55]);
+  }
+  function buildMkGrid(st) {
+    mkGrid.textContent = "";
+    st.grid.forEach((id) => {
+      const it = MK[id];
+      const b = mk("button", "mk-card" + (mkDone(it) ? " done" : ""));
+      b.type = "button";
+      b.dataset.id = id;
+      b.setAttribute("aria-label", it.vi + ", " + it.price + " xu");
+      b.append(
+        mk("span", "mk-emoji", it.icon || "🛒"),
+        mk("b", "", it.vi),
+        mk("small", "", it.price + " xu"),
+      );
+      b.addEventListener("click", () => openMkItem(it));
+      mkGrid.append(b);
+    });
+  }
+  function mkSetStall(id) {
+    const st = MARKET_STALLS.find((s) => s.id === id) || MARKET_STALLS[0];
+    document
+      .querySelectorAll(".mk-tab")
+      .forEach((b) =>
+        b.setAttribute("aria-selected", String(b.dataset.stall === st.id)),
+      );
+    mkView.hidden = !!st.grid;
+    mkGrid.hidden = !st.grid;
+    if (st.grid) buildMkGrid(st);
+    else buildMkScene(st);
+    mkRefresh();
+  }
+  function openMarket() {
+    mapSheet.hidden = true;
+    closeMkItem();
+    closeMkQuiz();
+    show("market");
+    mkSetStall("rau");
+  }
+  document
+    .querySelectorAll(".mk-tab")
+    .forEach((b) => b.addEventListener("click", () => mkSetStall(b.dataset.stall)));
+  $("#market-back").addEventListener("click", () => {
+    closeMkItem();
+    closeMkQuiz();
+    goRooms();
+    mapSheet.hidden = false; // quay lại bản đồ
+    updateHud();
+  });
+  window.addEventListener("resize", () => {
+    if (!screens.market.hidden && !mkView.hidden) marketLayout();
+  });
+
+  /* Hộp xác nhận: mua món hàng hoặc học từ của món đó */
+  function refreshMkItem() {
+    if (!mkCur) return;
+    const short = mkCur.price - state.coins,
+      note = $("#mk-note");
+    $("#mk-buy").disabled = short > 0;
+    const prefix = mkDone(mkCur) ? "Bạn đã học từ này rồi. " : "";
+    note.className = "buy-note" + (short > 0 ? " bad" : "");
+    note.textContent =
+      short > 0
+        ? prefix + "Bạn cần thêm " + short + " xu. Học từ này để kiếm xu nhé!"
+        : prefix + "Bạn có " + state.coins + " xu, mua món này còn " + (state.coins - mkCur.price) + " xu.";
+  }
+  function openMkItem(it) {
+    mkCur = it;
+    $("#mk-name").textContent = it.vi;
+    $("#mk-icon").textContent = it.icon || "🛒";
+    $("#mk-price").textContent = it.price;
+    refreshMkItem();
+    mkDlg.hidden = false;
+    $("#mk-learn").focus();
+  }
+  function closeMkItem() {
+    mkDlg.hidden = true;
+    mkCur = null;
+  }
+  $("#mk-cancel").addEventListener("click", closeMkItem);
+  $("#mk-learn").addEventListener("click", () => {
+    const it = mkCur;
+    closeMkItem();
+    if (it) openMkQuiz(it);
+  });
+  $("#mk-buy").addEventListener("click", () => {
+    const it = mkCur;
+    if (!it || state.coins < it.price) {
+      refreshMkItem();
+      return;
+    }
+    state.coins -= it.price;
+    state.mkt.bought[it.id] = (state.mkt.bought[it.id] || 0) + 1;
+    save();
+    closeMkItem();
+    updateHud(true);
+    mkRefresh();
+    toast("Đã mua " + it.vi + ": −" + it.price + " xu");
+  });
+  mkDlg.addEventListener("click", (e) => {
+    if (e.target === mkDlg) closeMkItem();
+  });
+
+  /* Học từ: gõ tên món bằng tiếng Anh hoặc tiếng Nhật */
+  function mkFb(cls, msg, extra) {
+    mkFeedbackEl.className = cls;
+    mkFeedbackEl.textContent = "";
+    if (!msg) return;
+    const p = document.createElement("p");
+    p.textContent = msg;
+    mkFeedbackEl.append(p);
+    if (extra) {
+      const q = document.createElement("p");
+      q.textContent = extra;
+      mkFeedbackEl.append(q);
+    }
+  }
+  function mkHint(it) {
+    let h =
+      mkLang === "en"
+        ? "Gợi ý: từ có " + it.en[0].length + " chữ cái, bắt đầu bằng “" + it.en[0][0] + "”."
+        : "Gợi ý: cách đọc bắt đầu bằng “" + it.reading[0] + "”.";
+    if (mkWrong >= 2) h += " " + it.note;
+    return h;
+  }
+  function mkSetLang(l) {
+    mkLang = l;
+    mkWrong = 0;
+    const s = state.mkt.learned[mkCur.id] || {};
+    ["en", "ja"].forEach((k) => {
+      const t = $("#mk-tab-" + k);
+      t.setAttribute("aria-selected", String(k === l));
+      t.classList.toggle("done", !!s[k]);
+    });
+    const p = $("#mk-prompt");
+    p.textContent = "";
+    p.append(
+      "Trong tiếng " + (l === "en" ? "Anh" : "Nhật") + ", “" + mkCur.vi + "” là gì?",
+    );
+    if (l === "ja") {
+      const sm = document.createElement("small");
+      sm.textContent = "Nhập bằng hiragana, katakana hoặc kanji.";
+      p.append(sm);
+    }
+    mkInput.value = "";
+    mkInput.lang = l === "ja" ? "ja" : "en";
+    mkInput.placeholder = l === "ja" ? "Nhập từ tiếng Nhật…" : "Nhập từ tiếng Anh…";
+    mkFb("", "");
+  }
+  function openMkQuiz(it) {
+    mkCur = it;
+    mkWrong = 0;
+    $("#mk-quiz-title").textContent = it.vi;
+    $("#mk-tabs").hidden = state.mode !== "both";
+    $("#mk-tab-en").hidden = state.mode === "ja";
+    $("#mk-tab-ja").hidden = state.mode === "en";
+    mkSetLang(state.mode === "ja" ? "ja" : "en");
+    mkSheet.hidden = false;
+    mkInput.focus({ preventScroll: true });
+  }
+  function closeMkQuiz() {
+    mkSheet.hidden = true;
+    mkCur = null;
+  }
+  document
+    .querySelectorAll("#mk-tabs button")
+    .forEach((t) => t.addEventListener("click", () => mkSetLang(t.dataset.lang)));
+  $("#mk-quiz-close").addEventListener("click", closeMkQuiz);
+  $("#mk-later").addEventListener("click", closeMkQuiz);
+  mkSheet.addEventListener("click", (e) => {
+    if (e.target === mkSheet) closeMkQuiz();
+  });
+  mkForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const it = mkCur;
+    if (!it) return;
+    const n = norm(mkInput.value, mkLang);
+    if (!n) return mkFb("no", "Hãy nhập một từ trước khi kiểm tra nhé.");
+    if (mkLang === "ja" && !hasCJK(n)) return mkFb("no", "Hãy nhập bằng chữ Nhật.");
+    if (mkLang === "en" && hasCJK(n)) return mkFb("no", "Hãy nhập bằng chữ Latin.");
+    const hit = it[mkLang].find((a) => norm(a, mkLang) === n);
+    if (!hit) {
+      mkWrong++;
+      return mkFb("no", "Chưa đúng, thử lại nhé. Bạn không bị trừ xu.", mkHint(it));
+    }
+
+    const key = it.id + ":" + mkLang,
+      first = !state.mkt.rewarded[key];
+    state.mkt.learned[it.id] = state.mkt.learned[it.id] || {};
+    state.mkt.learned[it.id][mkLang] = true;
+    if (first) {
+      state.mkt.rewarded[key] = true;
+      state.coins += MK_REWARD;
+    }
+    save();
+    speak(mkLang === "ja" ? it.reading : it.en[0], mkLang);
+
+    mkFeedbackEl.className = "ok";
+    mkFeedbackEl.textContent = "";
+    const add = (cls, txt) => {
+      const p = document.createElement("p");
+      if (cls) p.className = cls;
+      p.textContent = txt;
+      mkFeedbackEl.append(p);
+    };
+    add("", first ? "Chính xác! Giỏi lắm." : "Chính xác!");
+    add("big", hit);
+    if (mkLang === "ja") add("", "Cách đọc: " + it.reading + " (" + it.romaji + ")");
+    add(first ? "gain" : "", first ? "+" + MK_REWARD + " xu" : "Bạn đã nhận xu cho từ này rồi.");
+    $("#mk-tab-" + mkLang).classList.add("done");
+    mkRefresh();
+    updateHud(first);
+    if (mkDone(it)) {
+      add("", "Bạn đã học đủ từ này. Cửa sổ sẽ tự đóng.");
+      setTimeout(() => {
+        if (mkCur === it && !mkSheet.hidden) closeMkQuiz();
+      }, 2200);
+    }
   });
 
   /* ---------- Hướng dẫn lần đầu: mũi tên chỉ vào nút và chữ ---------- */
