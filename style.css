@@ -3348,7 +3348,7 @@ details.entry[open] summary {
 .study.chalk {
   background:
     radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35) 85%),
-    url("assets/study/bang-den.jpg") center / cover no-repeat,
+    center / cover no-repeat,
     #1f3d2e;
   color: #eef2e4;
   font-family: "Patrick Hand", var(--head), sans-serif;
