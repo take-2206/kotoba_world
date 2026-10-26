@@ -1836,7 +1836,7 @@
     updateHud();
   });
 
-  /* ---------- Chợ Lộc Tài: mua rau củ, trái cây, đồ tươi sống và học từ vựng ---------- */
+  /* ---------- Chợ Lộc Tài: học từ vựng ở các quầy, giống các phòng ---------- */
   const MK_REWARD = 5, // xu cho mỗi từ học đúng lần đầu
     MK_RATIO = 1536 / 1024;
   const MK = {};
@@ -1846,27 +1846,32 @@
   const mkView = $("#market-view"),
     mkStage = $("#market-stage"),
     mkSpots = $("#market-spots"),
-    mkGrid = $("#market-grid"),
     mkSheet = $("#mk-sheet"),
+    mkReview = $("#mk-review"),
     mkForm = $("#mk-form"),
+    mkPrompt = $("#mk-prompt"),
     mkInput = $("#mk-answer"),
     mkFeedbackEl = $("#mk-feedback");
-  let mkCur = null,
+  let mkStall = "rau",
+    mkCur = null,
     mkLang = "en",
-    mkWrong = 0;
+    mkWrong = 0,
+    mkRevealTimer = null;
 
-  // đã học đủ các thứ tiếng đang học (theo Cài đặt)
+  const mkStallOf = (id) => MARKET_STALLS.find((s) => s.id === id) || MARKET_STALLS[0];
+  const mkItemsOf = (st) => st.spots.map((s) => MK[s[0]]);
+  // đã học đủ các thứ tiếng đang học (theo Cài đặt): không học lại nữa
   function mkDone(it) {
     const s = state.mkt.learned[it.id] || {};
     return langsOf().every((k) => !!s[k]);
   }
   function mkRefresh() {
     $("#market-coins").textContent = state.coins;
+    const items = mkItemsOf(mkStallOf(mkStall));
+    $("#market-learned").textContent =
+      items.filter((i) => mkDone(i)).length + "/" + items.length;
     mkSpots.querySelectorAll(".hotspot").forEach((b) => {
       b.classList.toggle("seen", mkDone(MK[b.dataset.id]));
-    });
-    mkGrid.querySelectorAll(".mk-card").forEach((c) => {
-      c.classList.toggle("done", mkDone(MK[c.dataset.id]));
     });
   }
   function marketLayout(center) {
@@ -1891,13 +1896,14 @@
       const it = MK[id];
       const b = document.createElement("button");
       b.type = "button";
-      b.className = "hotspot" + (mkDone(it) ? " seen" : "");
+      b.className = "hotspot";
       b.dataset.id = id;
-      b.setAttribute("aria-label", it.vi + ", " + it.price + " xu");
+      b.setAttribute("aria-label", it.vi);
       b.style.left = ((r[0] + r[2] / 2) / st.w) * 100 + "%";
       b.style.top = ((r[1] + r[3] / 2) / st.h) * 100 + "%";
       b.style.width = (r[2] / st.w) * 100 + "%";
       b.style.height = (r[3] / st.h) * 100 + "%";
+      b.classList.toggle("seen", mkDone(it));
       b.addEventListener("click", () => {
         b.classList.remove("tap");
         void b.offsetWidth;
@@ -1908,34 +1914,15 @@
     });
     marketLayout([0.42, 0.55]);
   }
-  function buildMkGrid(st) {
-    mkGrid.textContent = "";
-    st.grid.forEach((id) => {
-      const it = MK[id];
-      const b = mk("button", "mk-card" + (mkDone(it) ? " done" : ""));
-      b.type = "button";
-      b.dataset.id = id;
-      b.setAttribute("aria-label", it.vi + ", " + it.price + " xu");
-      b.append(
-        mk("span", "mk-emoji", it.icon || "🛒"),
-        mk("b", "", it.vi),
-        mk("small", "", it.price + " xu"),
-      );
-      b.addEventListener("click", () => openMkQuiz(it));
-      mkGrid.append(b);
-    });
-  }
   function mkSetStall(id) {
-    const st = MARKET_STALLS.find((s) => s.id === id) || MARKET_STALLS[0];
+    const st = mkStallOf(id);
+    mkStall = st.id;
     document
-      .querySelectorAll(".mk-tab")
+      .querySelectorAll(".mk-tab[data-stall]")
       .forEach((b) =>
         b.setAttribute("aria-selected", String(b.dataset.stall === st.id)),
       );
-    mkView.hidden = !!st.grid;
-    mkGrid.hidden = !st.grid;
-    if (st.grid) buildMkGrid(st);
-    else buildMkScene(st);
+    buildMkScene(st);
     mkRefresh();
   }
   function openMarket() {
@@ -1945,8 +1932,20 @@
     mkSetStall("rau");
   }
   document
-    .querySelectorAll(".mk-tab")
+    .querySelectorAll(".mk-tab[data-stall]")
     .forEach((b) => b.addEventListener("click", () => mkSetStall(b.dataset.stall)));
+  // Tìm món: hiện chấm vàng ở các món chưa học, giống nút “Tìm đồ vật” ở phòng
+  $("#market-find").addEventListener("click", () => {
+    mkStage.classList.add("reveal");
+    clearTimeout(mkRevealTimer);
+    mkRevealTimer = setTimeout(() => mkStage.classList.remove("reveal"), 3800);
+    const left = mkItemsOf(mkStallOf(mkStall)).filter((i) => !mkDone(i)).length;
+    toast(
+      left
+        ? "Chấm vàng là món chưa học. Còn " + left + " món."
+        : "Bạn đã học hết món ở quầy này!",
+    );
+  });
   $("#market-back").addEventListener("click", () => {
     closeMkQuiz();
     goRooms();
@@ -1954,7 +1953,7 @@
     updateHud();
   });
   window.addEventListener("resize", () => {
-    if (!screens.market.hidden && !mkView.hidden) marketLayout();
+    if (!screens.market.hidden) marketLayout();
   });
 
   /* Học từ: gõ tên món bằng tiếng Anh hoặc tiếng Nhật */
@@ -1988,31 +1987,73 @@
       t.setAttribute("aria-selected", String(k === l));
       t.classList.toggle("done", !!s[k]);
     });
-    const p = $("#mk-prompt");
-    p.textContent = "";
-    p.append(
+    mkPrompt.textContent = "";
+    mkPrompt.append(
       "Trong tiếng " + (l === "en" ? "Anh" : "Nhật") + ", “" + mkCur.vi + "” là gì?",
     );
     if (l === "ja") {
       const sm = document.createElement("small");
       sm.textContent = "Nhập bằng hiragana, katakana hoặc kanji.";
-      p.append(sm);
+      mkPrompt.append(sm);
     }
     mkInput.value = "";
     mkInput.lang = l === "ja" ? "ja" : "en";
     mkInput.placeholder = l === "ja" ? "Nhập từ tiếng Nhật…" : "Nhập từ tiếng Anh…";
     mkFb("", "");
   }
+  // thẻ từ vựng đã học xong: chỉ xem, không học lại (giống sổ tay của phòng)
+  function mkReviewCard(it) {
+    const box = mk("details", "entry");
+    box.open = true;
+    const sum = mk("summary", "");
+    sum.append(mk("span", "vi", it.vi), mk("span", "badge ok", "Đã học"));
+    box.append(sum);
+    if (langsOf().indexOf("en") >= 0) {
+      const en = mk("div", "block");
+      en.append(mk("span", "lang", "English ✓"));
+      const line = mk("div", "line");
+      line.append(mk("span", "word", it.en.join(", ")));
+      const b = sayBtn(it.en[0], "en");
+      if (b) line.append(b);
+      en.append(line);
+      box.append(en);
+    }
+    if (langsOf().indexOf("ja") >= 0) {
+      const ja = mk("div", "block");
+      ja.append(mk("span", "lang", "日本語 ✓"));
+      const line = mk("div", "line");
+      line.append(
+        mk("span", "word", it.ja[0]),
+        mk("span", "rd", " (" + it.reading + ", " + it.romaji + ")"),
+      );
+      const b = sayBtn(it.reading, "ja");
+      if (b) line.append(b);
+      ja.append(line);
+      box.append(ja);
+    }
+    box.append(mk("p", "note", it.note));
+    return box;
+  }
   function openMkQuiz(it) {
     mkCur = it;
     mkWrong = 0;
     $("#mk-quiz-title").textContent = it.vi;
-    $("#mk-tabs").hidden = state.mode !== "both";
-    $("#mk-tab-en").hidden = state.mode === "ja";
-    $("#mk-tab-ja").hidden = state.mode === "en";
-    mkSetLang(state.mode === "ja" ? "ja" : "en");
+    const done = mkDone(it);
+    mkReview.textContent = "";
+    mkReview.hidden = !done;
+    if (done) mkReview.append(mkReviewCard(it));
+    mkForm.hidden = done;
+    mkPrompt.hidden = done;
+    $("#mk-tabs").hidden = done || state.mode !== "both";
+    if (done) {
+      mkFb("", "");
+    } else {
+      $("#mk-tab-en").hidden = state.mode === "ja";
+      $("#mk-tab-ja").hidden = state.mode === "en";
+      mkSetLang(state.mode === "ja" ? "ja" : "en");
+    }
     mkSheet.hidden = false;
-    mkInput.focus({ preventScroll: true });
+    if (!done) mkInput.focus({ preventScroll: true });
   }
   function closeMkQuiz() {
     mkSheet.hidden = true;
@@ -2029,7 +2070,7 @@
   mkForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const it = mkCur;
-    if (!it) return;
+    if (!it || mkDone(it)) return;
     const n = norm(mkInput.value, mkLang);
     if (!n) return mkFb("no", "Hãy nhập một từ trước khi kiểm tra nhé.");
     if (mkLang === "ja" && !hasCJK(n)) return mkFb("no", "Hãy nhập bằng chữ Nhật.");
@@ -2067,7 +2108,7 @@
     mkRefresh();
     updateHud(first);
     if (mkDone(it)) {
-      add("", "Bạn đã học đủ từ này. Cửa sổ sẽ tự đóng.");
+      add("", "Bạn đã học xong món này. Cửa sổ sẽ tự đóng.");
       setTimeout(() => {
         if (mkCur === it && !mkSheet.hidden) closeMkQuiz();
       }, 2200);
