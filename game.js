@@ -1068,7 +1068,7 @@
   const MAP_SHOPS = [
     { id: "cho", name: "Chợ Lộc Tài", rect: [20, 120, 395, 450], go: () => openMarket() },
     { id: "toc", name: "Tiệm làm tóc", rect: [415, 120, 317, 445] },
-    { id: "nhau", name: "Quán nhậu", rect: [732, 115, 340, 450] },
+    { id: "nhau", name: "Trạm xá", rect: [732, 115, 340, 450] },
     { id: "anvat", name: "Quán ăn vặt", rect: [1075, 120, 335, 445] },
     { id: "mayva", name: "Tiệm may vá", rect: [1410, 120, 335, 445] },
   ];
