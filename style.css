@@ -3344,8 +3344,8 @@ details.entry[open] summary {
 .toast {
   z-index: 14; /* hiện cả khi đang mở bản đồ toàn màn hình */
 }
-/* ---------- Luyện N1: bảng đen, viết bằng phấn ---------- */
-.study {
+/* ---------- Luyện N1: bảng đen, chỉ cho phần gõ từ vựng (.chalk do study.js bật) ---------- */
+.study.chalk {
   background:
     radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35) 85%),
     url("assets/study/bang-den.jpg") center / cover no-repeat,
@@ -3354,7 +3354,7 @@ details.entry[open] summary {
   font-family: "Patrick Hand", var(--head), sans-serif;
   text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
 }
-.study::after {
+.study.chalk::after {
   /* máng đựng phấn ở chân bảng */
   content: "";
   position: fixed;
@@ -3366,52 +3366,44 @@ details.entry[open] summary {
   box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
   pointer-events: none;
 }
-.study .rooms-head h2,
-.study-h,
-.study-mean,
-.study-hero-title {
+.study.chalk .rooms-head h2,
+.study.chalk .study-h,
+.study.chalk .study-mean {
   font-family: "Patrick Hand", var(--head), sans-serif;
   color: #fbf6d2;
 }
-.study-h {
-  font-size: 26px;
-  font-weight: 400;
+.study.chalk .study-sub {
+  color: #f6e7a0;
 }
-.study .pill,
-.study .pill-btn {
+.study.chalk .pill,
+.study.chalk .pill-btn {
   background: transparent;
   color: #eef2e4;
   border: 2px dashed rgba(238, 242, 228, 0.6);
   box-shadow: none;
 }
-.study-card,
-.study-hero,
-.study-test,
-.study-done {
-  background: transparent !important;
+.study.chalk .study-card {
+  background: transparent;
   color: #eef2e4;
   border: 2px dashed rgba(238, 242, 228, 0.55);
   box-shadow: none;
 }
-.study-stat,
-.study-sub {
+.study.chalk .study-hint-txt {
   color: #f6e7a0;
 }
-.study-opt,
-.study-choice,
-.study-chip,
-.study-tab {
-  background: transparent;
-  color: #eef2e4;
-  border: 2px solid rgba(238, 242, 228, 0.6);
-  box-shadow: none;
-}
-.study-input,
-.study-field input {
+.study.chalk .study-input,
+.study.chalk .study-field input {
   background: transparent;
   color: #fbf6d2;
   border: 2px solid rgba(238, 242, 228, 0.6);
 }
-.study-input::placeholder {
+.study.chalk .study-input::placeholder {
   color: rgba(238, 242, 228, 0.5);
+}
+.study.chalk .study-opt,
+.study.chalk .study-choice {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+  box-shadow: none;
 }
