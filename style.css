@@ -389,7 +389,8 @@ button {
   color: #7a5a3a;
   font-size: 13px;
 }
-#answer {
+#answer,
+#mk-answer {
   width: 100%;
   min-height: 52px;
   padding: 0 14px;
@@ -402,7 +403,8 @@ button {
   -webkit-appearance: none;
   appearance: none;
 }
-#answer:focus {
+#answer:focus,
+#mk-answer:focus {
   outline: none;
   border-color: var(--leaf);
   box-shadow: 0 0 0 3px rgba(79, 127, 53, 0.25);
@@ -442,33 +444,40 @@ button {
   border-color: var(--bad);
   background: transparent;
 }
-#feedback:empty {
+#feedback:empty,
+#mk-feedback:empty {
   display: none;
 }
-#feedback {
+#feedback,
+#mk-feedback {
   margin-top: 14px;
   padding: 12px 14px;
   border-radius: 14px;
   line-height: 1.45;
   font-size: 16px;
 }
-#feedback.ok {
+#feedback.ok,
+#mk-feedback.ok {
   background: #e4f0cf;
   border: 2px solid var(--leaf);
 }
-#feedback.no {
+#feedback.no,
+#mk-feedback.no {
   background: #f6e0d2;
   border: 2px solid var(--bad);
 }
-#feedback p {
+#feedback p,
+#mk-feedback p {
   margin: 0 0 6px;
 }
-#feedback .big {
+#feedback .big,
+#mk-feedback .big {
   font-size: 26px;
   font-weight: 700;
   font-family: var(--head);
 }
-#feedback .gain {
+#feedback .gain,
+#mk-feedback .gain {
   font-weight: 700;
   color: var(--leaf-d);
 }
@@ -1118,11 +1127,13 @@ details.entry[open] summary {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-#shop {
+#shop,
+#market {
   overflow: hidden;
   background: #2b1a0e;
 }
-#shop-view {
+#shop-view,
+#market-view {
   position: absolute;
   inset: 0;
   display: flex;
@@ -1132,10 +1143,12 @@ details.entry[open] summary {
   scrollbar-width: none;
   overscroll-behavior: contain;
 }
-#shop-view::-webkit-scrollbar {
+#shop-view::-webkit-scrollbar,
+#market-view::-webkit-scrollbar {
   display: none;
 }
-#shop-stage {
+#shop-stage,
+#market-stage {
   position: relative;
   flex: none;
   margin: auto;
@@ -1151,7 +1164,8 @@ details.entry[open] summary {
   -webkit-user-drag: none;
   pointer-events: none;
 }
-#shop-spots {
+#shop-spots,
+#market-spots {
   position: absolute;
   inset: 0;
 }
@@ -1190,8 +1204,47 @@ details.entry[open] summary {
   opacity: 0.9;
   animation: pulse 1.4s ease-in-out infinite;
 }
-#shop-spots .hotspot {
+#shop-spots .hotspot,
+#market-spots .hotspot {
   border-radius: 14px;
+}
+
+/* ---------- Chợ Lộc Tài ---------- */
+.mk-wallet {
+  display: flex;
+  gap: 6px;
+}
+.mk-tabs {
+  flex-wrap: wrap;
+  position: absolute;
+  left: 50%;
+  bottom: calc(12px + var(--sab));
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+}
+.mk-tab {
+  padding: 9px 14px;
+  border: 2px solid var(--wood);
+  border-radius: 999px;
+  background: rgba(251, 243, 220, 0.96);
+  color: var(--wood-d);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(40, 24, 10, 0.4);
+}
+.mk-tab[aria-selected="true"] {
+  background: var(--leaf);
+  border-color: var(--leaf-d);
+  color: #fff;
+}
+.mk-find {
+  background: #f6e7a6;
 }
 
 /* Thẻ xác nhận mua ở giữa màn hình */
@@ -2990,14 +3043,36 @@ details.entry[open] summary {
   color: var(--wood-d);
 }
 .study-today-row {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 2px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding: 10px 12px 10px 14px;
   border-radius: 12px;
   background: var(--cream);
   color: var(--wood-d);
   border-left: 5px solid #d9c08a;
+}
+.study-today-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.study-today-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+.study-speak-mini {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(79, 127, 53, 0.15);
+  font-size: 16px;
+  cursor: pointer;
 }
 .study-today-row.ok {
   border-left-color: var(--leaf);
@@ -3006,16 +3081,13 @@ details.entry[open] summary {
   font-size: 16px;
 }
 .study-today-row span {
-  grid-column: 1;
   font-size: 14px;
   opacity: 0.85;
 }
 .study-today-row i {
-  grid-row: 1 / span 2;
-  grid-column: 2;
-  align-self: center;
   font-style: normal;
   font-weight: 800;
+  font-size: 18px;
   color: var(--leaf);
 }
 
@@ -3290,4 +3362,90 @@ details.entry[open] summary {
 }
 .toast {
   z-index: 14; /* hiện cả khi đang mở bản đồ toàn màn hình */
+}
+/* ---------- Luyện N1: bảng đen, chỉ cho phần gõ từ vựng (.chalk do study.js bật) ---------- */
+.study.chalk {
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(255, 255, 255, 0.04), rgba(0, 0, 0, 0.35) 85%),
+    center / cover no-repeat,
+    #1f3d2e;
+  color: #eef2e4;
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  text-shadow: 0 0 1px rgba(255, 255, 255, 0.25);
+}
+.study.chalk::after {
+  /* máng đựng phấn ở chân bảng */
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 12px;
+  background: linear-gradient(#b8a57e, #7d6a48);
+  box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+.study.chalk .rooms-head h2,
+.study.chalk .study-h,
+.study.chalk .study-mean {
+  font-family: "Patrick Hand", var(--head), sans-serif;
+  color: #fbf6d2;
+}
+.study.chalk .study-sub {
+  color: #f6e7a0;
+}
+.study.chalk .pill,
+.study.chalk .pill-btn {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.6);
+  box-shadow: none;
+}
+.study.chalk .study-card {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px dashed rgba(238, 242, 228, 0.55);
+  box-shadow: none;
+}
+.study.chalk .study-hint-txt {
+  color: #f6e7a0;
+}
+.study.chalk .study-input,
+.study.chalk .study-field input {
+  background: transparent;
+  color: #fbf6d2;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+}
+.study.chalk .study-input::placeholder {
+  color: rgba(238, 242, 228, 0.5);
+}
+.study.chalk .study-opt,
+.study.chalk .study-choice {
+  background: transparent;
+  color: #eef2e4;
+  border: 2px solid rgba(238, 242, 228, 0.6);
+  box-shadow: none;
+}
+
+/* Luyện N1 · gõ từ vựng: đẩy nội dung xuống giữa màn hình */
+.study.chalk .study-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
+}
+.study.chalk .study-body {
+  flex: 1;
+  justify-content: center;
+  margin-top: 0;
+}
+
+/* Nút “Tiếp” trong phần gõ từ vựng: gọn hơn, không kéo hết chiều ngang */
+.study.chalk .study-body > .primary.full {
+  flex: 0 0 auto;
+  align-self: center;
+  width: auto;
+  min-height: 44px;
+  padding: 0 28px;
+  font-size: 16px;
 }

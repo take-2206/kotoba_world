@@ -170,6 +170,24 @@
     return st.today.words.map((w) => byWord.get(w)).filter(Boolean);
   }
 
+  /* ---------- Phát âm tiếng Nhật (giọng đọc của trình duyệt) ---------- */
+  function speak(text) {
+    try {
+      if (!("speechSynthesis" in window) || !text) return;
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = "ja-JP";
+      u.rate = 0.9;
+      const voice = window.speechSynthesis
+        .getVoices()
+        .find((v) => v.lang && v.lang.toLowerCase().startsWith("ja"));
+      if (voice) u.voice = voice;
+      window.speechSynthesis.speak(u);
+    } catch (e) {
+      /* bỏ qua nếu trình duyệt không hỗ trợ */
+    }
+  }
+
   function startVocab() {
     return todayVocab();
   }
@@ -275,6 +293,7 @@
       testdone: renderTestDone,
     };
     views[view]();
+    screen.classList.toggle("chalk", view === "vocab"); // bảng đen chỉ cho phần gõ từ vựng
     renderTodayPanel();
   }
 
@@ -304,11 +323,18 @@
     words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
-      row.append(
+      const text = el("div", "study-today-text");
+      text.append(
         el("b", null, x.w + (x.r ? "（" + x.r + "）" : "")),
-        el("span", null, x.m),
-        el("i", null, done ? "✓" : "")
+        el("span", null, x.m)
       );
+      const side = el("div", "study-today-side");
+      const speakBtn = el("button", "study-speak-mini", "🔊");
+      speakBtn.type = "button";
+      speakBtn.setAttribute("aria-label", "Nghe " + x.w);
+      speakBtn.addEventListener("click", () => speak(x.r || x.w));
+      side.append(speakBtn, el("i", null, done ? "✓" : ""));
+      row.append(text, side);
       todayPanel.append(row);
     });
 
@@ -512,6 +538,7 @@
       if (!ok) {
         // Sai: hiện đáp án đúng, người học phải nhập lại
         if (attempts === 1) sess.total++;
+        speak(item.r || item.w);
         result.textContent = "Chưa đúng. Đáp án: " + ans + ". Hãy nhập lại từ đúng.";
         result.classList.remove("ok");
         result.classList.add("bad");
@@ -527,6 +554,7 @@
         st.learned[item.w] = true;
         save();
       }
+      speak(item.r || item.w);
       result.textContent = "Đúng! " + ans;
       result.classList.remove("bad");
       result.classList.add("ok");

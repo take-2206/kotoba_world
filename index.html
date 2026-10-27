@@ -17,7 +17,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Mali:wght@500;700&family=Patrick+Hand&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
@@ -234,6 +234,97 @@
             <button type="button" class="secondary" id="buy-cancel">Hủy</button>
             <button type="button" class="primary" id="buy-ok">Mua</button>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chợ Lộc Tài: học từ vựng ở các quầy hàng, giống các phòng -->
+    <section id="market" class="screen" hidden aria-labelledby="market-title">
+      <h2 id="market-title" class="sr-only">Chợ Lộc Tài</h2>
+      <div id="market-view">
+        <div id="market-stage">
+          <img
+            class="shop-bg"
+            id="market-bg"
+            src="assets/market/rau-cu-qua.png"
+            alt=""
+            draggable="false"
+          />
+          <div id="market-spots"></div>
+        </div>
+      </div>
+      <header class="shop-top">
+        <button type="button" class="pill pill-btn" id="market-back">
+          ‹ Bản đồ
+        </button>
+        <div class="mk-wallet">
+          <div class="pill">
+            <span class="lbl">Đã học </span><b id="market-learned">0/0</b>
+          </div>
+          <div class="pill">
+            <span class="coin"></span><b id="market-coins">0</b>&nbsp;xu
+          </div>
+        </div>
+      </header>
+      <nav class="mk-tabs" aria-label="Quầy hàng">
+        <button type="button" class="mk-tab" data-stall="rau" aria-selected="true">
+          Rau củ quả
+        </button>
+        <button type="button" class="mk-tab" data-stall="trai" aria-selected="false">
+          Trái cây
+        </button>
+        <button type="button" class="mk-tab" data-stall="tuoi" aria-selected="false">
+          Thịt cá
+        </button>
+        <button type="button" class="mk-tab" data-stall="gia" aria-selected="false">
+          Gia vị
+        </button>
+        <button type="button" class="mk-tab mk-find" id="market-find">
+          Tìm món
+        </button>
+      </nav>
+
+      <!-- Học từ vựng của món hàng -->
+      <div
+        id="mk-sheet"
+        class="sheet"
+        hidden
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="mk-quiz-title"
+      >
+        <div class="card">
+          <button class="close" id="mk-quiz-close" type="button" aria-label="Đóng">
+            ×
+          </button>
+          <h2 id="mk-quiz-title"></h2>
+          <div id="mk-review" hidden></div>
+          <div class="tabs" id="mk-tabs" role="tablist">
+            <button type="button" role="tab" data-lang="en" id="mk-tab-en">
+              English
+            </button>
+            <button type="button" role="tab" data-lang="ja" id="mk-tab-ja">
+              日本語
+            </button>
+          </div>
+          <p id="mk-prompt" class="prompt"></p>
+          <form id="mk-form" autocomplete="off">
+            <input
+              id="mk-answer"
+              type="text"
+              autocapitalize="off"
+              autocorrect="off"
+              autocomplete="off"
+              spellcheck="false"
+              enterkeyhint="done"
+              aria-label="Từ vựng"
+            />
+            <div class="row">
+              <button type="submit" class="primary">Kiểm tra</button>
+              <button type="button" class="secondary" id="mk-later">Để sau</button>
+            </div>
+          </form>
+          <div id="mk-feedback" role="status" aria-live="polite"></div>
         </div>
       </div>
     </section>
@@ -706,6 +797,7 @@
     </audio>
 
     <script src="vocab.js"></script>
+    <script src="market-data.js"></script>
     <script src="game.js"></script>
     <script src="study-data.js"></script>
     <script src="study-vocab.js"></script>
