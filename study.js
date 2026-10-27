@@ -294,7 +294,7 @@
       testdone: renderTestDone,
     };
     views[view]();
-    screen.classList.toggle("chalk", view === "vocab"); // bảng đen chỉ cho phần gõ từ vựng
+    screen.classList.toggle("chalk", view === "vocab" && sess.phase === "type"); // bảng đen chỉ cho phần gõ từ vựng
     renderTodayPanel();
   }
 
@@ -530,7 +530,15 @@
   }
 
   function start(section) {
-    sess = { section, items: planFor(section), i: 0, score: 0, total: 0 };
+    // Từ vựng: bước 1 chọn nghĩa (trắc nghiệm), bước 2 mới tới gõ từ
+    sess = {
+      section,
+      items: planFor(section),
+      i: 0,
+      score: 0,
+      total: 0,
+      phase: section === "vocab" ? "pick" : undefined,
+    };
     view = section;
     render();
   }
@@ -550,7 +558,55 @@
     autoTimer = null;
   }
 
+  /* Bước 1 của từ vựng: nhìn từ tiếng Nhật, chọn nghĩa đúng (trắc nghiệm) */
+  function renderVocabPick() {
+    const list = sess.items;
+    const item = list[sess.i];
+    body.append(
+      el("p", "study-sub", "Chọn nghĩa " + (sess.i + 1) + "/" + list.length),
+      progressBar(sess.i, list.length),
+      el("div", "study-card study-q", item.w + (item.r ? "（" + item.r + "）" : ""))
+    );
+
+    const wrong = shuffle(allVocab().filter((v) => v.w !== item.w && v.m !== item.m))
+      .slice(0, 3)
+      .map((v) => v.m);
+    const opts = shuffle([item.m].concat(wrong));
+    const box = el("div", "study-opts");
+    const note = el("p", "study-note");
+    note.hidden = true;
+    const nextBtn = el("button", "primary full", sess.i + 1 < list.length ? "Từ tiếp" : "Sang phần gõ từ");
+    nextBtn.type = "button";
+    nextBtn.hidden = true;
+
+    opts.forEach((o) => {
+      const b = el("button", "study-opt", o);
+      b.type = "button";
+      b.addEventListener("click", () => {
+        const ok = o === item.m;
+        box.querySelectorAll("button").forEach((x) => (x.disabled = true));
+        b.classList.add(ok ? "ok" : "bad");
+        if (!ok) {
+          [...box.querySelectorAll("button")]
+            .find((x) => x.textContent === item.m)
+            ?.classList.add("ok");
+        }
+        speak(item.r || item.w);
+        note.textContent = (ok ? "Đúng! " : "Chưa đúng. ") + item.w + (item.r ? "（" + item.r + "）" : "") + " = " + item.m;
+        note.hidden = false;
+        nextBtn.hidden = false;
+      });
+      box.append(b);
+    });
+    body.append(box, note, nextBtn);
+    nextBtn.addEventListener("click", () => next());
+  }
+
   function renderVocab() {
+    if (sess.phase === "pick") {
+      renderVocabPick();
+      return;
+    }
     const items = sess.items;
     const item = items[sess.i];
     let attempts = 0;
@@ -722,6 +778,11 @@
   function next() {
     stopAuto();
     sess.i++;
+    if (sess.i >= sess.items.length && sess.phase === "pick") {
+      // Hết 20 từ trắc nghiệm thì sang phần gõ từ, bắt đầu lại từ đầu
+      sess.phase = "type";
+      sess.i = 0;
+    }
     if (sess.i >= sess.items.length) {
       st.days[dateKey(new Date())] = true;
       save();
