@@ -1,71 +1,10 @@
 /* Dữ liệu luyện thi JLPT N1 (tiếng Nhật).
    Thêm từ / mẫu ngữ pháp / bài đọc mới vào các mảng bên dưới.
    - vocab:   không còn trong file này; từ vựng lấy từ study-vocab.js (xem .gitignore)
-   - grammar: { s: câu có ＿＿＿, opts: 4 lựa chọn, a: chỉ số đáp án đúng (bắt đầu từ 0), note: giải thích }
+   - grammar: không còn trong file này; câu ngữ pháp lấy từ grammar-data.js
    - reading: { title, text, qs: [{ q, opts, a }] } */
 window.N1_DATA = {
-  grammar: [
-    {
-      s: "彼の成功は、努力の結果＿＿＿。",
-      opts: ["にほかならない", "ばかりか", "かたわら", "次第"],
-      a: 0,
-      note: "～にほかならない: chính là, không gì khác ngoài.",
-    },
-    {
-      s: "困難＿＿＿、彼女は夢に向かって進み続けた。",
-      opts: ["をものともせず", "にたえず", "とあって", "かたわら"],
-      a: 0,
-      note: "～をものともせず: bất chấp, không coi trọng (khó khăn).",
-    },
-    {
-      s: "その映画は感動的で、見ている人は涙を流さ＿＿＿。",
-      opts: ["ずにはいられない", "にたえない", "がたい", "ばかりか"],
-      a: 0,
-      note: "～ずにはいられない: không thể không làm gì.",
-    },
-    {
-      s: "彼は英語＿＿＿、フランス語も話せる。",
-      opts: ["ばかりか", "かたわら", "とあって", "にたえず"],
-      a: 0,
-      note: "～ばかりか: không chỉ... mà còn...",
-    },
-    {
-      s: "会社員＿＿＿、週末は小説を書いている。",
-      opts: ["のかたわら", "をものともせず", "にたえず", "とあって"],
-      a: 0,
-      note: "～のかたわら: vừa... vừa... (làm việc song song).",
-    },
-    {
-      s: "あの事故の映像は、見るに＿＿＿ほど悲惨だった。",
-      opts: ["たえない", "ならない", "いたらない", "すぎない"],
-      a: 0,
-      note: "～にたえない: đáng... (không chịu nổi để nhìn, nghe...).",
-    },
-    {
-      s: "準備が整い＿＿＿、出発します。",
-      opts: ["次第", "ばかりに", "とあって", "ほかならず"],
-      a: 0,
-      note: "～次第: ngay khi... / tùy thuộc vào...",
-    },
-    {
-      s: "人気アイドルの来日＿＿＿、会場は大勢のファンで埋まった。",
-      opts: ["とあって", "ばかりか", "かたわら", "にたえず"],
-      a: 0,
-      note: "～とあって: vì là... nên (kết quả thường là một tình trạng đặc biệt).",
-    },
-    {
-      s: "大雨のため、試合の中止を＿＿＿。",
-      opts: ["余儀なくされた", "ものともせず", "次第だった", "ばかりだった"],
-      a: 0,
-      note: "～を余儀なくされる: buộc phải (làm điều không mong muốn).",
-    },
-    {
-      s: "この問題は理解し＿＿＿、もう一度説明してほしい。",
-      opts: ["がたい", "にたえない", "ばかりだ", "次第だ"],
-      a: 0,
-      note: "～がたい: khó... / khó mà có thể...",
-    },
-  ],
+  grammar: [], // câu ngữ pháp lấy từ grammar-data.js (N1_GRAMMAR_BOOK)
 
   reading: [
     {

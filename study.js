@@ -42,6 +42,7 @@
   st.hist = st.hist || {}; // ngày -> các từ đã được chọn học trong ngày đó
   st.tests = Array.isArray(st.tests) ? st.tests : []; // lịch sử bài test nhỏ
   st.testBlock = st.testBlock || 0; // đã làm test cho bao nhiêu đợt 7 ngày
+  st.starred = st.starred && typeof st.starred === "object" ? st.starred : {}; // từ đánh dấu ★ (chưa nhớ)
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -299,6 +300,20 @@
 
   /* ---------- Danh sách từ đã học hôm nay ---------- */
   let todayTab = "chart"; // chart | words
+  let wordsMode = "today"; // today | saved (danh sách từ đã đánh dấu ★)
+
+  function toggleStar(w) {
+    if (st.starred[w]) delete st.starred[w];
+    else st.starred[w] = true;
+    save();
+  }
+  function paintStar(btn, on, w) {
+    btn.textContent = on ? "★" : "☆";
+    btn.title = on ? "Bỏ đánh dấu" : "Đánh dấu từ chưa nhớ";
+    btn.setAttribute("aria-pressed", String(on));
+    btn.setAttribute("aria-label", (on ? "Bỏ lưu " : "Lưu ") + w);
+    btn.style.color = on ? "#f5b301" : "#a89868";
+  }
   function renderTodayPanel() {
     todayPanel.hidden = !todayOpen;
     body.hidden = todayOpen;
@@ -316,10 +331,44 @@
       return;
     }
 
-    const words = todayVocab();
+    const savedWords = () => allVocab().filter((x) => st.starred[x.w]);
+    const saved = wordsMode === "saved";
+    const words = saved ? savedWords() : todayVocab();
     const doneCount = words.filter((x) => st.learned[x.w]).length;
-    todayPanel.append(el("h3", "study-h", "Từ vựng hôm nay (thuộc " + doneCount + "/" + words.length + ")"));
-    if (!words.length) todayPanel.append(el("p", "study-sub", "Chưa có từ vựng nào trong kho."));
+
+    const switchBtn = el("button", "study-star-switch");
+    switchBtn.type = "button";
+    const paintSwitch = () => {
+      switchBtn.textContent = saved ? "← Từ vựng hôm nay" : "★ Từ đã lưu (" + savedWords().length + ")";
+    };
+    paintSwitch();
+    const sw = switchBtn.style;
+    sw.cssText =
+      "display:block;margin:0 0 10px auto;padding:6px 14px;border-radius:999px;cursor:pointer;" +
+      "font:inherit;font-size:14px;color:inherit;background:transparent;border:1.5px dashed currentColor";
+    switchBtn.addEventListener("click", () => {
+      wordsMode = saved ? "today" : "saved";
+      renderTodayPanel();
+    });
+    todayPanel.append(switchBtn);
+
+    todayPanel.append(
+      el(
+        "h3",
+        "study-h",
+        saved
+          ? "Từ đã lưu ★ (" + words.length + ")"
+          : "Từ vựng hôm nay (thuộc " + doneCount + "/" + words.length + ")"
+      )
+    );
+    if (!words.length)
+      todayPanel.append(
+        el(
+          "p",
+          "study-sub",
+          saved ? "Chưa lưu từ nào. Bấm ☆ cạnh từ chưa nhớ để lưu lại." : "Chưa có từ vựng nào trong kho."
+        )
+      );
     words.forEach((x) => {
       const done = !!st.learned[x.w];
       const row = el("div", "study-today-row " + (done ? "ok" : ""));
@@ -329,14 +378,33 @@
         el("span", null, x.m)
       );
       const side = el("div", "study-today-side");
+
+      const starBtn = el("button", "study-star-mini");
+      starBtn.type = "button";
+      starBtn.style.cssText =
+        "background:none;border:0;cursor:pointer;font-size:24px;line-height:1;padding:4px 6px;";
+      paintStar(starBtn, !!st.starred[x.w], x.w);
+      starBtn.addEventListener("click", () => {
+        toggleStar(x.w);
+        const on = !!st.starred[x.w];
+        if (saved && !on) {
+          renderTodayPanel(); // bỏ lưu trong danh sách đã lưu thì dòng biến mất
+          return;
+        }
+        paintStar(starBtn, on, x.w);
+        paintSwitch();
+      });
+
       const speakBtn = el("button", "study-speak-mini", "🔊");
       speakBtn.type = "button";
       speakBtn.setAttribute("aria-label", "Nghe " + x.w);
       speakBtn.addEventListener("click", () => speak(x.r || x.w));
-      side.append(speakBtn, el("i", null, done ? "✓" : ""));
+      side.append(starBtn, speakBtn, el("i", null, done ? "✓" : ""));
       row.append(text, side);
       todayPanel.append(row);
     });
+
+    if (saved) return; // danh sách đã lưu không kèm phần ngữ pháp
 
     const grammar = planFor("grammar");
     todayPanel.append(el("h3", "study-h", "Ngữ pháp (" + grammar.length + ")"));
