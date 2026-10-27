@@ -2993,15 +2993,36 @@ details.entry[open] summary {
   color: var(--butter);
 }
 
-/* Thanh trên: nút Hôm nay */
-.study-head-btn {
-  height: 40px;
-  padding: 0 16px;
+/* Thanh tab dưới: Từ vựng hôm nay · Phiếu bé ngoan */
+.study-tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 5;
+  width: min(100%, 620px);
+  margin: 0 auto;
+  box-sizing: border-box;
+  display: flex;
+  gap: 10px;
+  padding: 12px calc(16px + var(--sal)) calc(10px + var(--sab));
+  background: linear-gradient(180deg, rgba(30, 18, 8, 0) 0%, rgba(30, 18, 8, 0.92) 40%);
+}
+/* chừa chỗ cho thanh tab dưới để nội dung không bị che */
+.study-wrap {
+  padding-bottom: calc(96px + var(--sab));
+}
+.study-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 46px;
+  padding: 0 12px;
   font-size: 15px;
   white-space: nowrap;
   border-radius: 999px;
+  justify-content: center;
 }
-.study-head-btn.open {
+.study-tab.open {
   background: var(--gold);
   color: var(--wood-d);
 }
