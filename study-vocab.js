@@ -1019,7 +1019,7 @@ window.N1_VOCAB_BOOK = [
     { "w": "如何にも", "r": "いかにも", "m": "quả thật là, đúng là, quả nhiên" },
     { "w": "突如", "r": "とつじょ", "m": "đột ngột, bất ngờ, đột nhiên" },
     { "w": "一途に", "r": "いちずに", "m": "một lòng, hết lòng, toàn tâm toàn" },
-    { "w": "一挙に", "r": "いっきょに", "m": "một lần, một phát ( vd: Giải quyết mọi vấn đề trong một lần)" },
+    { "w": "一挙に", "r": "いっきょに", "m": "một lần, một phát(vd: Giải quyết mọi vấn đề trong một lần)" },
     { "w": "いささか", "m": "chút, một chút, đôi chút" },
     { "w": "不審", "r": "ふしん", "m": "đáng ngờ, đáng nghi" },
     { "w": "不審者", "r": "ふしんしゃ", "m": "kẻ khả nghi, kẻ gian" },
