@@ -298,6 +298,7 @@
     views[view]();
     screen.classList.toggle("chalk", view === "vocab" && sess.phase === "type"); // bảng đen chỉ cho phần gõ từ vựng
     mapBtn.classList.toggle("open", view === "map");
+    screen.classList.toggle("map-view", view === "map"); // bản đồ toàn màn hình, nền là đường
     renderTodayPanel();
   }
 

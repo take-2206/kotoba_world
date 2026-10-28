@@ -3009,6 +3009,20 @@ details.entry[open] summary {
     linear-gradient(180deg, rgba(30, 18, 8, 0.25), rgba(30, 18, 8, 0.25)),
     url("assets/study/road.jpg") center top / 100% auto repeat-y;
 }
+/* Bản đồ toàn màn hình: nền là đường, bản đồ tràn sát hai mép */
+.study.map-view {
+  background:
+    linear-gradient(180deg, rgba(30, 18, 8, 0.25), rgba(30, 18, 8, 0.25)),
+    url("assets/study/road.jpg") center top / 100% auto repeat-y;
+  background-color: #6b6b6b;
+}
+.study.map-view .study-map {
+  margin: 0 calc(-16px - var(--sal)) 0 calc(-16px - var(--sal));
+  width: auto;
+  border-radius: 0;
+  border: 0;
+  background: none;
+}
 .study-map-path {
   position: absolute;
   left: 0;
