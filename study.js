@@ -4,7 +4,7 @@
   if (!D) return;
 
   const KEY = "bepque.n1.v1";
-  const SIZE = { vocab: 20, grammar: 5 };
+  const SIZE = { vocab: 10, grammar: 5 };
 
   const $ = (s) => document.querySelector(s);
   const el = (tag, cls, txt) => {
@@ -154,7 +154,7 @@
   /* ---------- Từ vựng: mỗi ngày cố định 20 từ phải học ---------- */
   function ensureToday() {
     const k = dateKey(new Date());
-    if (st.today && st.today.date === k && st.today.fixed && st.today.words.length) return;
+    if (st.today && st.today.date === k && st.today.fixed && st.today.words.length === SIZE.vocab) return;
     const all = allVocab();
     const fresh = shuffle(all.filter((v) => !st.learned[v.w]));
     const rest = shuffle(all.filter((v) => st.learned[v.w]));
@@ -1103,27 +1103,36 @@
     const card = el("section", "study-today");
     card.append(el("h3", "study-h", "Cài đặt"));
 
-    const row = el("label", "study-setting");
-    const sw = el("input");
-    sw.type = "checkbox";
-    sw.checked = st.settings.sound !== false;
-    sw.addEventListener("change", () => {
-      st.settings.sound = sw.checked;
-      save();
-    });
-    row.append(el("span", null, "Phát âm tiếng Nhật"), sw);
+    /* Công tắc bật/tắt kiểu iOS */
+    const switchEl = (on, onChange) => {
+      const lab = el("label", "study-switch");
+      const input = el("input");
+      input.type = "checkbox";
+      input.checked = on;
+      input.addEventListener("change", () => onChange(input.checked));
+      lab.append(input, el("span", "study-switch-track"));
+      return lab;
+    };
 
-    const musicRow = el("label", "study-setting");
-    const musicSw = el("input");
-    musicSw.type = "checkbox";
-    musicSw.checked = st.settings.music !== false;
-    musicSw.addEventListener("change", () => {
-      st.settings.music = musicSw.checked;
-      save();
-      if (musicSw.checked) playStudyMusic();
-      else stopStudyMusic();
-    });
-    musicRow.append(el("span", null, "Nhạc nền"), musicSw);
+    const row = el("div", "study-setting");
+    row.append(
+      el("span", null, "Phát âm tiếng Nhật"),
+      switchEl(st.settings.sound !== false, (on) => {
+        st.settings.sound = on;
+        save();
+      })
+    );
+
+    const musicRow = el("div", "study-setting");
+    musicRow.append(
+      el("span", null, "Nhạc nền"),
+      switchEl(st.settings.music !== false, (on) => {
+        st.settings.music = on;
+        save();
+        if (on) playStudyMusic();
+        else stopStudyMusic();
+      })
+    );
 
     const reset = el("button", "secondary full", "Xóa toàn bộ tiến độ học");
     reset.type = "button";

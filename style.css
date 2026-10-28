@@ -3167,10 +3167,53 @@ details.entry[open] summary {
   font-size: 16px;
   color: var(--cream);
 }
-.study-setting input {
-  width: 22px;
-  height: 22px;
-  accent-color: var(--gold);
+/* Công tắc bật/tắt kiểu iOS: nút tròn sáng trượt trên thanh tối */
+.study-switch {
+  position: relative;
+  flex: 0 0 auto;
+  width: 51px;
+  height: 31px;
+}
+.study-switch input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+.study-switch-track {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(58, 48, 38, 0.75);
+  border: 1px solid rgba(255, 245, 220, 0.25);
+  transition: background 0.2s;
+}
+.study-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  background: #fff5dc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s;
+}
+.study-switch input:checked + .study-switch-track {
+  background: var(--gold);
+  border-color: var(--gold);
+}
+.study-switch input:checked + .study-switch-track::after {
+  transform: translateX(20px);
+}
+.study-switch input:focus-visible + .study-switch-track {
+  outline: 2px solid var(--cream);
+  outline-offset: 2px;
 }
 
 /* Bảng Hôm nay */
