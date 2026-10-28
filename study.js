@@ -266,8 +266,9 @@
   chartBtn.type = "button";
   chartBtn.textContent = "Phiếu bé ngoan";
   todayBtn.after(chartBtn);
+  const mapBtn = $("#study-map-btn"); // nút "Bản đồ" trên thanh tab dưới
   const todayPanel = $("#study-today-panel");
-  let view = "home"; // home | vocab | grammar | reading | done
+  let view = "home"; // home | vocab | grammar | reading | done | map
   let addOpen = false;
   let todayOpen = false;
   let flash = "";
@@ -292,9 +293,11 @@
       done: renderDone,
       test: renderTest,
       testdone: renderTestDone,
+      map: renderMap,
     };
     views[view]();
     screen.classList.toggle("chalk", view === "vocab" && sess.phase === "type"); // bảng đen chỉ cho phần gõ từ vựng
+    mapBtn.classList.toggle("open", view === "map");
     renderTodayPanel();
   }
 
@@ -912,6 +915,146 @@
     body.append(back);
   }
 
+  /* ---------- Bản đồ chuỗi ngày ----------
+   * Mỗi buổi học là một điểm trên đường zích zắc, đi từ dưới lên.
+   * Cứ 7 buổi là một điểm bài test. Bấm điểm đã học để xem lại từ vựng của buổi đó.
+   */
+  const MAP_GAP = 92; // khoảng cách dọc giữa hai điểm (px)
+  const MAP_X = [50, 80, 50, 20]; // vị trí ngang (%) lặp lại theo đường zích zắc
+  const MAP_PAD = 48; // chừa chỗ trên/dưới cho đường đi
+  let mapPick = null; // chỉ số buổi đang xem từ vựng
+  let mapMsg = ""; // thông báo khi bấm điểm chưa mở
+
+  function renderMap() {
+    const days = studyDays();
+    const studied = days.length;
+    const doneToday = !!st.days[dateKey(new Date())];
+    const total = Math.max(TEST.days, Math.ceil((studied + 1) / TEST.days) * TEST.days);
+    const isTest = (n) => n % TEST.days === 0;
+
+    // trạng thái của điểm thứ n (tính từ 1)
+    const statusOf = (n) => {
+      if (n <= studied) {
+        if (!isTest(n)) return "done";
+        return st.testBlock >= n / TEST.days ? "done" : "ready"; // bài test đã làm hay đang chờ
+      }
+      if (n === studied + 1 && !doneToday) return "current";
+      return "locked";
+    };
+
+    const H = MAP_PAD * 2 + (total - 1) * MAP_GAP;
+    const yOf = (n) => H - MAP_PAD - (n - 1) * MAP_GAP; // điểm 1 ở dưới cùng
+    const xOf = (n) => MAP_X[(n - 1) % MAP_X.length];
+
+    const box = el("section", "study-map-wrap");
+    const remain = TEST.days - (studied % TEST.days);
+    const sub =
+      studied % TEST.days === 0 && studied > 0 && testReady()
+        ? "Bài test đang chờ bạn!"
+        : "Đã học " + studied + " buổi · còn " + remain + " buổi nữa là có bài test";
+    box.append(el("h3", "study-h", "Bản đồ chuỗi ngày"), el("p", "study-sub", sub));
+
+    const map = el("div", "study-map");
+    map.style.height = H + "px";
+
+    // đường đi nối các điểm
+    const NS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("class", "study-map-path");
+    svg.setAttribute("viewBox", "0 0 100 " + H);
+    svg.setAttribute("preserveAspectRatio", "none");
+    const path = document.createElementNS(NS, "path");
+    let d = "";
+    for (let n = 1; n <= total; n++) {
+      const x = xOf(n);
+      const y = yOf(n);
+      if (n === 1) d += "M " + x + " " + y;
+      else {
+        const ym = (yOf(n - 1) + y) / 2;
+        d += " C " + xOf(n - 1) + " " + ym + " " + x + " " + ym + " " + x + " " + y;
+      }
+    }
+    path.setAttribute("d", d);
+    path.setAttribute("vector-effect", "non-scaling-stroke");
+    svg.append(path);
+    map.append(svg);
+
+    // các điểm
+    let curNode = null;
+    for (let n = 1; n <= total; n++) {
+      const status = statusOf(n);
+      const test = isTest(n);
+      const b = el("button", "map-node " + status + (test ? " test" : ""), test ? "★" : String(n));
+      b.type = "button";
+      b.style.left = xOf(n) + "%";
+      b.style.top = yOf(n) + "px";
+      b.setAttribute(
+        "aria-label",
+        (test ? "Bài test sau buổi " + (n - 1) : "Buổi " + n) +
+          (status === "done" ? ", đã học" : status === "locked" ? ", chưa mở" : "")
+      );
+      b.addEventListener("click", () => onMapNode(n, status, test));
+      if (status === "current") curNode = b;
+      map.append(b);
+    }
+    box.append(map);
+
+    if (mapMsg) box.append(el("p", "study-sub study-map-msg", mapMsg));
+
+    // từ vựng của buổi đã chọn
+    if (mapPick !== null && days[mapPick]) {
+      const date = days[mapPick];
+      const byWord = new Map(allVocab().map((v) => [v.w, v]));
+      const words = (st.hist[date] || []).map((w) => byWord.get(w)).filter(Boolean);
+      const [y, m, dd] = date.split("-");
+      const panel = el("div", "study-today study-map-detail");
+      panel.append(
+        el("h3", "study-h", "Buổi " + (mapPick + 1) + " · " + dd + "/" + m + "/" + y + " (" + words.length + " từ)")
+      );
+      if (!words.length) panel.append(el("p", "study-sub", "Không có dữ liệu từ vựng của buổi này."));
+      words.forEach((x) => {
+        const row = el("div", "study-today-row" + (st.learned[x.w] ? " ok" : ""));
+        const text = el("div", "study-today-text");
+        text.append(el("b", null, x.w + (x.r ? "（" + x.r + "）" : "")), el("span", null, x.m));
+        const side = el("div", "study-today-side");
+        const speakBtn = el("button", "study-speak-mini", "🔊");
+        speakBtn.type = "button";
+        speakBtn.setAttribute("aria-label", "Nghe " + x.w);
+        speakBtn.addEventListener("click", () => speak(x.r || x.w));
+        side.append(speakBtn, el("i", null, st.learned[x.w] ? "✓" : ""));
+        row.append(text, side);
+        panel.append(row);
+      });
+      box.append(panel);
+    }
+
+    body.append(box);
+    if (curNode) setTimeout(() => curNode.scrollIntoView({ block: "center", behavior: "smooth" }), 0);
+  }
+
+  function onMapNode(n, status, test) {
+    mapMsg = "";
+    if (status === "done") {
+      if (test) {
+        mapMsg = "Bạn đã làm bài test này rồi.";
+        mapPick = null;
+      } else mapPick = n - 1;
+    } else if (status === "current") {
+      mapPick = null;
+      start("vocab"); // buổi hôm nay: học luôn
+      return;
+    } else if (status === "ready") {
+      startTest();
+      return;
+    } else {
+      mapPick = null;
+      mapMsg = test
+        ? "Học đủ " + (n - 1) + " buổi để mở bài test này nhé."
+        : "Hoàn thành các buổi trước để mở buổi " + n + ".";
+    }
+    render();
+  }
+
   /* ---------- Nhân vật chào khi bấm "Đi học thôi nào!" ---------- */
   const welcome = $("#study-welcome");
   const welcomeOk = $("#study-welcome-ok");
@@ -986,4 +1129,11 @@
   }
   todayBtn.addEventListener("click", () => toggleToday("words"));
   chartBtn.addEventListener("click", () => toggleToday("chart"));
+  mapBtn.addEventListener("click", () => {
+    todayOpen = false;
+    mapPick = null;
+    mapMsg = "";
+    view = "map";
+    render();
+  });
 })();
