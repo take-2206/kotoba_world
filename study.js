@@ -296,10 +296,27 @@
   let flash = "";
   let sess = null;
 
+  /* ---------- Nhạc nền của Luyện N1 (dùng chung thẻ #bgm có sẵn) ---------- */
+  let studyMusicOn = false; // N1 là bên đang phát nhạc
+  function playStudyMusic() {
+    const bgm = $("#bgm");
+    if (!bgm || (st.settings && st.settings.music === false)) return;
+    bgm.volume = 0.35;
+    const p = bgm.play();
+    if (p && p.catch) p.catch(() => {}); // trình duyệt chặn thì bỏ qua
+    studyMusicOn = true;
+  }
+  function stopStudyMusic() {
+    const bgm = $("#bgm");
+    if (bgm && studyMusicOn) bgm.pause();
+    studyMusicOn = false;
+  }
+
   function showStudy(on) {
     if (!on) {
       stopAuto();
       welcome.hidden = true;
+      stopStudyMusic();
     }
     screen.hidden = !on;
     $("#start").hidden = on;
@@ -1096,6 +1113,18 @@
     });
     row.append(el("span", null, "Phát âm tiếng Nhật"), sw);
 
+    const musicRow = el("label", "study-setting");
+    const musicSw = el("input");
+    musicSw.type = "checkbox";
+    musicSw.checked = st.settings.music !== false;
+    musicSw.addEventListener("change", () => {
+      st.settings.music = musicSw.checked;
+      save();
+      if (musicSw.checked) playStudyMusic();
+      else stopStudyMusic();
+    });
+    musicRow.append(el("span", null, "Nhạc nền"), musicSw);
+
     const reset = el("button", "secondary full", "Xóa toàn bộ tiến độ học");
     reset.type = "button";
     reset.addEventListener("click", () => {
@@ -1111,7 +1140,7 @@
       render();
     });
 
-    card.append(row, reset);
+    card.append(row, musicRow, reset);
     body.append(card);
   }
 
@@ -1164,6 +1193,7 @@
   /* ---------- Gắn sự kiện ---------- */
   $("#btn-study").addEventListener("click", () => {
     showStudy(true);
+    playStudyMusic(); // bấm mở Luyện N1 là một lần chạm nên trình duyệt cho phép phát
     view = "home";
     render();
     showStudyWelcome();
