@@ -232,7 +232,8 @@
         return Object.assign({}, q, { kind: kinds[(i + d) % kinds.length] });
       });
     }
-    return D.reading.length ? [D.reading[d % D.reading.length]] : [];
+    const rb = Array.isArray(window.N1_READING_BOOK) && window.N1_READING_BOOK.length ? window.N1_READING_BOOK : D.reading;
+    return rb.length ? [rb[d % rb.length]] : [];
   }
 
   function streak() {
@@ -849,11 +850,22 @@
       const correct = q.opts[q.a];
       body.append(el("p", "study-q-text", q.q));
       const box = el("div", "study-opts");
+      const why = el("div", "study-note");
+      why.hidden = true;
+      body.append(why); // giải thích + từ vựng hiện sau khi chọn
       shuffle(q.opts).forEach((o) => {
         const b = el("button", "study-opt", o);
         b.type = "button";
         b.addEventListener("click", () => {
           if (box.dataset.done) return;
+          if (q.reason || q.vocab) {
+            why.textContent = "";
+            if (q.reason) why.append(el("p", null, "Giải thích: " + q.reason));
+            (q.vocab || []).forEach((v) =>
+              why.append(el("p", null, "・" + v.w + "（" + v.r + "）: " + v.m))
+            );
+            why.hidden = false;
+          }
           box.dataset.done = "1";
           answered++;
           sess.total++;
