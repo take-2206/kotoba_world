@@ -195,12 +195,42 @@
   }
 
   /* ---------- Bài học hôm nay theo từng mục ---------- */
+  /* ---------- Ngữ pháp: 3 dạng bài ----------
+   * fill    : điền chỗ trống (có sẵn)
+   * meaning : cho mẫu (vd ～あっての) -> chọn nghĩa tiếng Việt
+   * pattern : cho nghĩa tiếng Việt -> chọn mẫu đúng
+   */
+  const GRAM_KINDS = ["fill", "meaning", "pattern"];
+  const splitNote = (note) => {
+    const i = (note || "").indexOf("：");
+    if (i < 0) return null;
+    return { pat: note.slice(0, i).trim(), mean: note.slice(i + 1).trim() };
+  };
+  const hasPattern = (q) => !!splitNote(q.note);
+  let patternCache = null;
+  function grammarPatterns() {
+    if (patternCache && patternCache.src === allGrammar()) return patternCache.list;
+    const seen = new Map();
+    allGrammar().forEach((q) => {
+      const p = splitNote(q.note);
+      if (p && p.pat && !seen.has(p.pat)) seen.set(p.pat, p);
+    });
+    patternCache = { src: allGrammar(), list: Array.from(seen.values()) };
+    return patternCache.list;
+  }
+
   function planFor(section) {
     const d = dayNum();
     if (section === "vocab") return startVocab();
     if (section === "grammar") {
       const g = allGrammar();
-      return pick(g, SIZE.grammar, (d * SIZE.grammar) % Math.max(1, g.length));
+      const picked = pick(g, SIZE.grammar, (d * SIZE.grammar) % Math.max(1, g.length));
+      const pool = grammarPatterns();
+      return picked.map((q, i) => {
+        // luân phiên 3 dạng; câu không có mẫu/nghĩa thì giữ dạng điền chỗ trống
+        const kinds = pool.length >= 4 && hasPattern(q) ? GRAM_KINDS : ["fill"];
+        return Object.assign({}, q, { kind: kinds[(i + d) % kinds.length] });
+      });
     }
     return D.reading.length ? [D.reading[d % D.reading.length]] : [];
   }
@@ -743,12 +773,36 @@
   function renderGrammar() {
     const list = sess.items;
     const q = list[sess.i];
+    const kind = q.kind || "fill";
+    const sp = splitNote(q.note);
+    let prompt, correct, options, label;
+
+    if (kind === "meaning" && sp) {
+      // Cho mẫu -> chọn nghĩa đúng
+      label = "Chọn nghĩa của mẫu";
+      prompt = sp.pat;
+      correct = sp.mean;
+      const others = grammarPatterns().filter((p) => p.pat !== sp.pat).map((p) => p.mean);
+      options = shuffle([correct].concat(shuffle(others).filter((m) => m !== correct).slice(0, 3)));
+    } else if (kind === "pattern" && sp) {
+      // Cho nghĩa -> chọn mẫu đúng
+      label = "Chọn mẫu ngữ pháp đúng với nghĩa";
+      prompt = sp.mean;
+      correct = sp.pat;
+      const others = grammarPatterns().filter((p) => p.pat !== sp.pat).map((p) => p.pat);
+      options = shuffle([correct].concat(shuffle(others).slice(0, 3)));
+    } else {
+      label = null;
+      prompt = q.s;
+      correct = q.opts[q.a];
+      options = shuffle(q.opts);
+    }
+
     body.append(
-      el("p", "study-sub", "Ngữ pháp " + (sess.i + 1) + "/" + list.length),
+      el("p", "study-sub", "Ngữ pháp " + (sess.i + 1) + "/" + list.length + (label ? " · " + label : "")),
       progressBar(sess.i, list.length),
-      el("div", "study-card study-q", q.s)
+      el("div", "study-card study-q", prompt)
     );
-    const correct = q.opts[q.a];
     const box = el("div", "study-opts");
     const note = el("p", "study-note");
     note.hidden = true;
@@ -756,7 +810,7 @@
     nextBtn.type = "button";
     nextBtn.hidden = true;
 
-    shuffle(q.opts).forEach((o) => {
+    options.forEach((o) => {
       const b = el("button", "study-opt", o);
       b.type = "button";
       b.addEventListener("click", () => {
@@ -770,7 +824,7 @@
             .find((x) => x.textContent === correct)
             ?.classList.add("ok");
         }
-        note.textContent = (ok ? "Đúng. " : "Chưa đúng, đáp án là " + correct + ". ") + q.note;
+        note.textContent = (ok ? "Đúng. " : "Chưa đúng, đáp án là " + correct + ". ") + (q.note || "");
         note.hidden = false;
         nextBtn.hidden = false;
       });
