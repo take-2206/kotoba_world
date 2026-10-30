@@ -3659,3 +3659,27 @@ details.entry[open] summary {
   padding: 0 28px;
   font-size: 16px;
 }
+
+/* Hộp chọn ngôn ngữ khi bấm "Đi học thôi nào!" */
+.lang-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(40, 24, 10, 0.55);
+}
+.lang-overlay[hidden] {
+  display: none;
+}
+.lang-card h3 {
+  margin: 4px 0 14px;
+  font-family: var(--head);
+}
+.lang-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}

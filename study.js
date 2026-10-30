@@ -1200,13 +1200,27 @@
   });
 
   /* ---------- Gắn sự kiện ---------- */
-  $("#btn-study").addEventListener("click", () => {
+  function openN1() {
     showStudy(true);
     playStudyMusic(); // bấm mở Luyện N1 là một lần chạm nên trình duyệt cho phép phát
     view = "home";
     render();
     showStudyWelcome();
+  }
+  const langPick = $("#lang-pick");
+  $("#btn-study").addEventListener("click", () => {
+    if (langPick) langPick.hidden = false; // chọn tiếng Anh (TOEIC) hay tiếng Nhật (N1)
+    else openN1();
   });
+  if (langPick) {
+    $("#lang-n1").addEventListener("click", () => {
+      langPick.hidden = true;
+      openN1();
+    });
+    $("#lang-cancel").addEventListener("click", () => {
+      langPick.hidden = true;
+    });
+  }
   $("#study-back").addEventListener("click", () => {
     if (view !== "home") {
       // Đang luyện (từ vựng, ngữ pháp, bài đọc, test, kết quả) thì quay về trang luyện N1

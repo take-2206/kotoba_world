@@ -125,6 +125,49 @@
       </div>
     </section>
 
+    <!-- Chọn học tiếng Anh (TOEIC) hay tiếng Nhật (N1) -->
+    <div
+      id="lang-pick"
+      class="lang-overlay"
+      hidden
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lang-title"
+    >
+      <div class="buy-card lang-card">
+        <h3 id="lang-title">Hôm nay bạn muốn học gì?</h3>
+        <div class="lang-actions">
+          <button type="button" class="primary full" id="lang-en">
+            Tiếng Anh · TOEIC
+          </button>
+          <button type="button" class="primary full" id="lang-n1">
+            Tiếng Nhật · N1
+          </button>
+          <button type="button" class="secondary full" id="lang-cancel">
+            Để sau
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Luyện TOEIC -->
+    <section
+      id="toeic"
+      class="screen study"
+      hidden
+      aria-labelledby="toeic-title"
+    >
+      <div class="study-wrap">
+        <header class="rooms-head">
+          <button type="button" class="pill pill-btn" id="toeic-back">
+            ‹ Trang chủ
+          </button>
+          <h2 id="toeic-title">Luyện TOEIC</h2>
+        </header>
+        <div id="toeic-body" class="study-body"></div>
+      </div>
+    </section>
+
     <!-- Luyện thi JLPT N1 -->
     <section
       id="study"
@@ -240,7 +283,7 @@
       >
         <div class="buy-card">
           <div class="buy-pic">
-            <img id="buy-img" src="buy" alt="" draggable="false" />
+            <img id="buy-img" alt="" draggable="false" />
           </div>
           <h3 id="buy-name"></h3>
           <p class="buy-price">
@@ -818,6 +861,8 @@
     <script src="game.js"></script>
     <script src="study-data.js"></script>
     <script src="study-vocab.js"></script>
-    <script src="study.js?v=map-fullscreen"></script>
+    <script src="study.js?v=lang-pick"></script>
+    <script src="toeic-data.js"></script>
+    <script src="toeic.js"></script>
   </body>
 </html>
