@@ -4,7 +4,7 @@
   if (!D) return;
 
   const KEY = "bepque.n1.v1";
-  const SIZE = { vocab: 10, grammar: 5 };
+  const SIZE = { vocab: 10, grammar: 15 };
 
   const $ = (s) => document.querySelector(s);
   const el = (tag, cls, txt) => {
@@ -525,7 +525,7 @@
     const list = el("div", "study-choices");
     [
       ["vocab", "Từ vựng", SIZE.vocab + " từ, gõ từ tiếng Nhật theo nghĩa"],
-      ["grammar", "Ngữ pháp", SIZE.grammar + " câu điền chỗ trống"],
+      ["grammar", "Ngữ pháp", SIZE.grammar + " câu ngữ pháp (điền chỗ trống, chọn mẫu)"],
       ["reading", "Bài đọc", "1 bài kèm câu hỏi"],
     ].forEach(([key, title, desc]) => {
       const b = el("button", "study-choice");
