@@ -3301,41 +3301,127 @@ details.entry[open] summary {
   color: var(--leaf);
 }
 
-/* Phiếu bé ngoan */
-.study-chart {
+/* Sổ stamp bé ngoan (kích thước chữ theo bề rộng sổ nhờ container query) */
+.study-book {
   position: relative;
   width: 100%;
-  aspect-ratio: 1536 / 1024;
+  max-width: 440px;
+  margin: 0 auto;
+  aspect-ratio: 900 / 1602;
+  container-type: inline-size;
+  user-select: none;
+  -webkit-user-select: none;
+  color: #8a5a1f;
 }
-.study-chart-img {
-  display: block;
+.study-book-bg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: 12px;
+  display: block;
+  pointer-events: none;
 }
-.study-stamp {
+.study-book .bk {
   position: absolute;
-  width: 9%;
-  height: 12%;
-  transform: translate(-50%, -50%);
+  margin: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  font-size: 20px;
-  font-weight: 800;
-  color: #3b8a2e;
+}
+.bk-portrait {
+  overflow: hidden;
+  border-radius: 4.4cqw;
+  align-items: flex-end !important;
+}
+.bk-portrait img {
+  width: 100%;
+  height: 100%;
+  padding: 3% 4% 0;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: drop-shadow(0 1cqw 1.2cqw rgba(150, 95, 20, 0.28));
   pointer-events: none;
 }
-.study-stamp.on {
-  width: 11.5%;
-  height: 17%;
-  font-size: 0;
-  border-radius: 0;
-  background: url("assets/study/stamp-be-ngoan.") center / contain no-repeat;
-  transform: translate(-50%, -50%) rotate(var(--rot, 0deg));
-  mix-blend-mode: multiply; /* mực đỏ thấm vào giấy, không che mất nền phiếu */
+.bk-name {
+  font-size: min(5vw, 22px);
+  font-size: 5.4cqw;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 3cqw;
+  text-shadow: 0 0.2cqw 0 rgba(255, 255, 255, 0.7);
+}
+.bk-count {
+  font-size: min(3.4vw, 15px);
+  font-size: 3.3cqw;
+  font-weight: 700;
+  white-space: nowrap;
+  text-shadow: 0 0.2cqw 0 rgba(255, 255, 255, 0.7);
+}
+.bk-tab {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: min(3.8vw, 17px);
+  font-size: 3.9cqw;
+  font-weight: 800;
+  color: rgba(120, 70, 10, 0.62);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bk-tab.on {
+  color: #8a5a1f;
+  background: linear-gradient(#fff7e6, #fdecd0);
+  box-shadow:
+    inset 0 0 0 0.35cqw #fff9ee,
+    0 0.5cqw 0.9cqw rgba(150, 90, 10, 0.35);
+}
+.bk-slot {
+  border-radius: 4.5cqw;
+}
+.bk-empty {
+  font-size: 4cqw;
+  font-weight: 800;
+  color: rgba(160, 105, 35, 0.22);
+  pointer-events: none;
+}
+.bk-stamp {
+  width: 88%;
+  height: 88%;
+  object-fit: contain;
+  transform: rotate(var(--rot, 0deg));
+  mix-blend-mode: multiply; /* mực đỏ thấm vào ô, không che mất nền */
+  pointer-events: none;
+}
+.bk-stamp.new {
+  animation: stampdown 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) 0.1s backwards;
+}
+.bk-check {
+  position: absolute;
+  font-size: 9cqw;
+  color: #d6336c;
+}
+.bk-date {
+  position: absolute;
+  right: 6%;
+  bottom: 5%;
+  padding: 0.2em 0.6em;
+  border-radius: 999px;
+  background: rgba(255, 249, 238, 0.85);
+  font-size: 2.5cqw;
+  font-weight: 800;
+  color: #8a5a1f;
+  line-height: 1.2;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bk-stamp.new {
+    animation: none;
+  }
 }
 
 /* Con dấu bé ngoan lớn trên thẻ kết quả */

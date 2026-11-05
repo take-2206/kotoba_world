@@ -4,7 +4,7 @@
   if (!D) return;
 
   const KEY = "bepque.n1.v1";
-  const SIZE = { vocab: 10, grammar: 5 };
+  const SIZE = { vocab: 10, grammar: 15 };
 
   const $ = (s) => document.querySelector(s);
   const el = (tag, cls, txt) => {
@@ -92,61 +92,110 @@
     return grammarCache.list;
   }
 
-  /* ---------- Phiếu bé ngoan: mỗi ngày học xong là một dấu ✓ ---------- */
-  const CHART = {
-    w: 1536,
-    h: 1024,
-    cols: [220, 445, 665, 882, 1100, 1320],
-    rows: [362, 503, 640, 780, 922],
+  /* ---------- Sổ stamp bé ngoan: nhân vật + tên ở trên, stamp xếp theo thứ tự nhận ở dưới ---------- */
+  // Toạ độ (px) trên ảnh assets/study/stamp-book.webp (900 × 1602), đổi ra % khi vẽ
+  const BOOK = {
+    w: 900,
+    h: 1602,
+    portrait: [77, 69, 346, 405], // khung nhân vật: x, y, rộng, cao
+    name: [465, 204, 377, 73], // thanh tên
+    tabs: [
+      [227, 629, 226, 67],
+      [453, 629, 224, 67],
+    ],
+    count: [545, 722, 293, 49], // thanh đếm ở đầu bảng
+    cols: [88, 276, 464, 652],
+    rows: [814, 996, 1177, 1358],
+    cell: [163, 153],
+    perPage: 16,
   };
+  const BOOK_CHARS = {
+    boy: { name: "Cu đen", img: "assets/boy.png" },
+    girl: { name: "Bé na", img: "assets/girl.png" },
+  };
+  let stampPage = null; // null = tự chọn trang có stamp mới nhất
+
+  function bookPlace(node, r) {
+    const s = node.style;
+    s.left = (r[0] / BOOK.w) * 100 + "%";
+    s.top = (r[1] / BOOK.h) * 100 + "%";
+    s.width = (r[2] / BOOK.w) * 100 + "%";
+    s.height = (r[3] / BOOK.h) * 100 + "%";
+    return node;
+  }
+
   function stickerChart() {
     const now = new Date();
     const y = now.getFullYear(), m = now.getMonth();
-    const wrap = el("div", "study-chart");
-    const img = el("img", "study-chart-img");
-    img.src = "assets/study/phieu-be-ngoan.jpg";
-    img.alt = "Phiếu bé ngoan";
-    img.draggable = false;
-    wrap.append(img);
-    for (let n = 1; n <= 30; n++) {
-      const i = n - 1;
-      const done = !!st.days[dateKey(new Date(y, m, n))];
-      const stamp = el("span", "study-stamp" + (done ? " on" : ""));
-      if (done) {
-        const rot = ((n * 37) % 17) - 8; // mỗi dấu nghiêng một chút cho tự nhiên
-        stamp.title = "Ngày " + n + ": bé ngoan";
-        stamp.style.setProperty("--rot", rot + "deg");
-        // Tự vẽ dấu bằng style trực tiếp để không phụ thuộc CSS bên ngoài
-        const st0 = stamp.style;
-        st0.position = "absolute";
-        st0.display = "block";
-        st0.width = "8%";
-        st0.aspectRatio = "1 / 1";
-        st0.transform = "translate(-50%, -50%) rotate(" + rot + "deg)";
-        st0.opacity = "1";
-        st0.visibility = "visible";
-        st0.zIndex = "2";
-        st0.pointerEvents = "none";
-        st0.background = "none";
-        const si = el("img");
+    const todayN = now.getDate();
+
+    // Các ngày đã được đóng dấu trong tháng, xếp theo thứ tự nhận (ngày 1 → cuối tháng)
+    const days = [];
+    for (let n = 1; n <= 31; n++) {
+      const d = new Date(y, m, n);
+      if (d.getMonth() !== m) break;
+      if (st.days[dateKey(d)]) days.push(n);
+    }
+    const pages = Math.ceil(32 / BOOK.perPage);
+    if (stampPage == null) stampPage = Math.min(pages - 1, Math.max(0, Math.floor((days.length - 1) / BOOK.perPage)));
+
+    const wrap = el("div", "study-book");
+    const bg = el("img", "study-book-bg");
+    bg.src = "assets/study/stamp-book.webp";
+    bg.alt = "";
+    bg.draggable = false;
+    wrap.append(bg);
+
+    // Nhân vật đã chọn + tên
+    const c = BOOK_CHARS[chosenChar()];
+    const portrait = bookPlace(el("div", "bk bk-portrait"), BOOK.portrait);
+    if (c) {
+      const pi = el("img");
+      pi.src = c.img;
+      pi.alt = c.name;
+      pi.draggable = false;
+      portrait.append(pi);
+    }
+    wrap.append(portrait);
+    wrap.append(bookPlace(el("div", "bk bk-name", c ? c.name : "Chưa chọn nhân vật"), BOOK.name));
+
+    // Hai tab trang
+    for (let p = 0; p < pages; p++) {
+      const t = bookPlace(el("button", "bk bk-tab" + (p === stampPage ? " on" : ""), "Trang " + (p + 1)), BOOK.tabs[p]);
+      t.type = "button";
+      t.setAttribute("aria-pressed", String(p === stampPage));
+      t.addEventListener("click", () => {
+        if (stampPage === p) return;
+        stampPage = p;
+        renderTodayPanel();
+      });
+      wrap.append(t);
+    }
+
+    wrap.append(bookPlace(el("div", "bk bk-count", "Tháng " + (m + 1) + " · " + days.length + " stamp"), BOOK.count));
+
+    // 16 ô: stamp lần lượt vào từng ô theo thứ tự đã nhận
+    for (let s = 0; s < BOOK.perPage; s++) {
+      const g = stampPage * BOOK.perPage + s;
+      const n = days[g];
+      const slot = el("div", "bk bk-slot");
+      bookPlace(slot, [BOOK.cols[s % 4], BOOK.rows[Math.floor(s / 4)], BOOK.cell[0], BOOK.cell[1]]);
+      if (n != null) {
+        slot.title = "Ngày " + n + ": bé ngoan";
+        const si = el("img", "bk-stamp" + (n === todayN ? " new" : ""));
         si.src = "assets/study/stamp-be-ngoan.png";
-        si.alt = "✓";
+        si.alt = "Stamp ngày " + n;
         si.draggable = false;
-        si.style.cssText = "width:100%;height:100%;object-fit:contain;display:block";
+        si.style.setProperty("--rot", ((n * 37) % 17) - 8 + "deg");
         si.addEventListener("error", () => {
           si.remove();
-          stamp.textContent = "✓";
-          st0.color = "#d6336c";
-          st0.fontWeight = "800";
-          st0.fontSize = "clamp(14px, 3.4vw, 28px)";
-          st0.textAlign = "center";
-          st0.lineHeight = "1";
+          slot.append(el("b", "bk-check", "✓"));
         });
-        stamp.append(si);
+        slot.append(si, el("span", "bk-date", n + "/" + (m + 1)));
+      } else {
+        slot.append(el("span", "bk-empty", String(g + 1)));
       }
-      stamp.style.left = (CHART.cols[i % 6] / CHART.w) * 100 + "%";
-      stamp.style.top = (CHART.rows[Math.floor(i / 6)] / CHART.h) * 100 + "%";
-      wrap.append(stamp);
+      wrap.append(slot);
     }
     return wrap;
   }
@@ -195,14 +244,45 @@
   }
 
   /* ---------- Bài học hôm nay theo từng mục ---------- */
+  /* ---------- Ngữ pháp: 3 dạng bài ----------
+   * fill    : điền chỗ trống (có sẵn)
+   * meaning : cho mẫu (vd ～あっての) -> chọn nghĩa tiếng Việt
+   * pattern : cho nghĩa tiếng Việt -> chọn mẫu đúng
+   */
+  const GRAM_KINDS = ["fill", "meaning", "pattern"];
+  const splitNote = (note) => {
+    const i = (note || "").indexOf("：");
+    if (i < 0) return null;
+    return { pat: note.slice(0, i).trim(), mean: note.slice(i + 1).trim() };
+  };
+  const hasPattern = (q) => !!splitNote(q.note);
+  let patternCache = null;
+  function grammarPatterns() {
+    if (patternCache && patternCache.src === allGrammar()) return patternCache.list;
+    const seen = new Map();
+    allGrammar().forEach((q) => {
+      const p = splitNote(q.note);
+      if (p && p.pat && !seen.has(p.pat)) seen.set(p.pat, p);
+    });
+    patternCache = { src: allGrammar(), list: Array.from(seen.values()) };
+    return patternCache.list;
+  }
+
   function planFor(section) {
     const d = dayNum();
     if (section === "vocab") return startVocab();
     if (section === "grammar") {
       const g = allGrammar();
-      return pick(g, SIZE.grammar, (d * SIZE.grammar) % Math.max(1, g.length));
+      const picked = pick(g, SIZE.grammar, (d * SIZE.grammar) % Math.max(1, g.length));
+      const pool = grammarPatterns();
+      return picked.map((q, i) => {
+        // luân phiên 3 dạng; câu không có mẫu/nghĩa thì giữ dạng điền chỗ trống
+        const kinds = pool.length >= 4 && hasPattern(q) ? GRAM_KINDS : ["fill"];
+        return Object.assign({}, q, { kind: kinds[(i + d) % kinds.length] });
+      });
     }
-    return D.reading.length ? [D.reading[d % D.reading.length]] : [];
+    const rb = Array.isArray(window.N1_READING_BOOK) && window.N1_READING_BOOK.length ? window.N1_READING_BOOK : D.reading;
+    return rb.length ? [rb[d % rb.length]] : [];
   }
 
   function streak() {
@@ -494,7 +574,7 @@
     const list = el("div", "study-choices");
     [
       ["vocab", "Từ vựng", SIZE.vocab + " từ, gõ từ tiếng Nhật theo nghĩa"],
-      ["grammar", "Ngữ pháp", SIZE.grammar + " câu điền chỗ trống"],
+      ["grammar", "Ngữ pháp", SIZE.grammar + " câu ngữ pháp (điền chỗ trống, chọn mẫu)"],
       ["reading", "Bài đọc", "1 bài kèm câu hỏi"],
     ].forEach(([key, title, desc]) => {
       const b = el("button", "study-choice");
@@ -743,12 +823,36 @@
   function renderGrammar() {
     const list = sess.items;
     const q = list[sess.i];
+    const kind = q.kind || "fill";
+    const sp = splitNote(q.note);
+    let prompt, correct, options, label;
+
+    if (kind === "meaning" && sp) {
+      // Cho mẫu -> chọn nghĩa đúng
+      label = "Chọn nghĩa của mẫu";
+      prompt = sp.pat;
+      correct = sp.mean;
+      const others = grammarPatterns().filter((p) => p.pat !== sp.pat).map((p) => p.mean);
+      options = shuffle([correct].concat(shuffle(others).filter((m) => m !== correct).slice(0, 3)));
+    } else if (kind === "pattern" && sp) {
+      // Cho nghĩa -> chọn mẫu đúng
+      label = "Chọn mẫu ngữ pháp đúng với nghĩa";
+      prompt = sp.mean;
+      correct = sp.pat;
+      const others = grammarPatterns().filter((p) => p.pat !== sp.pat).map((p) => p.pat);
+      options = shuffle([correct].concat(shuffle(others).slice(0, 3)));
+    } else {
+      label = null;
+      prompt = q.s;
+      correct = q.opts[q.a];
+      options = shuffle(q.opts);
+    }
+
     body.append(
-      el("p", "study-sub", "Ngữ pháp " + (sess.i + 1) + "/" + list.length),
+      el("p", "study-sub", "Ngữ pháp " + (sess.i + 1) + "/" + list.length + (label ? " · " + label : "")),
       progressBar(sess.i, list.length),
-      el("div", "study-card study-q", q.s)
+      el("div", "study-card study-q", prompt)
     );
-    const correct = q.opts[q.a];
     const box = el("div", "study-opts");
     const note = el("p", "study-note");
     note.hidden = true;
@@ -756,7 +860,7 @@
     nextBtn.type = "button";
     nextBtn.hidden = true;
 
-    shuffle(q.opts).forEach((o) => {
+    options.forEach((o) => {
       const b = el("button", "study-opt", o);
       b.type = "button";
       b.addEventListener("click", () => {
@@ -770,7 +874,7 @@
             .find((x) => x.textContent === correct)
             ?.classList.add("ok");
         }
-        note.textContent = (ok ? "Đúng. " : "Chưa đúng, đáp án là " + correct + ". ") + q.note;
+        note.textContent = (ok ? "Đúng. " : "Chưa đúng, đáp án là " + correct + ". ") + (q.note || "");
         note.hidden = false;
         nextBtn.hidden = false;
       });
@@ -795,11 +899,22 @@
       const correct = q.opts[q.a];
       body.append(el("p", "study-q-text", q.q));
       const box = el("div", "study-opts");
+      const why = el("div", "study-note");
+      why.hidden = true;
+      body.append(why); // giải thích + từ vựng hiện sau khi chọn
       shuffle(q.opts).forEach((o) => {
         const b = el("button", "study-opt", o);
         b.type = "button";
         b.addEventListener("click", () => {
           if (box.dataset.done) return;
+          if (q.reason || q.vocab) {
+            why.textContent = "";
+            if (q.reason) why.append(el("p", null, "Giải thích: " + q.reason));
+            (q.vocab || []).forEach((v) =>
+              why.append(el("p", null, "・" + v.w + "（" + v.r + "）: " + v.m))
+            );
+            why.hidden = false;
+          }
           box.dataset.done = "1";
           answered++;
           sess.total++;
