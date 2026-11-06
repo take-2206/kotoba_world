@@ -1312,6 +1312,56 @@
     delete mapKeys[e.key.toLowerCase()];
   });
 
+  /* Joystick ảo (góc dưới-trái bản đồ): kéo núm để đi, hoạt động cả cảm ứng lẫn chuột.
+     mapStick là vector -1..1 được cộng vào như phím mũi tên trong mapLoop. */
+  const mapStick = { x: 0, y: 0 };
+  const joy = $("#map-joy"),
+    joyKnob = $("#map-joy-knob");
+  let joyId = null,
+    joyCx = 0,
+    joyCy = 0,
+    joyR = 1;
+  function joyMove(e) {
+    const dx = e.clientX - joyCx,
+      dy = e.clientY - joyCy;
+    const d = Math.hypot(dx, dy) || 1;
+    const m = Math.min(1, d / joyR); // độ lệch núm, 0..1
+    joyKnob.style.transform = `translate(${(dx / d) * m * joyR}px, ${(dy / d) * m * joyR}px)`;
+    const dead = 0.2; // vùng chết ở giữa để đứng yên khi núm chưa kéo đi xa
+    const k = m < dead ? 0 : (m - dead) / (1 - dead);
+    mapStick.x = (dx / d) * k;
+    mapStick.y = (dy / d) * k;
+  }
+  joy.addEventListener("pointerdown", (e) => {
+    if (joyId !== null) return;
+    joyId = e.pointerId;
+    const r = joy.getBoundingClientRect();
+    joyCx = r.left + r.width / 2;
+    joyCy = r.top + r.height / 2;
+    joyR = (r.width - joyKnob.offsetWidth) / 2;
+    joy.setPointerCapture(e.pointerId);
+    joy.classList.add("active");
+    mapSetInside(false);
+    mapIgnore = null;
+    mapTarget = null;
+    mapSaySet("");
+    joyMove(e);
+    startMapLoop();
+  });
+  joy.addEventListener("pointermove", (e) => {
+    if (e.pointerId === joyId) joyMove(e);
+  });
+  const joyEnd = (e) => {
+    if (e.pointerId !== joyId) return;
+    joyId = null;
+    mapStick.x = 0;
+    mapStick.y = 0;
+    joyKnob.style.transform = "";
+    joy.classList.remove("active");
+  };
+  joy.addEventListener("pointerup", joyEnd);
+  joy.addEventListener("pointercancel", joyEnd);
+
   function mapRender() {
     if (!mapPlayer) return;
     const H = mapStage.clientHeight;
@@ -1343,6 +1393,8 @@
     if (mapKeys.arrowright || mapKeys.d) vx += 1;
     if (mapKeys.arrowup || mapKeys.w) vy -= 1;
     if (mapKeys.arrowdown || mapKeys.s) vy += 1;
+    vx += mapStick.x; // joystick ảo
+    vy += mapStick.y;
     if (vx || vy) {
       mapTarget = null;
     } else if (mapTarget) {
