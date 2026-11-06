@@ -3636,10 +3636,10 @@ details.entry[open] summary {
 .map-close {
   flex: none;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 20px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 50px;
   font-size: 24px;
   line-height: 1;
 }
