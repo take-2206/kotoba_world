@@ -1108,17 +1108,17 @@
     },
     // Ảnh làng nhìn từ trên xuống (tỉ lệ ~16:9) có 6 điểm: Nhà, Chợ, Trạm xá, Tiệm làm tóc, Quán nhậu, Tiệm sửa xe
     village: {
-      start: [46, 58],
+      start: [50, 52],
       bounds: [3, 97, 12, 96],
       charH: [0.1, 0.15],
       reach: 3.2,
       shops: [
-        { id: "nha", name: "Nhà", rect: [10.1, 5.3, 23.4, 32.9], lbl: [26.9, 34.5], door: [19.6, 31.5] },
-        { id: "cho", name: "Chợ", rect: [48.9, 6.8, 20.1, 23.7], lbl: [59, 27.7], door: [59.6, 31.5] },
-        { id: "tramxa", name: "Trạm xá", rect: [71.8, 7.7, 25.8, 30.4], lbl: [84.7, 33.5], door: [81.6, 34] },
-        { id: "lamtoc", name: "Tiệm làm tóc", rect: [7.9, 44.9, 20.7, 28.5], lbl: [20.3, 70.7], door: [17.7, 69.5] },
-        { id: "quannhau", name: "Quán nhậu", rect: [41.6, 59.4, 25.3, 26.6], lbl: [52.6, 82.4], door: [47, 85.5] },
-        { id: "suaxe", name: "Tiệm sửa xe", rect: [73.7, 48.8, 22.6, 28], lbl: [80.8, 74.5], door: [85.7, 77] },
+        { id: "nha", name: "Nhà", rect: [15.2, 10.1, 19.7, 21.3], lbl: [25.1, 34.0], door: [23.6, 28.7] },
+        { id: "cho", name: "Chợ", rect: [48.7, 11.2, 17.9, 20.7], lbl: [58.9, 15.9], door: [57.4, 31.3] },
+        { id: "tramxa", name: "Trạm xá", rect: [69.1, 12.8, 22.1, 24], lbl: [77.4, 22.0], door: [75.9, 32.4] },
+        { id: "lamtoc", name: "Tiệm làm tóc", rect: [13.2, 43.6, 18.5, 24.4], lbl: [21.8, 48.4], door: [17.9, 67.5] },
+        { id: "quannhau", name: "Quán nhậu", rect: [42.8, 55.8, 21.8, 23.4], lbl: [50.8, 61.1], door: [52.6, 78.9] },
+        { id: "suaxe", name: "Tiệm sửa xe", rect: [71.2, 46.8, 18.5, 24.4], lbl: [79.8, 52.1], door: [78.3, 70.1] },
       ],
     },
   };
