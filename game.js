@@ -1060,55 +1060,308 @@
     if (e.target === notebook) notebook.hidden = true;
   });
 
-  /* ---------- Bản đồ: Khám phá khu phố ---------- */
-  /* rect = [x, y, rộng, cao] theo pixel của ảnh assets/khu-pho.jpg (1778 × 592).
-     Muốn mở một cửa hàng thật: thêm hàm go cho cửa hàng đó, ví dụ go: () => openShop() */
-  const MAP_W = 1778,
-    MAP_H = 592;
-  const MAP_SHOPS = [
-    { id: "cho", name: "Chợ Lộc Tài", rect: [20, 120, 395, 450], go: () => openMarket() },
-    { id: "toc", name: "Tiệm làm tóc", rect: [415, 120, 317, 445] },
-    { id: "nhau", name: "Trạm xá", rect: [732, 115, 340, 450] },
-    { id: "anvat", name: "Quán ăn vặt", rect: [1075, 120, 335, 445] },
-    { id: "mayva", name: "Tiệm may vá", rect: [1410, 120, 335, 445] },
-  ];
-  const mapSheet = $("#map");
+  /* ---------- Bản đồ: Khám phá khu phố ----------
+     Nhân vật (bé trai/bé gái đã chọn) đi bộ trên bản đồ. Đi tới trước cửa quán rồi
+     đứng yên một chút là tự vào quán (hoặc bấm nút “Vào …” / phím Enter).
+     - Chạm/click vào chỗ trống: nhân vật đi tới đó. Chạm vào quán: đi tới cửa quán rồi vào.
+     - Máy tính: phím mũi tên hoặc WASD.
+     Cấu hình theo từng ảnh bản đồ nằm ở MAP_PRESETS (tọa độ tính theo % ảnh):
+       rect = vùng bấm của cả quán, door = điểm đứng trước cửa, lbl = vị trí nhãn tên quán.
+     Muốn mở thêm quán thật: thêm hàm vào GO bên dưới, ví dụ  tramxa: () => openClinic() */
+  const WALK = {
+    boy: {
+      down: ["assets/walk/boy_down_0.png", "assets/walk/boy_down_1.png"],
+      left: ["assets/walk/boy_left_0.png", "assets/walk/boy_left_1.png"],
+      up: ["assets/walk/boy_up_0.png", "assets/walk/boy_up_1.png"],
+      right: ["assets/walk/boy_right_0.png", "assets/walk/boy_right_1.png"],
+    },
+    girl: {
+      down: ["assets/walk/girl_down_0.png", "assets/walk/girl_down_1.png"],
+      left: ["assets/walk/girl_left_0.png", "assets/walk/girl_left_1.png"],
+      up: ["assets/walk/girl_up_0.png", "assets/walk/girl_up_1.png"],
+      right: ["assets/walk/girl_right_0.png", "assets/walk/girl_right_1.png"],
+    },
+  };
+  const GO = { cho: () => openMarket() };
+  const px = (x, y, w, h) => [(x / 1778) * 100, (y / 592) * 100, (w / 1778) * 100, (h / 592) * 100];
+  const MAP_PRESETS = {
+    // Ảnh dãy phố nằm ngang 1778 × 592 (assets/khu-pho.jpg cũ)
+    street: {
+      start: [22, 88],
+      bounds: [3, 97, 78, 96], // x nhỏ, x lớn, y nhỏ, y lớn (%)
+      charH: [0.26, 0.31], // chiều cao nhân vật so với chiều cao ảnh (xa → gần)
+      reach: 3.2, // bán kính “tới cửa” (% chiều rộng ảnh)
+      shops: [
+        { id: "cho", name: "Chợ Lộc Tài", rect: px(20, 120, 395, 450), door: [12.2, 84] },
+        { id: "toc", name: "Tiệm làm tóc", rect: px(415, 120, 317, 445), door: [32.3, 84] },
+        { id: "nhau", name: "Trạm xá", rect: px(732, 115, 340, 450), door: [50.7, 84] },
+        { id: "anvat", name: "Quán ăn vặt", rect: px(1075, 120, 335, 445), door: [69.9, 84] },
+        { id: "mayva", name: "Tiệm may vá", rect: px(1410, 120, 335, 445), door: [88.7, 84] },
+      ],
+    },
+    // Ảnh làng nhìn từ trên xuống (tỉ lệ ~16:9) có 6 điểm: Nhà, Chợ, Trạm xá, Tiệm làm tóc, Quán nhậu, Tiệm sửa xe
+    village: {
+      start: [46, 58],
+      bounds: [3, 97, 12, 96],
+      charH: [0.1, 0.15],
+      reach: 3.2,
+      shops: [
+        { id: "nha", name: "Nhà", rect: [10.1, 5.3, 23.4, 32.9], lbl: [26.9, 34.5], door: [19.6, 31.5] },
+        { id: "cho", name: "Chợ", rect: [48.9, 6.8, 20.1, 23.7], lbl: [59, 27.7], door: [59.6, 31.5] },
+        { id: "tramxa", name: "Trạm xá", rect: [71.8, 7.7, 25.8, 30.4], lbl: [84.7, 33.5], door: [81.6, 34] },
+        { id: "lamtoc", name: "Tiệm làm tóc", rect: [7.9, 44.9, 20.7, 28.5], lbl: [20.3, 70.7], door: [17.7, 69.5] },
+        { id: "quannhau", name: "Quán nhậu", rect: [41.6, 59.4, 25.3, 26.6], lbl: [52.6, 82.4], door: [47, 85.5] },
+        { id: "suaxe", name: "Tiệm sửa xe", rect: [73.7, 48.8, 22.6, 28], lbl: [80.8, 74.5], door: [85.7, 77] },
+      ],
+    },
+  };
+
+  const mapSheet = $("#map"),
+    mapStage = $("#map-stage"),
+    mapSpots = $("#map-spots"),
+    mapScroll = $("#map-scroll"),
+    mapImg = mapStage.querySelector(".map-img");
+  let MAP = MAP_PRESETS.street;
+  let mapPlayer = null,
+    mapPlayerImg = null,
+    mapEnterBtn = null;
+  const mapPos = { x: 50, y: 86 };
+  let mapTarget = null, // { x, y }
+    mapDir = "down",
+    mapFrame = 0,
+    mapFrameT = 0,
+    mapNear = null, // quán đang đứng trước cửa
+    mapNearSince = 0,
+    mapIgnore = null, // quán vừa ra khỏi, chưa đi xa thì chưa tự vào lại
+    mapRaf = 0,
+    mapLast = 0;
+  const mapKeys = {};
+
   function enterMapShop(shop) {
     if (typeof shop.go === "function") {
       shop.go();
       return;
     }
+    if (GO[shop.id]) {
+      GO[shop.id]();
+      return;
+    }
     toast(shop.name + " sắp mở cửa. Bạn quay lại sau nhé!");
   }
-  (function buildMapSpots() {
-    const box = $("#map-spots");
-    MAP_SHOPS.forEach((shop) => {
+  function mapEnterNow(shop) {
+    mapTarget = null;
+    mapIgnore = shop.id;
+    mapNear = null;
+    if (mapEnterBtn) mapEnterBtn.hidden = true;
+    enterMapShop(shop);
+  }
+  function mapSetSprite() {
+    const set = WALK[state.char === "girl" ? "girl" : "boy"];
+    const src = set[mapDir][mapFrame];
+    if (mapPlayerImg && mapPlayerImg.getAttribute("src") !== src) mapPlayerImg.src = src;
+  }
+  function mapClamp(p) {
+    const b = MAP.bounds;
+    return { x: Math.max(b[0], Math.min(b[1], p.x)), y: Math.max(b[2], Math.min(b[3], p.y)) };
+  }
+
+  function initMap() {
+    const ratio = mapImg.naturalWidth / mapImg.naturalHeight || 1778 / 592;
+    MAP = ratio > 2.2 ? MAP_PRESETS.street : MAP_PRESETS.village;
+    mapStage.style.setProperty("--map-ratio", ratio);
+    mapStage.classList.toggle("is-village", MAP === MAP_PRESETS.village);
+    mapSpots.textContent = "";
+    MAP.shops.forEach((shop) => {
       const [x, y, w, h] = shop.rect;
       const b = document.createElement("button");
       b.type = "button";
       b.className = "map-shop";
       b.dataset.shop = shop.id;
       b.setAttribute("aria-label", shop.name);
-      b.style.left = (x / MAP_W) * 100 + "%";
-      b.style.top = (y / MAP_H) * 100 + "%";
-      b.style.width = (w / MAP_W) * 100 + "%";
-      b.style.height = (h / MAP_H) * 100 + "%";
+      b.style.left = x + "%";
+      b.style.top = y + "%";
+      b.style.width = w + "%";
+      b.style.height = h + "%";
       const lbl = document.createElement("span");
       lbl.className = "map-shop-lbl";
       lbl.textContent = shop.name;
+      if (shop.lbl) {
+        lbl.classList.add("abs");
+        lbl.style.left = ((shop.lbl[0] - x) / w) * 100 + "%";
+        lbl.style.top = ((shop.lbl[1] - y) / h) * 100 + "%";
+      }
       b.append(lbl);
-      b.addEventListener("click", () => enterMapShop(shop));
-      box.append(b);
+      // chạm vào quán: nhân vật đi tới cửa rồi vào
+      b.addEventListener("click", () => {
+        mapIgnore = null;
+        mapTarget = mapClamp({ x: shop.door[0], y: shop.door[1] });
+        startMapLoop();
+      });
+      mapSpots.append(b);
     });
-  })();
+    mapPlayer = document.createElement("div");
+    mapPlayer.className = "map-player";
+    mapPlayerImg = document.createElement("img");
+    mapPlayerImg.alt = "";
+    mapPlayerImg.draggable = false;
+    mapPlayer.append(mapPlayerImg);
+    mapEnterBtn = document.createElement("button");
+    mapEnterBtn.type = "button";
+    mapEnterBtn.className = "map-enter";
+    mapEnterBtn.hidden = true;
+    mapEnterBtn.addEventListener("click", () => mapNear && mapEnterNow(mapNear));
+    mapSpots.append(mapPlayer, mapEnterBtn);
+    mapPos.x = MAP.start[0];
+    mapPos.y = MAP.start[1];
+    Object.values(WALK).forEach((set) =>
+      Object.values(set).forEach((arr) =>
+        arr.forEach((s) => {
+          new Image().src = s;
+        }),
+      ),
+    );
+    mapSetSprite();
+    mapRender();
+  }
+  if (mapImg.complete && mapImg.naturalWidth) initMap();
+  else mapImg.addEventListener("load", initMap);
+
+  // chạm vào chỗ trống: đi tới đó (dùng "click" để vuốt ngang xem bản đồ không bị tính là chạm)
+  mapStage.addEventListener("click", (e) => {
+    if (e.target.closest(".map-shop, .map-enter")) return;
+    const r = mapStage.getBoundingClientRect();
+    mapIgnore = null;
+    mapTarget = mapClamp({
+      x: ((e.clientX - r.left) / r.width) * 100,
+      y: ((e.clientY - r.top) / r.height) * 100,
+    });
+    startMapLoop();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (mapSheet.hidden) return;
+    if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
+    const k = e.key.toLowerCase();
+    if (["arrowleft", "arrowright", "arrowup", "arrowdown", "a", "d", "w", "s"].includes(k)) {
+      mapKeys[k] = true;
+      e.preventDefault();
+      startMapLoop();
+    } else if ((k === "enter" || k === " ") && mapNear) {
+      e.preventDefault();
+      mapEnterNow(mapNear);
+    }
+  });
+  document.addEventListener("keyup", (e) => {
+    delete mapKeys[e.key.toLowerCase()];
+  });
+
+  function mapRender() {
+    if (!mapPlayer) return;
+    const H = mapStage.clientHeight;
+    const t = (mapPos.y - MAP.bounds[2]) / (MAP.bounds[3] - MAP.bounds[2]);
+    const h = H * (MAP.charH[0] + (MAP.charH[1] - MAP.charH[0]) * Math.max(0, Math.min(1, t)));
+    mapPlayer.style.height = h + "px";
+    mapPlayer.style.left = mapPos.x + "%";
+    mapPlayer.style.top = mapPos.y + "%";
+    mapPlayer.style.zIndex = Math.round(mapPos.y * 10) + 5;
+    mapEnterBtn.style.left = mapPos.x + "%";
+    mapEnterBtn.style.top = "calc(" + mapPos.y + "% - " + (h + 6) + "px)";
+  }
+  function mapLoop(now) {
+    if (mapSheet.hidden) {
+      mapRaf = 0;
+      return;
+    }
+    const dt = Math.min(0.05, (now - mapLast) / 1000 || 0);
+    mapLast = now;
+    const W = mapStage.clientWidth,
+      H = mapStage.clientHeight;
+    let vx = 0,
+      vy = 0;
+    if (mapKeys.arrowleft || mapKeys.a) vx -= 1;
+    if (mapKeys.arrowright || mapKeys.d) vx += 1;
+    if (mapKeys.arrowup || mapKeys.w) vy -= 1;
+    if (mapKeys.arrowdown || mapKeys.s) vy += 1;
+    if (vx || vy) {
+      mapTarget = null;
+    } else if (mapTarget) {
+      const dx = ((mapTarget.x - mapPos.x) * W) / 100,
+        dy = ((mapTarget.y - mapPos.y) * H) / 100;
+      const d = Math.hypot(dx, dy);
+      if (d < 4) mapTarget = null;
+      else {
+        vx = dx / d;
+        vy = dy / d;
+      }
+    }
+    const moving = !!(vx || vy);
+    if (moving) {
+      const len = Math.hypot(vx, vy);
+      vx /= len;
+      vy /= len;
+      const step = W * 0.18 * dt; // px
+      const p = mapClamp({ x: mapPos.x + ((vx * step) / W) * 100, y: mapPos.y + ((vy * step) / H) * 100 });
+      mapPos.x = p.x;
+      mapPos.y = p.y;
+      mapDir = Math.abs(vx) * W > Math.abs(vy) * H * 0.8 ? (vx < 0 ? "left" : "right") : vy < 0 ? "up" : "down";
+      if (now - mapFrameT > 190) {
+        mapFrame ^= 1;
+        mapFrameT = now;
+      }
+      mapSetSprite();
+      // màn hình dọc: bản đồ vuốt ngang được, camera đi theo nhân vật
+      if (mapScroll.scrollWidth - mapScroll.clientWidth > 1) {
+        const want = (mapPos.x / 100) * mapStage.offsetWidth + mapStage.offsetLeft - mapScroll.clientWidth / 2;
+        mapScroll.scrollLeft += (want - mapScroll.scrollLeft) * Math.min(1, dt * 6);
+      }
+    } else if (mapFrame) {
+      mapFrame = 0;
+      mapSetSprite();
+    }
+    mapPlayer.classList.toggle("walking", moving);
+    mapRender();
+
+    // đã tới trước cửa quán nào chưa?
+    let hit = null;
+    for (const s of MAP.shops) {
+      const d = Math.hypot(((s.door[0] - mapPos.x) * W) / 100, ((s.door[1] - mapPos.y) * H) / 100);
+      if (d < (MAP.reach * W) / 100) {
+        hit = s;
+        break;
+      }
+    }
+    if (mapIgnore && (!hit || hit.id !== mapIgnore)) mapIgnore = null;
+    if (hit && hit.id === mapIgnore) hit = null;
+    if (hit !== mapNear) {
+      mapNear = hit;
+      mapNearSince = now;
+      mapEnterBtn.hidden = !hit;
+      if (hit) mapEnterBtn.textContent = "Vào " + hit.name;
+    }
+    // đứng yên trước cửa khoảng 0,6 giây thì tự vào quán
+    if (hit && !moving && now - mapNearSince > 600) mapEnterNow(hit);
+
+    mapRaf = requestAnimationFrame(mapLoop);
+  }
+  function startMapLoop() {
+    if (mapRaf || mapSheet.hidden) return;
+    mapLast = performance.now();
+    mapRaf = requestAnimationFrame(mapLoop);
+  }
   $("#btn-map").addEventListener("click", () => {
     mapSheet.hidden = false;
-    const sc = $("#map-scroll");
-    sc.scrollLeft = (sc.scrollWidth - sc.clientWidth) / 2; // mở ra ở giữa khu phố
+    mapSetSprite(); // có thể vừa đổi nhân vật trong Cài đặt
+    mapRender();
+    const sc = mapScroll;
+    if (sc.scrollWidth - sc.clientWidth > 1) {
+      const want = (mapPos.x / 100) * mapStage.offsetWidth + mapStage.offsetLeft - sc.clientWidth / 2;
+      sc.scrollLeft = want; // mở ra ngay chỗ nhân vật đang đứng
+    }
+    startMapLoop();
   });
   $("#map-close").addEventListener("click", () => {
     mapSheet.hidden = true;
   });
+  window.addEventListener("resize", () => mapRender());
 
   /* ---------- Nút điều khiển ---------- */
   let revealTimer = null;
@@ -1950,6 +2203,9 @@
     closeMkQuiz();
     goRooms();
     mapSheet.hidden = false; // quay lại bản đồ
+    mapSetSprite();
+    mapRender();
+    startMapLoop();
     updateHud();
   });
   window.addEventListener("resize", () => {

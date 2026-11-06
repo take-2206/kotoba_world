@@ -14,6 +14,8 @@ def data_uri(path):
     buf = io.BytesIO()
     if name.startswith('shop' + os.sep) and name != 'shop-background.jpg':   # hình món hàng: webp trong suốt, nhỏ
         im = im.convert('RGBA'); im.thumbnail((360, 360), Image.LANCZOS); im.save(buf, 'WEBP', quality=88, method=6); mime = 'image/webp'
+    elif name.startswith('walk' + os.sep):                                       # sprite nhân vật đi bộ: PNG trong suốt
+        im = im.convert('RGBA'); im.thumbnail((140, 190), Image.LANCZOS); im.save(buf, 'PNG', optimize=True); mime = 'image/png'
     elif name == 'notebook.png':
         im = im.convert('RGBA'); im.thumbnail((128, 128), Image.LANCZOS); im.save(buf, 'PNG', optimize=True); mime = 'image/png'
     else:                                                                       # ảnh nền: JPEG vừa đủ nét cho điện thoại

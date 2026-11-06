@@ -3554,14 +3554,22 @@ details.entry[open] summary {
 .map-stage {
   position: relative;
   flex: none;
+  --map-ratio: 2.9966; /* JS đặt lại theo ảnh bản đồ thật */
   height: 75dvh; /* điện thoại dọc: cao 75% màn hình, vuốt ngang */
-  aspect-ratio: 1778 / 592;
+  aspect-ratio: var(--map-ratio);
   margin-inline: auto;
+}
+.map-stage.is-village {
+  height: 88dvh; /* bản đồ làng gần 16:9: dọc thì cao 88% màn hình, vuốt ngang */
 }
 @media (min-aspect-ratio: 1/1) {
   .map-stage {
     height: auto; /* màn ngang: ảnh vừa chiều rộng */
     width: 100%;
+  }
+  .map-stage.is-village {
+    height: auto;
+    width: min(100vw, calc(100dvh * var(--map-ratio))); /* vừa khít, không bị cắt */
   }
 }
 .map-img {
@@ -3607,8 +3615,70 @@ details.entry[open] summary {
   white-space: nowrap;
   box-shadow: 0 2px 6px rgba(40, 24, 10, 0.4);
 }
+.map-shop-lbl.abs {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
 .map-shop:active .map-shop-lbl {
   transform: scale(0.96);
+}
+.map-shop:active .map-shop-lbl.abs {
+  transform: translate(-50%, -50%) scale(0.96);
+}
+/* Nhân vật đi bộ trên bản đồ */
+.map-player {
+  position: absolute;
+  transform: translate(-50%, -100%); /* chân nhân vật đứng đúng điểm (x, y) */
+  pointer-events: none;
+  will-change: left, top;
+}
+.map-player img {
+  display: block;
+  height: 100%;
+  width: auto;
+  transform-origin: 50% 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  filter: drop-shadow(0 3px 3px rgba(40, 24, 10, 0.35));
+}
+.map-player.walking img {
+  animation: map-step 0.38s ease-in-out infinite;
+}
+@keyframes map-step {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2.5deg);
+  }
+  50% {
+    transform: translateY(-5%) rotate(2.5deg);
+  }
+}
+/* Nút “Vào …” hiện trên đầu nhân vật khi đứng trước cửa quán */
+.map-enter {
+  position: absolute;
+  z-index: 3000;
+  transform: translate(-50%, -100%);
+  padding: 6px 16px;
+  border-radius: 18px;
+  border: 2px solid var(--wood);
+  background: var(--gold);
+  color: var(--wood-d);
+  font: inherit;
+  font-weight: 700;
+  font-size: clamp(13px, 2.4vmin, 20px);
+  white-space: nowrap;
+  box-shadow: 0 3px 8px rgba(40, 24, 10, 0.45);
+  cursor: pointer;
+  animation: map-pop 0.18s ease-out;
+}
+.map-enter[hidden] {
+  display: none;
+}
+@keyframes map-pop {
+  from {
+    transform: translate(-50%, -80%) scale(0.8);
+    opacity: 0;
+  }
 }
 .map-top {
   position: absolute;
