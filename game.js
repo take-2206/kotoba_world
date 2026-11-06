@@ -1091,10 +1091,16 @@
     suaxe: () => openPlace("suaxe"),
   };
   const px = (x, y, w, h) => [(x / 1778) * 100, (y / 592) * 100, (w / 1778) * 100, (h / 592) * 100];
+  const pxv = (x, y, w, h) => [(x / 1672) * 100, (y / 941) * 100, (w / 1672) * 100, (h / 941) * 100]; // ảnh khu phố 1672 × 941
   const MAP_PRESETS = {
     // Ảnh dãy phố nằm ngang 1778 × 592 (assets/khu-pho.jpg cũ)
     street: {
       start: [22, 88],
+      refW: 1778, // kích thước ảnh gốc (px) để tính khoảng cách khi tìm đường
+      refH: 592,
+      cols: 120, // lưới tìm đường: số ô ngang × dọc
+      rows: 40,
+      blocks: [], // vật cản thêm ngoài quán (tọa độ %)
       bounds: [3, 97, 78, 96], // x nhỏ, x lớn, y nhỏ, y lớn (%)
       charH: [0.26, 0.31], // chiều cao nhân vật so với chiều cao ảnh (xa → gần)
       reach: 3.2, // bán kính “tới cửa” (% chiều rộng ảnh)
@@ -1109,6 +1115,58 @@
     // Ảnh làng nhìn từ trên xuống (tỉ lệ ~16:9) có 6 điểm: Nhà, Chợ, Trạm xá, Tiệm làm tóc, Quán nhậu, Tiệm sửa xe
     village: {
       start: [50, 52],
+      refW: 1672,
+      refH: 941,
+      cols: 120,
+      rows: 68,
+      // Vật cản ngoài quán: cây, hàng rào, ao, bụi cây, xe, ruộng (tọa độ px trên ảnh 1672 × 941)
+      blocks: [
+        // nhà dân: cây cọ, hàng rào, cây hoa
+        pxv(190, 250, 28, 40),
+        pxv(155, 312, 245, 48),
+        pxv(470, 312, 175, 48),
+        pxv(605, 185, 45, 135),
+        pxv(620, 240, 30, 60),
+        // chợ và cây giữa chợ với trạm xá
+        pxv(560, 113, 170, 185),
+        pxv(1100, 120, 60, 200),
+        // trạm xá: xe cứu thương, hàng rào, cây bên phải
+        pxv(1155, 120, 270, 200),
+        pxv(1437, 225, 90, 120),
+        pxv(1130, 318, 115, 28),
+        pxv(1278, 318, 175, 28),
+        pxv(1525, 113, 147, 300),
+        // giữa làng: cây to, ghế đá, cột biển
+        pxv(770, 395, 90, 60),
+        pxv(910, 395, 25, 70),
+        // bên trái: cây và hàng rào
+        pxv(40, 113, 135, 260),
+        pxv(40, 430, 90, 150),
+        pxv(0, 600, 190, 40),
+        // ao và bụi cây
+        pxv(0, 720, 240, 221),
+        pxv(240, 760, 170, 130),
+        pxv(230, 700, 190, 60),
+        // tiệm làm tóc: hàng rào, cây, chậu cây
+        pxv(515, 500, 45, 165),
+        pxv(480, 520, 40, 40),
+        pxv(395, 620, 70, 40),
+        // quán nhậu: cột đèn, bụi cây
+        pxv(684, 555, 14, 185),
+        pxv(640, 600, 45, 140),
+        pxv(1080, 600, 45, 120),
+        // tiệm sửa xe: hàng rào, cây cọ, cây xanh
+        pxv(1160, 470, 35, 170),
+        pxv(1425, 430, 25, 40),
+        pxv(1060, 430, 120, 130),
+        pxv(1500, 380, 172, 230),
+        pxv(1290, 700, 382, 60),
+        // phía dưới: rừng và ruộng lúa
+        pxv(700, 790, 300, 151),
+        pxv(1000, 770, 672, 171),
+        pxv(430, 820, 140, 121),
+        pxv(290, 840, 170, 101),
+      ],
       bounds: [3, 97, 12, 96],
       charH: [0.1, 0.15],
       reach: 3.2,
@@ -1133,6 +1191,7 @@
     mapPlayerImg = null,
     mapEnterBtn = null;
   const mapPos = { x: 50, y: 86 };
+  let mapPath = []; // các điểm trung gian để đi vòng vật cản
   let mapTarget = null, // { x, y }
     mapDir = "down",
     mapFrame = 0,
@@ -1216,9 +1275,145 @@
     return { x: Math.max(b[0], Math.min(b[1], p.x)), y: Math.max(b[2], Math.min(b[3], p.y)) };
   }
 
+  /* ---------- Vật cản & tìm đường ----------
+     Quán, cây, hàng rào, ao... là vật cản (MAP.blockers, lấy từ shops.rect + blocks).
+     Cửa quán (MAP.doors) được khoét một vùng nhỏ để nhân vật vẫn vào được quán.
+     Đường đi: A* trên lưới ô, rồi bỏ bớt điểm thừa khi đi thẳng không vướng. */
+  function mapPrepare() {
+    MAP.doors = MAP.shops.map((s) => s.door);
+    MAP.blockers = [...MAP.shops.map((s) => s.rect), ...(MAP.blocks || [])].map(([x, y, w, h]) => [
+      x - 0.5, y - 0.8, x + w + 0.5, y + h + 0.8, // nới thêm chút để nhân vật không đứng sát vật cản
+    ]);
+  }
+  function mapBlocked(x, y) {
+    const b = MAP.bounds;
+    if (x < b[0] || x > b[1] || y < b[2] || y > b[3]) return true;
+    if (MAP.doors.some((d) => Math.abs(x - d[0]) <= 3 && Math.abs(y - d[1]) <= 4)) return false;
+    return MAP.blockers.some((r) => x >= r[0] && x <= r[2] && y >= r[1] && y <= r[3]);
+  }
+  function mapClear(a, b) {
+    const n = Math.max(2, Math.ceil(Math.hypot(((b.x - a.x) * MAP.refW) / 100, ((b.y - a.y) * MAP.refH) / 100) / 6));
+    for (let k = 1; k <= n; k++) {
+      const t = k / n;
+      if (mapBlocked(a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t)) return false;
+    }
+    return true;
+  }
+  function mapFindPath(from, to) {
+    const P = MAP,
+      C = P.cols,
+      R = P.rows,
+      N = C * R;
+    const cw = P.refW / C,
+      ch = P.refH / R; // kích thước một ô tính bằng px ảnh gốc
+    const cxOf = (i) => ((i + 0.5) * 100) / C,
+      cyOf = (j) => ((j + 0.5) * 100) / R;
+    const free = new Uint8Array(N);
+    for (let j = 0; j < R; j++)
+      for (let i = 0; i < C; i++) free[j * C + i] = mapBlocked(cxOf(i), cyOf(j)) ? 0 : 1;
+    const nearestFree = (p) => {
+      const pi = Math.min(C - 1, Math.max(0, Math.round((p.x * C) / 100 - 0.5)));
+      const pj = Math.min(R - 1, Math.max(0, Math.round((p.y * R) / 100 - 0.5)));
+      let best = -1,
+        bd = Infinity;
+      for (let k = 0; k < N; k++) {
+        if (!free[k]) continue;
+        const d = Math.hypot((k % C) - pi, ((k / C) | 0) - pj);
+        if (d < bd) {
+          bd = d;
+          best = k;
+        }
+      }
+      return best;
+    };
+    const s = nearestFree(from),
+      g = nearestFree(to);
+    if (s < 0 || g < 0) return [];
+    if (s === g) return [];
+    // A* với hàng đợi ưu tiên đơn giản
+    const gs = new Float64Array(N).fill(Infinity),
+      came = new Int32Array(N).fill(-1),
+      closed = new Uint8Array(N);
+    const heap = [];
+    const push = (f, n) => {
+      heap.push([f, n]);
+      let k = heap.length - 1;
+      while (k > 0) {
+        const p = (k - 1) >> 1;
+        if (heap[p][0] <= heap[k][0]) break;
+        [heap[p], heap[k]] = [heap[k], heap[p]];
+        k = p;
+      }
+    };
+    const pop = () => {
+      const top = heap[0],
+        last = heap.pop();
+      if (heap.length) {
+        heap[0] = last;
+        let k = 0;
+        for (;;) {
+          const l = 2 * k + 1,
+            r = l + 1;
+          let m = k;
+          if (l < heap.length && heap[l][0] < heap[m][0]) m = l;
+          if (r < heap.length && heap[r][0] < heap[m][0]) m = r;
+          if (m === k) break;
+          [heap[m], heap[k]] = [heap[k], heap[m]];
+          k = m;
+        }
+      }
+      return top[1];
+    };
+    const gi = g % C,
+      gj = (g / C) | 0;
+    const h = (n) => Math.hypot(((n % C) - gi) * cw, (((n / C) | 0) - gj) * ch);
+    gs[s] = 0;
+    push(h(s), s);
+    while (heap.length) {
+      const cur = pop();
+      if (cur === g) break;
+      if (closed[cur]) continue;
+      closed[cur] = 1;
+      const ci = cur % C,
+        cj = (cur / C) | 0;
+      for (let dj = -1; dj <= 1; dj++)
+        for (let di = -1; di <= 1; di++) {
+          if (!di && !dj) continue;
+          const ni = ci + di,
+            nj = cj + dj;
+          if (ni < 0 || nj < 0 || ni >= C || nj >= R) continue;
+          const n = nj * C + ni;
+          if (!free[n] || closed[n]) continue;
+          if (di && dj && (!free[cj * C + ni] || !free[nj * C + ci])) continue; // không cắt góc vật cản
+          const ng = gs[cur] + Math.hypot(di * cw, dj * ch);
+          if (ng < gs[n]) {
+            gs[n] = ng;
+            came[n] = cur;
+            push(ng + h(n), n);
+          }
+        }
+    }
+    if (came[g] < 0) return []; // không có đường tới
+    const cells = [];
+    for (let n = g; n !== s && n !== -1; n = came[n]) cells.push(n);
+    cells.reverse();
+    const pts = [from, ...cells.map((n) => ({ x: cxOf(n % C), y: cyOf((n / C) | 0) }))];
+    // bỏ bớt điểm: nối thẳng tới điểm xa nhất mà đường thẳng không vướng vật cản
+    const out = [];
+    let i = 0;
+    while (i < pts.length - 1) {
+      let j = pts.length - 1;
+      while (j > i + 1 && !mapClear(pts[i], pts[j])) j--;
+      out.push(pts[j]);
+      i = j;
+    }
+    return out;
+  }
+
   function initMap() {
     const ratio = mapImg.naturalWidth / mapImg.naturalHeight || 1778 / 592;
     MAP = ratio > 2.2 ? MAP_PRESETS.street : MAP_PRESETS.village;
+    mapPrepare();
     mapStage.style.setProperty("--map-ratio", ratio);
     mapStage.classList.toggle("is-village", MAP === MAP_PRESETS.village);
     mapSpots.textContent = "";
@@ -1246,7 +1441,8 @@
       b.addEventListener("click", () => {
         mapSetInside(false);
         mapIgnore = null;
-        mapTarget = mapClamp({ x: shop.door[0], y: shop.door[1] });
+        mapPath = mapFindPath(mapPos, { x: shop.door[0], y: shop.door[1] });
+        mapTarget = mapPath.shift() || null;
         startMapLoop();
       });
       mapSpots.append(b);
@@ -1288,10 +1484,11 @@
     mapSetInside(false);
     mapSaySet("");
     mapIgnore = null;
-    mapTarget = mapClamp({
+    mapPath = mapFindPath(mapPos, {
       x: ((e.clientX - r.left) / r.width) * 100,
       y: ((e.clientY - r.top) / r.height) * 100,
     });
+    mapTarget = mapPath.shift() || null;
     startMapLoop();
   });
   document.addEventListener("keydown", (e) => {
@@ -1398,13 +1595,16 @@
     if (vx || vy) {
       mapTarget = null;
     } else if (mapTarget) {
-      const dx = ((mapTarget.x - mapPos.x) * W) / 100,
-        dy = ((mapTarget.y - mapPos.y) * H) / 100;
-      const d = Math.hypot(dx, dy);
-      if (d < 4) mapTarget = null;
-      else {
-        vx = dx / d;
-        vy = dy / d;
+      for (let k = 0; mapTarget && k < 3; k++) {
+        const dx = ((mapTarget.x - mapPos.x) * W) / 100,
+          dy = ((mapTarget.y - mapPos.y) * H) / 100,
+          d = Math.hypot(dx, dy);
+        if (d >= 4) {
+          vx = dx / d;
+          vy = dy / d;
+          break;
+        }
+        mapTarget = mapPath.length ? mapPath.shift() : null; // tới điểm này: sang điểm kế tiếp
       }
     }
     const moving = !!(vx || vy);
@@ -1413,9 +1613,21 @@
       vx /= len;
       vy /= len;
       const step = W * 0.18 * dt; // px
-      const p = mapClamp({ x: mapPos.x + ((vx * step) / W) * 100, y: mapPos.y + ((vy * step) / H) * 100 });
-      mapPos.x = p.x;
-      mapPos.y = p.y;
+      const nx = mapPos.x + ((vx * step) / W) * 100,
+        ny = mapPos.y + ((vy * step) / H) * 100;
+      let moved = false;
+      if (!mapBlocked(nx, mapPos.y)) {
+        mapPos.x = nx; // trượt theo trục X nếu trục Y bị chặn (đi sát tường vẫn được)
+        moved = true;
+      }
+      if (!mapBlocked(mapPos.x, ny)) {
+        mapPos.y = ny;
+        moved = true;
+      }
+      if (!moved && mapTarget) {
+        mapTarget = null; // bị chặn hẳn: bỏ đường đi
+        mapPath = [];
+      }
       mapDir = Math.abs(vx) * W > Math.abs(vy) * H * 0.8 ? (vx < 0 ? "left" : "right") : vy < 0 ? "up" : "down";
       if (now - mapFrameT > 190) {
         mapFrame ^= 1;
