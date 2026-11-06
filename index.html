@@ -86,7 +86,7 @@
       <div class="rooms-wrap">
         <header class="rooms-head">
           <button type="button" class="pill pill-btn" id="rooms-back">
-            ‹ Trang chủ
+            ‹ Bản đồ 
           </button>
           <h2 id="rooms-title">Chọn phòng</h2>
           <button
@@ -259,8 +259,20 @@
         <button type="button" class="pill pill-btn" id="shop-back">
           ‹ Quay lại
         </button>
-        <div class="pill" id="shop-wallet">
-          <span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu
+        <div class="mk-wallet">
+          <div class="pill" id="shop-wallet">
+            <span class="coin"></span><b id="shop-coins">0</b>&nbsp;xu
+          </div>
+          <button
+          class="pill pill-btn gear-btn"
+          id="btn-settings-shop"
+          type="button"
+          aria-label="Cài đặt"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+          </svg>
+        </button>
         </div>
       </header>
       <img id="shop-char" class="shop-char" alt="" draggable="false" hidden />
@@ -324,6 +336,16 @@
           <div class="pill">
             <span class="coin"></span><b id="market-coins">0</b>&nbsp;xu
           </div>
+          <button
+          class="pill pill-btn gear-btn"
+          id="btn-settings-market"
+          type="button"
+          aria-label="Cài đặt"
+        >
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+          </svg>
+        </button>
         </div>
       </header>
       <nav class="mk-tabs" aria-label="Quầy hàng">
@@ -659,6 +681,9 @@
         <button type="button" class="secondary danger" id="btn-restart">
           Học lại
         </button>
+        <button type="button" class="secondary" id="settings-home" style="width:100%;margin:4px 0 10px" hidden>
+          Về nhà (chọn phòng)
+        </button>
         <button type="button" class="primary full" id="settings-ok">
           Xong
         </button>
@@ -763,12 +788,14 @@
       <header class="map-top">
         <h2 class="pill" id="map-title">Khám phá khu phố</h2>
         <button
-          class="pill pill-btn map-close"
-          id="map-close"
+          class="pill pill-btn gear-btn"
+          id="btn-settings-map"
           type="button"
-          aria-label="Đóng bản đồ"
+          aria-label="Cài đặt"
         >
-          về nhà 
+          <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+          </svg>
         </button>
       </header>
       <p class="map-hint">Chạm để đi · dừng trước cửa để vào quán</p>

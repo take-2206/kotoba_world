@@ -1070,10 +1070,10 @@
      Muốn mở thêm quán thật: thêm hàm vào GO bên dưới, ví dụ  tramxa: () => openClinic() */
   const WALK = {
     boy: {
-      down: ["assets/walk/boy_down_0.png", "assets/walk/boy_down_1.png"],
-      left: ["assets/walk/boy_left_0.png", "assets/walk/boy_left_1.png"],
-      up: ["assets/walk/boy_up_0.png", "assets/walk/boy_up_1.png"],
-      right: ["assets/walk/boy_right_0.png", "assets/walk/boy_right_1.png"],
+      down: ["assets/walk/boy_down_1.png"],
+      left: ["assets/walk/boy_left_0.png"],
+      up: ["assets/walk/boy_up_0.png"],
+      right: ["assets/walk/boy_right_0.png"],
     },
     girl: {
       down: ["assets/walk/girl_down_0.png", "assets/walk/girl_down_1.png"],
@@ -1082,7 +1082,14 @@
       right: ["assets/walk/girl_right_0.png", "assets/walk/girl_right_1.png"],
     },
   };
-  const GO = { cho: () => openMarket() };
+  const GO = {
+    cho: () => openMarket(),
+    nha: () => goRooms(), // vào nhà: về danh sách phòng
+    tramxa: () => openPlace("tramxa"),
+    lamtoc: () => openPlace("toc"),
+    toc: () => openPlace("toc"),
+    suaxe: () => openPlace("suaxe"),
+  };
   const px = (x, y, w, h) => [(x / 1778) * 100, (y / 592) * 100, (w / 1778) * 100, (h / 592) * 100];
   const MAP_PRESETS = {
     // Ảnh dãy phố nằm ngang 1778 × 592 (assets/khu-pho.jpg cũ)
@@ -1136,6 +1143,49 @@
     mapRaf = 0,
     mapLast = 0;
   const mapKeys = {};
+  let mapSayEl = null,
+    mapSayTimer = 0;
+  function mapSaySet(text, ms) {
+    clearTimeout(mapSayTimer);
+    if (!mapSayEl) return;
+    if (!text) {
+      mapSayEl.hidden = true;
+      return;
+    }
+    mapSayEl.textContent = text;
+    mapSayEl.hidden = false;
+    mapSayEl.style.animation = "none";
+    void mapSayEl.offsetWidth;
+    mapSayEl.style.animation = "";
+    mapSayTimer = setTimeout(() => {
+      mapSayEl.hidden = true;
+    }, ms || 5000);
+    mapRender();
+  }
+  // Bấm “Bắt đầu”: hiện bản đồ, nhân vật xuất hiện và rủ bạn đi khám phá
+  function mapGreet() {
+    mapSetInside(false);
+    mapTarget = null;
+    mapIgnore = null;
+    mapNear = null;
+    mapPos.x = MAP.start[0];
+    mapPos.y = MAP.start[1];
+    mapDir = "down";
+    mapFrame = 0;
+    mapSetSprite();
+    mapRender();
+    mapPlayerImg.classList.remove("map-appear");
+    void mapPlayerImg.offsetWidth;
+    mapPlayerImg.classList.add("map-appear");
+    mapSaySet("Cùng mình khám phá nào!", 6500);
+  }
+  let mapInside = false; // nhân vật đang ở trong tiệm: ẩn khỏi bản đồ cho tới khi bắt đầu đi lại
+  function mapSetInside(v) {
+    mapInside = v;
+    if (mapPlayer) mapPlayer.style.visibility = v ? "hidden" : "";
+    if (v && mapEnterBtn) mapEnterBtn.hidden = true;
+    if (v) mapSaySet("");
+  }
 
   function enterMapShop(shop) {
     if (typeof shop.go === "function") {
@@ -1153,6 +1203,7 @@
     mapIgnore = shop.id;
     mapNear = null;
     if (mapEnterBtn) mapEnterBtn.hidden = true;
+    mapSetInside(true);
     enterMapShop(shop);
   }
   function mapSetSprite() {
@@ -1193,6 +1244,7 @@
       b.append(lbl);
       // chạm vào quán: nhân vật đi tới cửa rồi vào
       b.addEventListener("click", () => {
+        mapSetInside(false);
         mapIgnore = null;
         mapTarget = mapClamp({ x: shop.door[0], y: shop.door[1] });
         startMapLoop();
@@ -1210,7 +1262,10 @@
     mapEnterBtn.className = "map-enter";
     mapEnterBtn.hidden = true;
     mapEnterBtn.addEventListener("click", () => mapNear && mapEnterNow(mapNear));
-    mapSpots.append(mapPlayer, mapEnterBtn);
+    mapSayEl = document.createElement("div");
+    mapSayEl.className = "map-say";
+    mapSayEl.hidden = true;
+    mapSpots.append(mapPlayer, mapEnterBtn, mapSayEl);
     mapPos.x = MAP.start[0];
     mapPos.y = MAP.start[1];
     Object.values(WALK).forEach((set) =>
@@ -1230,6 +1285,8 @@
   mapStage.addEventListener("click", (e) => {
     if (e.target.closest(".map-shop, .map-enter")) return;
     const r = mapStage.getBoundingClientRect();
+    mapSetInside(false);
+    mapSaySet("");
     mapIgnore = null;
     mapTarget = mapClamp({
       x: ((e.clientX - r.left) / r.width) * 100,
@@ -1242,10 +1299,11 @@
     if (e.target && /^(input|textarea|select)$/i.test(e.target.tagName)) return;
     const k = e.key.toLowerCase();
     if (["arrowleft", "arrowright", "arrowup", "arrowdown", "a", "d", "w", "s"].includes(k)) {
+      mapSetInside(false);
       mapKeys[k] = true;
       e.preventDefault();
       startMapLoop();
-    } else if ((k === "enter" || k === " ") && mapNear) {
+    } else if ((k === "enter" || k === " ") && mapNear && !mapInside) {
       e.preventDefault();
       mapEnterNow(mapNear);
     }
@@ -1265,6 +1323,10 @@
     mapPlayer.style.zIndex = Math.round(mapPos.y * 10) + 5;
     mapEnterBtn.style.left = mapPos.x + "%";
     mapEnterBtn.style.top = "calc(" + mapPos.y + "% - " + (h + 6) + "px)";
+    if (mapSayEl) {
+      mapSayEl.style.left = mapPos.x + "%";
+      mapSayEl.style.top = "calc(" + mapPos.y + "% - " + (h + 12) + "px)";
+    }
   }
   function mapLoop(now) {
     if (mapSheet.hidden) {
@@ -1329,6 +1391,7 @@
         break;
       }
     }
+    if (mapInside) hit = null; // đang ở trong tiệm: không hiện nút “Vào …”
     if (mapIgnore && (!hit || hit.id !== mapIgnore)) mapIgnore = null;
     if (hit && hit.id === mapIgnore) hit = null;
     if (hit !== mapNear) {
@@ -1348,6 +1411,7 @@
     mapRaf = requestAnimationFrame(mapLoop);
   }
   $("#btn-map").addEventListener("click", () => {
+    mapSetInside(false);
     mapSheet.hidden = false;
     mapSetSprite(); // có thể vừa đổi nhân vật trong Cài đặt
     mapRender();
@@ -1357,9 +1421,6 @@
       sc.scrollLeft = want; // mở ra ngay chỗ nhân vật đang đứng
     }
     startMapLoop();
-  });
-  $("#map-close").addEventListener("click", () => {
-    mapSheet.hidden = true;
   });
   window.addEventListener("resize", () => mapRender());
 
@@ -1634,7 +1695,21 @@
     welcomeEl.hidden = false;
   }
   $("#welcome-ok").addEventListener("click", closeWelcome);
+  function startMapStart() {
+    goRooms(); // “về nhà” trên bản đồ sẽ quay về danh sách phòng
+    const open = () => {
+      mapGreet();
+      $("#btn-map").click();
+    };
+    if (mapPlayer) open();
+    else mapImg.addEventListener("load", open, { once: true });
+  }
   function startGame() {
+    // người chơi đã xem lời chào và hướng dẫn: vào thẳng bản đồ; lần đầu giữ nguyên phần làm quen ở phòng
+    if (state.welcomed && state.tour) {
+      startMapStart();
+      return;
+    }
     enterRoom(START_ROOM);
     if (!state.welcomed) showWelcome();
     else if (!state.tour) setTimeout(() => Tour.run("game"), 150);
@@ -1782,11 +1857,19 @@
     renderSound();
     renderMusic();
     renderChar();
+    $("#settings-home").hidden = mapSheet.hidden; // chỉ hiện khi đang mở bản đồ
     settings.hidden = false;
   };
   $("#btn-settings").addEventListener("click", openSettings);
   $("#btn-settings-rooms").addEventListener("click", openSettings);
   $("#btn-settings-game").addEventListener("click", openSettings);
+  $("#btn-settings-map").addEventListener("click", openSettings);
+  $("#btn-settings-market").addEventListener("click", openSettings);
+  $("#btn-settings-shop").addEventListener("click", openSettings);
+  $("#settings-home").addEventListener("click", () => {
+    settings.hidden = true;
+    mapSheet.hidden = true; // về nhà: danh sách phòng nằm ngay bên dưới bản đồ
+  });
   let tourBtn = $("#btn-tour");
   if (!tourBtn) {
     // index.html cũ chưa có nút: tự tạo để game không bị dừng giữa chừng
@@ -1802,6 +1885,7 @@
   }
   tourBtn.addEventListener("click", () => {
     settings.hidden = true;
+    mapSheet.hidden = true;
     if (screens.game.hidden) enterRoom(START_ROOM);
     Tour.run("game"); // xem lại hướng dẫn
   });
@@ -1814,7 +1898,15 @@
   settings.addEventListener("click", (e) => {
     if (e.target === settings) settings.hidden = true;
   });
-  $("#rooms-back").addEventListener("click", () => show("start"));
+    $("#rooms-back").addEventListener("click", () => {
+    closeMkQuiz();
+    goRooms();
+    mapSheet.hidden = false; // quay lại bản đồ
+    mapSetSprite();
+    mapRender();
+    startMapLoop();
+    updateHud();
+  });
   $("#btn-rooms").addEventListener("click", goRooms);
 
   /* ---------- Cửa hàng tạp hóa ---------- */
@@ -2112,7 +2204,7 @@
     mkRevealTimer = null;
 
   const mkStallOf = (id) => MARKET_STALLS.find((s) => s.id === id) || MARKET_STALLS[0];
-  const mkItemsOf = (st) => st.spots.map((s) => MK[s[0]]);
+  const mkItemsOf = (st) => [...new Set(st.spots.map((s) => s[0]))].map((id) => MK[id]);
   // đã học đủ các thứ tiếng đang học (theo Cài đặt): không học lại nữa
   function mkDone(it) {
     const s = state.mkt.learned[it.id] || {};
@@ -2170,6 +2262,7 @@
   function mkSetStall(id) {
     const st = mkStallOf(id);
     mkStall = st.id;
+    $("#market").classList.toggle("is-place", !!st.place);
     document
       .querySelectorAll(".mk-tab[data-stall]")
       .forEach((b) =>
@@ -2183,6 +2276,13 @@
     closeMkQuiz();
     show("market");
     mkSetStall("rau");
+  }
+  function openPlace(id) {
+    mapSheet.hidden = true;
+    closeMkQuiz();
+    show("market");
+    mkSetStall(id);
+    toast(mkStallOf(id).name + ": chạm vào đồ vật để học từ");
   }
   document
     .querySelectorAll(".mk-tab[data-stall]")
