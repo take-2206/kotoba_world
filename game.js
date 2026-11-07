@@ -1119,64 +1119,45 @@
       refH: 941,
       cols: 120,
       rows: 68,
-      // Vật cản ngoài quán: cây, hàng rào, ao, bụi cây, xe, ruộng (tọa độ px trên ảnh 1672 × 941)
+      // Vật cản ngoài quán theo ảnh nền mới "田園町の四差路" (tọa độ px trên ảnh 1672 × 941)
       blocks: [
-        // nhà dân: cây cọ, hàng rào, cây hoa
-        pxv(190, 250, 28, 40),
-        pxv(155, 312, 245, 48),
-        pxv(470, 312, 175, 48),
-        pxv(605, 185, 45, 135),
-        pxv(620, 240, 30, 60),
-        // chợ và cây giữa chợ với trạm xá
-        pxv(560, 113, 170, 185),
-        pxv(1100, 120, 60, 200),
-        // trạm xá: xe cứu thương, hàng rào, cây bên phải
-        pxv(1155, 120, 270, 200),
-        pxv(1437, 225, 90, 120),
-        pxv(1130, 318, 115, 28),
-        pxv(1278, 318, 175, 28),
-        pxv(1525, 113, 147, 300),
-        // giữa làng: cây to, ghế đá, cột biển
-        pxv(770, 395, 90, 60),
-        pxv(910, 395, 25, 70),
-        // bên trái: cây và hàng rào
-        pxv(40, 113, 135, 260),
-        pxv(40, 430, 90, 150),
-        pxv(0, 600, 190, 40),
-        // ao và bụi cây
-        pxv(0, 720, 240, 221),
-        pxv(240, 760, 170, 130),
-        pxv(230, 700, 190, 60),
-        // tiệm làm tóc: hàng rào, cây, chậu cây
-        pxv(515, 500, 45, 165),
-        pxv(480, 520, 40, 40),
-        pxv(395, 620, 70, 40),
-        // quán nhậu: cột đèn, bụi cây
-        pxv(684, 555, 14, 185),
-        pxv(640, 600, 45, 140),
-        pxv(1080, 600, 45, 120),
-        // tiệm sửa xe: hàng rào, cây cọ, cây xanh
-        pxv(1160, 470, 35, 170),
-        pxv(1425, 430, 25, 40),
-        pxv(1060, 430, 120, 130),
-        pxv(1500, 380, 172, 230),
-        pxv(1290, 700, 382, 60),
-        // phía dưới: rừng và ruộng lúa
-        pxv(700, 790, 300, 151),
-        pxv(1000, 770, 672, 171),
-        pxv(430, 820, 140, 121),
-        pxv(290, 840, 170, 101),
+        // phía trên bên trái: hàng rào, cây cọ, bụi cây, hoa
+        pxv(0, 0, 715, 135),
+        pxv(0, 135, 100, 250),
+        pxv(100, 190, 165, 105),
+        pxv(0, 405, 215, 115),
+        // ao + cây phía dưới bên trái, hàng rào chéo
+        pxv(0, 610, 170, 80),
+        pxv(0, 685, 250, 256),
+        pxv(250, 705, 230, 236),
+        pxv(460, 755, 150, 186),
+        // cây phía dưới giữa
+        pxv(860, 790, 150, 151),
+        // phía trên bên phải: cây, ruộng lúa, hàng rào
+        pxv(860, 0, 812, 195),
+        pxv(1480, 120, 192, 230),
+        pxv(1560, 400, 112, 150),
+        // phía dưới bên phải: bụi cây, hàng rào, ruộng lúa, xe bò
+        pxv(1130, 715, 542, 226),
+        pxv(1290, 690, 330, 30),
+        pxv(1600, 630, 72, 80),
+        // giữa ngã tư: thân cây, ghế đá, cột biển (tán cây vẽ đè lên, nhân vật đi sau tán)
+        pxv(815, 395, 80, 62),
+        pxv(910, 400, 26, 60),
       ],
       bounds: [3, 97, 12, 96],
       charH: [0.1, 0.15],
       reach: 3.2,
+      // Cây lớn giữa ngã tư (vẽ đè lên nền; z = đáy thân cây, nhân vật phía trên thì đi sau tán)
+      deco: [{ src: "assets/map/cay-giua.png", rect: pxv(739, 251, 243, 254), z: 486 }],
+      // img = hình quán; sign = true nếu hình đã có biển tên nên không hiện thêm nhãn chữ
       shops: [
-        { id: "nha", name: "Nhà", rect: [15.2, 10.1, 19.7, 21.3], lbl: [25.1, 34.0], door: [23.6, 28.7] },
-        { id: "cho", name: "Chợ", rect: [48.7, 11.2, 17.9, 20.7], lbl: [58.9, 15.9], door: [57.4, 31.3] },
-        { id: "tramxa", name: "Trạm xá", rect: [69.1, 12.8, 22.1, 24], lbl: [77.4, 22.0], door: [75.9, 32.4] },
-        { id: "lamtoc", name: "Tiệm làm tóc", rect: [13.2, 43.6, 18.5, 24.4], lbl: [21.8, 48.4], door: [17.9, 67.5] },
-        { id: "quannhau", name: "Quán nhậu", rect: [42.8, 55.8, 21.8, 23.4], lbl: [50.8, 61.1], door: [52.6, 78.9] },
-        { id: "suaxe", name: "Tiệm sửa xe", rect: [71.2, 46.8, 18.5, 24.4], lbl: [79.8, 52.1], door: [78.3, 70.1] },
+        { id: "nha", name: "Nhà", img: "assets/map/nha.png", rect: [15.2, 10.1, 19.7, 21.3], lbl: [25.1, 34.0], door: [23.6, 28.7] },
+        { id: "cho", name: "Chợ", img: "assets/map/cho.png", sign: true, rect: [48.7, 11.2, 17.9, 20.7], lbl: [58.9, 15.9], door: [57.4, 31.3] },
+        { id: "tramxa", name: "Trạm xá", img: "assets/map/tram-xa.png", sign: true, rect: [69.1, 12.8, 22.1, 24], lbl: [77.4, 22.0], door: [75.9, 32.4] },
+        { id: "lamtoc", name: "Tiệm làm tóc", img: "assets/map/tiem-toc.png", sign: true, rect: [13.2, 43.6, 18.5, 24.4], lbl: [21.8, 48.4], door: [17.9, 67.5] },
+        { id: "quannhau", name: "Quán nhậu", img: "assets/map/quan-nhau.png", sign: true, rect: [42.8, 55.8, 21.8, 23.4], lbl: [50.8, 61.1], door: [52.6, 78.9] },
+        { id: "suaxe", name: "Tiệm sửa xe", img: "assets/map/tiem-sua-xe.png", sign: true, rect: [71.2, 46.8, 18.5, 24.4], lbl: [79.8, 52.1], door: [78.3, 70.1] },
       ],
     },
   };
@@ -1418,6 +1399,19 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
     mapStage.style.setProperty("--map-ratio", ratio);
     mapStage.classList.toggle("is-village", MAP === MAP_PRESETS.village);
     mapSpots.textContent = "";
+    (MAP.deco || []).forEach((d) => {
+      const im = document.createElement("img");
+      im.className = "map-deco";
+      im.src = d.src;
+      im.alt = "";
+      im.draggable = false;
+      im.style.left = d.rect[0] + "%";
+      im.style.top = d.rect[1] + "%";
+      im.style.width = d.rect[2] + "%";
+      im.style.height = d.rect[3] + "%";
+      im.style.zIndex = d.z;
+      mapSpots.append(im);
+    });
     MAP.shops.forEach((shop) => {
       const [x, y, w, h] = shop.rect;
       const b = document.createElement("button");
@@ -1429,6 +1423,15 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
       b.style.top = y + "%";
       b.style.width = w + "%";
       b.style.height = h + "%";
+      b.style.zIndex = Math.round(shop.door[1] * 10) - 20; // nhân vật đứng trước cửa thì hiện đè lên quán
+      if (shop.img) {
+        const im = document.createElement("img");
+        im.className = "map-shop-img";
+        im.src = shop.img;
+        im.alt = "";
+        im.draggable = false;
+        b.append(im);
+      }
       const lbl = document.createElement("span");
       lbl.className = "map-shop-lbl";
       lbl.textContent = shop.name;
@@ -1437,12 +1440,12 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
         lbl.style.left = ((shop.lbl[0] - x) / w) * 100 + "%";
         lbl.style.top = ((shop.lbl[1] - y) / h) * 100 + "%";
       }
-      b.append(lbl);
+      if (!shop.sign) b.append(lbl);
       // chạm vào quán: nhân vật đi tới cửa rồi vào
       b.addEventListener("click", () => {
         mapSetInside(false);
         mapIgnore = null;
-        mapPath = mapFindPath(mapPos, { x: shop.door[1], y: shop.door[1] });
+        mapPath = mapFindPath(mapPos, { x: shop.door[0], y: shop.door[1] });
         mapTarget = mapPath.shift() || null;
         startMapLoop();
       });
