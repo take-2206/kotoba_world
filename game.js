@@ -1152,12 +1152,12 @@
       deco: [{ src: "assets/map/cay-giua.png", rect: pxv(739, 251, 243, 254), z: 486 }],
       // img = hình quán; sign = true nếu hình đã có biển tên nên không hiện thêm nhãn chữ
       shops: [
-        { id: "nha", name: "Nhà", img: "assets/map/nha.png", rect: [15.2, 10.1, 19.7, 21.3], lbl: [25.1, 34.0], door: [23.6, 28.7] },
-        { id: "cho", name: "Chợ", img: "assets/map/cho.png", sign: true, rect: [48.7, 11.2, 17.9, 20.7], lbl: [58.9, 15.9], door: [57.4, 31.3] },
-        { id: "tramxa", name: "Trạm xá", img: "assets/map/tram-xa.png", sign: true, rect: [69.1, 12.8, 22.1, 24], lbl: [77.4, 22.0], door: [75.9, 32.4] },
-        { id: "lamtoc", name: "Tiệm làm tóc", img: "assets/map/tiem-toc.png", sign: true, rect: [13.2, 43.6, 18.5, 24.4], lbl: [21.8, 48.4], door: [17.9, 67.5] },
-        { id: "quannhau", name: "Quán nhậu", img: "assets/map/quan-nhau.png", sign: true, rect: [42.8, 55.8, 21.8, 23.4], lbl: [50.8, 61.1], door: [52.6, 78.9] },
-        { id: "suaxe", name: "Tiệm sửa xe", img: "assets/map/tiem-sua-xe.png", sign: true, rect: [71.2, 46.8, 18.5, 24.4], lbl: [79.8, 52.1], door: [78.3, 70.1] },
+        { id: "nha", name: "Nhà", img: "assets/map/nha.png", rect: [15.2, 10.1, 19.7, 21.3], lbl: [25.1, 9.0], door: [23.6, 28.7] },
+        { id: "cho", name: "Chợ", img: "assets/map/cho.png", rect: [48.7, 11.2, 17.9, 20.7], lbl: [58.0, 9.4], door: [57.4, 31.3] },
+        { id: "tramxa", name: "Trạm xá", img: "assets/map/tram-xa.png", rect: [69.1, 12.8, 22.1, 24], lbl: [80.1, 10.6], door: [75.9, 32.4] },
+        { id: "lamtoc", name: "Tiệm làm tóc", img: "assets/map/tiem-toc.png", rect: [13.2, 43.6, 18.5, 24.4], lbl: [22.5, 41.4], door: [17.9, 67.5] },
+        { id: "quannhau", name: "Quán nhậu", img: "assets/map/quan-nhau.png", rect: [42.8, 55.8, 21.8, 23.4], lbl: [53.8, 54.4], door: [52.6, 78.9] },
+        { id: "suaxe", name: "Tiệm sửa xe", img: "assets/map/tiem-sua-xe.png", rect: [71.2, 46.8, 18.5, 24.4], lbl: [80.4, 44.4], door: [78.3, 70.1] },
       ],
     },
   };
