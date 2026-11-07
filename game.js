@@ -1452,7 +1452,7 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
       b.addEventListener("click", () => {
         mapSetInside(false);
         mapIgnore = null;
-        mapPath = mapFindPath(mapPos, { x: shop.door[1], y: shop.door[1] });
+        mapPath = mapFindPath(mapPos, { x: shop.door[0], y: shop.door[1] });
         mapTarget = mapPath.shift() || null;
         startMapLoop();
       });
