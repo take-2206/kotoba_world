@@ -1070,16 +1070,16 @@
      Muốn mở thêm quán thật: thêm hàm vào GO bên dưới, ví dụ  tramxa: () => openClinic() */
   const WALK = {
     boy: {
-      down: ["assets/walk/boy_down_1.png"],
+      down: ["assets/walk/boy_down_0.png"],
       left: ["assets/walk/boy_left_0.png"],
       up: ["assets/walk/boy_up_0.png"],
       right: ["assets/walk/boy_right_0.png"],
     },
     girl: {
-      down: ["assets/walk/girl_down_0.png", "assets/walk/girl_down_1.png"],
-      left: ["assets/walk/girl_left_0.png", "assets/walk/girl_left_1.png"],
-      up: ["assets/walk/girl_up_0.png", "assets/walk/girl_up_1.png"],
-      right: ["assets/walk/girl_right_0.png", "assets/walk/girl_right_1.png"],
+      down: ["assets/walk/girl_down_0.png"],
+      left: ["assets/walk/girl_left_0.png"],
+      up: ["assets/walk/girl_up_0.png"],
+      right: ["assets/walk/girl_right_0.png"],
     },
   };
   const GO = {
@@ -1267,7 +1267,8 @@
   }
   function mapSetSprite() {
     const set = WALK[state.char === "girl" ? "girl" : "boy"];
-    const src = set[mapDir][mapFrame];
+    const frames = set[mapDir];
+const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướng thì luôn lấy hình đó
     if (mapPlayerImg && mapPlayerImg.getAttribute("src") !== src) mapPlayerImg.src = src;
   }
   function mapClamp(p) {
@@ -1441,7 +1442,7 @@
       b.addEventListener("click", () => {
         mapSetInside(false);
         mapIgnore = null;
-        mapPath = mapFindPath(mapPos, { x: shop.door[0], y: shop.door[1] });
+        mapPath = mapFindPath(mapPos, { x: shop.door[1], y: shop.door[1] });
         mapTarget = mapPath.shift() || null;
         startMapLoop();
       });

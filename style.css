@@ -3938,3 +3938,55 @@ details.entry[open] summary {
 #settings {
   z-index: 13;
 }
+/* ---------- Nút "Đi học" cạnh nút Cài đặt ở màn Chọn phòng ---------- */
+.rooms-head .study-go {
+  flex: none;
+  gap: 6px;
+  font-weight: 700;
+}
+.study-go .study-ico {
+  font-size: 18px;
+  line-height: 1;
+}
+@media (max-width: 420px) {
+  .rooms-head .study-go {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .rooms-head .study-go .study-lbl {
+    display: none;
+  }
+}
+@media (max-width: 420px) {
+  .rooms-head h2 {
+    font-size: 21px; /* chừa chỗ cho thêm nút Đi học */
+  }
+}
+
+/* ---------- Nút "Đi học" trên bản đồ khu phố (đứng cạnh nút Cài đặt) ---------- */
+.map-top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.map-top .study-go {
+  flex: none;
+  gap: 6px;
+  font-weight: 700;
+}
+@media (max-width: 420px) {
+  .map-top-right {
+    gap: 8px;
+  }
+  .map-top .study-go {
+    width: 42px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 50%;
+  }
+  .map-top .study-go .study-lbl {
+    display: none;
+  }
+}

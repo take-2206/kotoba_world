@@ -1323,10 +1323,26 @@
     showStudyWelcome();
   }
   const langPick = $("#lang-pick");
-  $("#btn-study").addEventListener("click", () => {
+  const openLangPick = () => {
     if (langPick) langPick.hidden = false; // chọn tiếng Anh (TOEIC) hay tiếng Nhật (N1)
     else openN1();
-  });
+  };
+  $("#btn-study").addEventListener("click", openLangPick);
+  const studyGo = $("#btn-study-rooms"); // nút "Đi học" ở màn Chọn phòng
+  if (studyGo) studyGo.addEventListener("click", openLangPick);
+  const studyGoMap = $("#btn-study-map"); // nút "Đi học" trên bản đồ khu phố
+  if (studyGoMap) studyGoMap.addEventListener("click", openLangPick);
+  if (langPick)
+    // Chọn Anh hoặc Nhật thì đóng bản đồ (bản đồ nằm phía trên màn học nên sẽ che mất)
+    langPick.addEventListener(
+      "click",
+      (e) => {
+        if (!e.target.closest("#lang-n1, #lang-en")) return;
+        const m = $("#map");
+        if (m) m.hidden = true;
+      },
+      true
+    );
   if (langPick) {
     $("#lang-n1").addEventListener("click", () => {
       langPick.hidden = true;
