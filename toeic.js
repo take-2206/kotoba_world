@@ -502,6 +502,12 @@
       return;
     }
     show(false);
+    if (window.kotobaStudyFromMap) {
+      // vào học từ bản đồ thì quay lại bản đồ
+      window.kotobaStudyFromMap = false;
+      const mapBtn = $("#btn-map");
+      if (mapBtn) mapBtn.click();
+    }
   });
   const pick = $("#lang-pick");
   const en = $("#lang-en");

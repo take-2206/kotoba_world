@@ -1327,11 +1327,31 @@
     if (langPick) langPick.hidden = false; // chọn tiếng Anh (TOEIC) hay tiếng Nhật (N1)
     else openN1();
   };
-  $("#btn-study").addEventListener("click", openLangPick);
+  /* Nhớ xem đã vào học từ bản đồ chưa: nếu rồi thì bấm Quay lại sẽ mở lại bản đồ.
+     (toeic.js dùng chung cờ window.kotobaStudyFromMap này.) */
+  window.kotobaStudyFromMap = false;
+  function backToMapIfNeeded() {
+    if (!window.kotobaStudyFromMap) return;
+    window.kotobaStudyFromMap = false;
+    const mapBtn = $("#btn-map");
+    if (mapBtn) mapBtn.click(); // mở lại bản đồ đúng như khi bấm nút Bản đồ
+  }
+  $("#btn-study").addEventListener("click", () => {
+    window.kotobaStudyFromMap = false;
+    openLangPick();
+  });
   const studyGo = $("#btn-study-rooms"); // nút "Đi học" ở màn Chọn phòng
-  if (studyGo) studyGo.addEventListener("click", openLangPick);
+  if (studyGo)
+    studyGo.addEventListener("click", () => {
+      window.kotobaStudyFromMap = false;
+      openLangPick();
+    });
   const studyGoMap = $("#btn-study-map"); // nút "Đi học" trên bản đồ khu phố
-  if (studyGoMap) studyGoMap.addEventListener("click", openLangPick);
+  if (studyGoMap)
+    studyGoMap.addEventListener("click", () => {
+      window.kotobaStudyFromMap = true;
+      openLangPick();
+    });
   if (langPick)
     // Chọn Anh hoặc Nhật thì đóng bản đồ (bản đồ nằm phía trên màn học nên sẽ che mất)
     langPick.addEventListener(
@@ -1362,6 +1382,7 @@
       return;
     }
     showStudy(false); // đang ở trang luyện N1 thì mới thoát ra trang chủ
+    backToMapIfNeeded(); // vào học từ bản đồ thì quay lại bản đồ
   });
   function toggleToday(tab) {
     if (todayOpen && todayTab === tab) todayOpen = false; // bấm lại đúng nút đang mở thì đóng

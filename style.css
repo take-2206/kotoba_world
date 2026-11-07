@@ -3719,8 +3719,8 @@ details.entry[open] summary {
   left: calc(14px + var(--sal));
   bottom: calc(46px + var(--sab));
   z-index: 2;
-  width: 112px;
-  height: 112px;
+  width: 60px;
+  height: 60px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(58, 36, 18, 0.35), rgba(28, 17, 10, 0.6) 75%);
   border: 2px solid rgba(251, 243, 220, 0.6);
@@ -3736,10 +3736,10 @@ details.entry[open] summary {
 }
 .map-joy-knob {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 48px;
-  height: 48px;
+  left: 70%;
+  top: 70%;
+  width: 28px;
+  height: 28px;
   margin: -24px 0 0 -24px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #fff8e6, var(--cream2) 60%, #d9b979);
