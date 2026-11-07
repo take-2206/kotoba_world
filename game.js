@@ -1392,6 +1392,16 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
     return out;
   }
 
+  // Camera: cuộn khung bản đồ để nhân vật nằm giữa. k = 1 là nhảy tới ngay, nhỏ hơn là trượt mượt.
+  function mapCam(k) {
+    const sc = mapScroll,
+      f = Math.min(1, k);
+    const wantX = (mapPos.x / 100) * mapStage.offsetWidth + mapStage.offsetLeft - sc.clientWidth / 2;
+    const wantY = (mapPos.y / 100) * mapStage.offsetHeight + mapStage.offsetTop - sc.clientHeight / 2;
+    if (sc.scrollWidth - sc.clientWidth > 1) sc.scrollLeft += (wantX - sc.scrollLeft) * f;
+    if (sc.scrollHeight - sc.clientHeight > 1) sc.scrollTop += (wantY - sc.scrollTop) * f;
+  }
+
   function initMap() {
     const ratio = mapImg.naturalWidth / mapImg.naturalHeight || 1778 / 592;
     MAP = ratio > 2.2 ? MAP_PRESETS.street : MAP_PRESETS.village;
@@ -1638,11 +1648,7 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
         mapFrameT = now;
       }
       mapSetSprite();
-      // màn hình dọc: bản đồ vuốt ngang được, camera đi theo nhân vật
-      if (mapScroll.scrollWidth - mapScroll.clientWidth > 1) {
-        const want = (mapPos.x / 100) * mapStage.offsetWidth + mapStage.offsetLeft - mapScroll.clientWidth / 2;
-        mapScroll.scrollLeft += (want - mapScroll.scrollLeft) * Math.min(1, dt * 6);
-      }
+      mapCam(dt * 6); // camera đi theo nhân vật (khi bản đồ lớn hơn màn hình)
     } else if (mapFrame) {
       mapFrame = 0;
       mapSetSprite();
@@ -1683,11 +1689,7 @@ const src = frames[mapFrame % frames.length]; // chỉ có 1 hình mỗi hướn
     mapSheet.hidden = false;
     mapSetSprite(); // có thể vừa đổi nhân vật trong Cài đặt
     mapRender();
-    const sc = mapScroll;
-    if (sc.scrollWidth - sc.clientWidth > 1) {
-      const want = (mapPos.x / 100) * mapStage.offsetWidth + mapStage.offsetLeft - sc.clientWidth / 2;
-      sc.scrollLeft = want; // mở ra ngay chỗ nhân vật đang đứng
-    }
+    mapCam(1); // mở ra ngay chỗ nhân vật đang đứng
     startMapLoop();
   });
   window.addEventListener("resize", () => mapRender());

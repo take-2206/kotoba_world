@@ -3567,9 +3567,14 @@ details.entry[open] summary {
     height: auto; /* màn ngang: ảnh vừa chiều rộng */
     width: 100%;
   }
+  /* bản đồ làng phủ kín màn hình: phần thừa bị cắt, camera đi theo nhân vật */
   .map-stage.is-village {
     height: auto;
-    width: min(100vw, calc(100dvh * var(--map-ratio))); /* vừa khít, không bị cắt */
+    width: max(100vw, calc(100dvh * var(--map-ratio)));
+  }
+  .map-scroll:has(.map-stage.is-village) {
+    overflow: hidden;
+    align-items: flex-start;
   }
 }
 .map-img {
